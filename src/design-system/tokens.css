@@ -1,348 +1,335 @@
 /*
- * structureCo · Design tokens
+ * FusionStructure · Fundación visual
  * ---------------------------------------------------------------------------
- * Dirección visual: instrumento estructural mate, duro y táctil.
+ * Dirección: MINIMALISMO PURO. Tinta sobre papel.
  *
- * Día usa marfil cálido y Noche petróleo profundo. La interfaz se construye
- * con bordes definidos, cuatro profundidades y sombras cortas de contacto.
- * Los colores técnicos se declaran una sola vez y no cambian con el tema.
+ * Esta es la única capa que declara valores. No hay hoja de parches encima, no
+ * hay `!important` de reconciliación y no hay una segunda verdad en
+ * `src/minimal/`. Editar la identidad de FusionStructure es editar este
+ * archivo.
  *
- * Capas:
- *   1. Primitivas (rampas de color, escalas). Nunca se consumen directo.
- *   2. Roles semánticos (--sc-color-*). Los componentes consumen esto.
- *   3. Roles técnicos del dominio (cargas, diagramas, reacciones...).
- *   4. Forma, espaciado y tamaños.
- *   5. Materia: base, inset, raised y floating.
- *   6. Tipografía (interfaz/display + numérica).
+ * No hereda la dirección de ninguno de los dos productos de origen:
+ *   · StructureCo traía marfil cálido, acento menta y claymorphism —sombras de
+ *     doble dirección con luz interior— sobre radios de 18/24/28px.
+ *   · Copia-web traía gris acromático con un azul de sistema como marca.
+ * FusionStructure no es ninguna de las dos ni su promedio.
+ *
+ * LAS CUATRO REGLAS
+ * ---------------------------------------------------------------------------
+ *  1. LA INTERFAZ NO TIENE COLOR. Fondos, superficies, bordes, texto, acciones
+ *     y estados de control son acromáticos. Ni un solo hue en el chrome. El
+ *     acento de marca es la tinta misma: negro sobre blanco en Día, blanco
+ *     sobre negro en Noche.
+ *
+ *  2. EL COLOR ES DEL DOMINIO. Sólo cinco hues entran en la aplicación —rojo,
+ *     azul, verde, amarillo y rosa— y sólo para significar algo que el solver o
+ *     el modelo dicen: una carga, una acción interna, una cota, un estado. Se
+ *     usan como TRAZO fino, no como relleno de superficie. Un panel nunca se
+ *     tiñe; una línea sí.
+ *
+ *  3. LA PROFUNDIDAD ES EL FILETE. Un borde de 1px y el espacio separan las
+ *     cosas. La escala de sombras existe en un solo escalón real, reservado a
+ *     lo que de verdad se despega del plano —popover, hoja, modal, toast— y es
+ *     una sombra de contacto neutra, nunca una luz propia por pieza.
+ *
+ *  4. MENOS SUPERFICIE, MENOS TEXTO. Radios cortos, tarjetas pequeñas, filas
+ *     densas, etiquetas breves. Lo que se puede decir con una cifra no lleva
+ *     una frase.
+ *
+ * INVARIANZA POR TEMA
+ * ---------------------------------------------------------------------------
+ * Los cinco hues del dominio se declaran UNA sola vez en `:root` y no se
+ * redefinen en Noche: un momento flector no cambia de significado al apagar la
+ * luz. El bloque `[data-theme='dark']` sólo puede redefinir neutros —fondos,
+ * superficies, filetes, tintas de texto— y las tintas de estado que se apoyan
+ * sobre esas superficies, que sí tienen que recalibrarse para seguir legibles.
+ *
+ * Capas de este archivo:
+ *   1. Primitivas — la escala de grises y los cinco hues.
+ *   2. Roles semánticos de interfaz (Día).
+ *   3. Roles técnicos del dominio (invariantes).
+ *   4. Espaciado, tamaños y forma.
+ *   5. Materia: filete y un único escalón de elevación.
+ *   6. Tipografía.
  *   7. Controles, layout y densidad.
  *   8. Motion y apilamiento.
- *   9. Alias de compatibilidad (--app-bg, --accent...) para CSS existente.
- *
- * REGLA DE PALETA ÚNICA
- * ---------------------------------------------------------------------------
- * Todo color *semántico* — marca, N/axial, V/cortante, M/momento, deformada,
- * reacción, cota, eje, selección, foco, warning, error, success y Aula — usa
- * EXACTAMENTE el mismo HEX en Día y en Noche, y se declara una sola vez en
- * `:root`. El bloque `[data-theme='dark']` sólo puede redefinir neutros,
- * fondos, superficies, bordes, tintas de texto y sistema visual anterior. `tokens.test.ts`
- * lo comprueba: si un rol semántico reaparece en el bloque oscuro, falla.
- *
- * Excepciones deliberadas:
- *   · Las tintas de texto sobre superficie (`--sc-color-state-*-foreground`,
- *     `--sc-color-text-link`) NO pueden ser invariantes: entre la superficie
- *     Día y la Noche hay 15,7:1, y un mismo color a 4,5:1 de ambas necesitaría
- *     20,25:1. Es imposible, no una omisión.
- *   · Los rellenos suaves (`--sc-color-action-subtle`, `--sc-color-selection`)
- *     son fondos, y los fondos sí cambian de fase por tema.
- *   · La rampa del índice elástico (`--sc-color-demand-*`) es una escala
- *     secuencial, no un significado: tiene que crecer alejándose del fondo, y
- *     el fondo se invierte entre temas.
- *
- * Los roles exactos aprobados se verifican en `totalRedesignFoundation.test.ts`.
+ *   9. Alias de compatibilidad para el CSS existente.
+ *  10. Tema Noche.
  */
 
 :root {
   /* ------------------------------------------------------------------ */
   /* 1 · PRIMITIVAS                                                      */
   /* ------------------------------------------------------------------ */
+
+  /* Escala acromática. Sin temperatura: ni marfil ni grafito verdoso. Es la
+     única familia con la que se construye la interfaz entera. */
   --sc-white: #ffffff;
   --sc-black: #000000;
+  --fs-gray-0: #ffffff;
+  --fs-gray-25: #fafafa;
+  --fs-gray-50: #f5f5f5;
+  --fs-gray-100: #ededed;
+  --fs-gray-150: #eaeaea;
+  --fs-gray-200: #dcdcdc;
+  --fs-gray-300: #c4c4c4;
+  --fs-gray-400: #a8a8a8;
+  --fs-gray-500: #8f8f8f;
+  --fs-gray-600: #737373;
+  --fs-gray-700: #525252;
+  --fs-gray-800: #333333;
+  --fs-gray-900: #1a1a1a;
+  --fs-gray-950: #0a0a0a;
 
-  /* El grafito frío (el papel y la tinta) no se declara como rampa: sólo dos
-     de sus escalones tienen consumidor, y una rampa que nadie usa viaja en el
-     chunk de entrada sin pagar su sitio. Los valores intermedios de la familia
-     están resumidos en README.md. */
+  /* LOS CINCO HUES. Todo el color de FusionStructure cabe aquí. Cada uno está
+     medido para leerse como TRAZO de 1,5-2px sobre las cuatro superficies del
+     producto (lienzo y panel × Día y Noche), que es como se usan: líneas y
+     glifos, nunca planos de fondo.
 
-  /* Rampas históricas conservadas para alias secundarios. La acción primaria
-     nueva se declara directamente en sus roles semánticos. */
-  --sc-mint-500: #1aa57a;
-  --sc-mint-600: #159a72;
-  --sc-mint-650: #148f69;
-  --sc-mint-700: #087e5c;
-  --sc-mint-750: #076f52;
-  --sc-mint-800: #065f47;
-  --sc-mint-ink: #02140f;
+     Se eligieron a media saturación a propósito. Un rojo de señal y un azul de
+     sistema pelean con la tinta; estos cinco conviven con el negro sin subirle
+     la voz, que es la condición para que el minimalismo aguante. */
+  --fs-red: #e5484d;
+  --fs-blue: #3b82f6;
+  --fs-green: #22a06b;
+  --fs-yellow: #d4a017;
+  --fs-pink: #d9469b;
 
-  /* Familia lima secundaria. La carga distribuida exacta se declara abajo. */
-  --sc-lime-50: #f2f7ed;
-  --sc-lime-100: #daefc8;
-  --sc-lime-200: #bde798;
-  --sc-lime-300: #9ade60;
-  --sc-lime-400: #89d448;
-  --sc-lime-500: #6fbb2e;
-  --sc-lime-600: #56ad0b;
-  --sc-lime-700: #468c09;
-  --sc-lime-800: #376d08;
-  --sc-lime-900: #294f08;
-
-  /* Cian técnico de N/axial. Ya no forma una segunda dimensión de marca. */
-  --sc-cyan-300: #95d0e5;
-  --sc-cyan-600: #0f95d1;
-
-  /* Azul de interacción (selección / foco / información) */
-  --sc-blue-100: #e8effd;
-  --sc-blue-300: #9dbdf6;
-  --sc-blue-500: #6a5df2;
-  --sc-blue-600: #294db7;
-  --sc-blue-700: #1847ab;
-
-  /* Acentos de estado y dominio */
-  --sc-violet-500: #8b5cf6;
-  --sc-pink-500: #c94a8f;
-  --sc-fuchsia-200: #f2c2e6;
-  --sc-fuchsia-500: #d85ac9;
-  --sc-green-700: #2e8038;
-  --sc-coral-500: #ed4b46;
-  --sc-red-500: #ed4b46;
-  --sc-red-600: #d92e28;
-  --sc-red-700: #96362d;
-  --sc-amber-500: #d26b08;
-  --sc-amber-700: #a47408;
-  --sc-plum-500: #9b61cd;
-
-  /* Acentos decorativos de la referencia minimal. Sólo contenedores de icono y
-     fondos suaves: ninguno alcanza el suelo de 3:1 como color de foco, así que
-     no se usan para foco, selección ni estado. */
-  --sc-sky-100: #e2f2fd;
-  --sc-lilac-100: #eee8fc;
+  /* Variantes de tinta de los cinco hues: el mismo significado escrito con
+     contraste de TEXTO (≥4,5:1) sobre la superficie del tema. No son colores
+     nuevos, son el mismo hue en el escalón que un texto necesita. */
+  --fs-red-ink: #c4292e;
+  --fs-blue-ink: #1d5fd1;
+  --fs-green-ink: #10714c;
+  --fs-yellow-ink: #8a6508;
+  --fs-pink-ink: #b02b77;
 
   /* ------------------------------------------------------------------ */
-  /* 2 · ROLES SEMÁNTICOS — TEMA DÍA (papel de grafito)                  */
+  /* 2 · ROLES SEMÁNTICOS DE INTERFAZ — TEMA DÍA                         */
   /* ------------------------------------------------------------------ */
-  --sc-color-bg-app: #f3eee4;
-  --sc-color-bg-canvas: #fbf8f2;
-  --sc-color-surface-1: #f7f1e8;
-  --sc-color-surface-2: #efe7dc;
-  --sc-color-surface-elevated: #fffdf8;
-  --sc-color-surface-pressed: #e8ded0;
-  --sc-color-surface-inset: #ece3d6;
-  --sc-color-surface-toolbar: #f7f1e8;
-  --sc-color-surface-input: #f3eee4;
+  /* Cuatro planos y nada más: la aplicación, la superficie, el hueco y el
+     pulsado. Todo lo demás son alias de estos cuatro. */
+  --sc-color-bg-app: var(--fs-gray-0);
+  --sc-color-bg-canvas: var(--fs-gray-0);
+  --sc-color-surface-1: var(--fs-gray-0);
+  --sc-color-surface-2: var(--fs-gray-25);
+  --sc-color-surface-3: var(--fs-gray-50);
+  --sc-color-surface-elevated: var(--fs-gray-0);
+  --sc-color-surface-floating: var(--fs-gray-0);
+  --sc-color-surface-inset: var(--fs-gray-25);
+  --sc-color-surface-pressed: var(--fs-gray-100);
+  --sc-color-surface-toolbar: var(--fs-gray-0);
+  --sc-color-surface-input: var(--fs-gray-0);
 
-  --sc-color-text-primary: #102b2d;
-  --sc-color-text-secondary: #536466;
-  --sc-color-text-muted: #667577;
-  --sc-color-text-disabled: #9aa0a1;
-  /* CRI-117 · `--sc-color-text-disabled` (2,59:1 en Día) es legítimo para un
-     control inactivo: WCAG 1.4.3 exime a los «inactive user interface
-     components». Pero la auditoría por componente encontró superficies
-     deshabilitadas que SIGUEN llevando contenido obligatorio —el valor y su
-     unidad dentro de un campo apagado— y ahí no hay exención que valga. Este
-     rol es para ésas: 4,79:1 en el peor de los cuatro fondos. */
-  --sc-color-text-disabled-content: #6b7274;
-  --sc-color-text-inverse: var(--sc-white);
-  --sc-color-text-link: var(--sc-blue-600);
-  --sc-color-text-technical: #4a5153;
-  /* CRI-114 · #7b8284 medía 3,82:1 sobre la superficie de Día — por debajo del
-     piso de texto (4,5:1). El rol escribe unidades y magnitudes del solver
-     («kN», «m»), que son contenido numérico que hay que leer, no adorno, así
-     que le corresponde el piso de texto entero. Bajado hasta 4,72:1 en el peor
-     de los cuatro fondos, todavía por encima de `--sc-color-text-secondary`
-     (5,11:1) para no aplanar la jerarquía. El tamaño (LEDGER-03, 10px) no se
-     toca: el hallazgo era de color. La variante de Noche ya medía 7,60:1. */
-  --sc-color-text-unit: #6c7375;
+  /* Rellenos suaves: la escala de "casi nada" con la que se agrupa sin dibujar
+     una tarjeta. Son grises, nunca tintes de marca. */
+  --sc-color-fill-primary: var(--fs-gray-100);
+  --sc-color-fill-secondary: var(--fs-gray-50);
+  --sc-color-fill-tertiary: var(--fs-gray-25);
+  --sc-color-fill-quaternary: var(--fs-gray-25);
 
-  --sc-color-border: #ded8ce;
-  --sc-color-border-soft: #ebe5dc;
-  --sc-color-border-strong: #b9afa1;
-  /* El chrome que flota sobre el lienzo (badge de modo, chips, zoom, quick-entry,
-     tooltip de corte) no puede apoyarse en ningún rol de superficie o borde
-     existente: --sc-color-border-strong mide 1,96:1 contra #fafcfb, y ningún otro
-     rol llega a 1,3:1. Medido aparte, sin depender del desenfoque que antes lo
-     separaba del dibujo. */
-  --sc-color-border-canvas-chrome: #82786d;
-  --sc-color-divider: #e7e0d6;
+  /* Tintas. La jerarquía la lleva el valor, no el color. */
+  --sc-color-text-primary: var(--fs-gray-950);
+  --sc-color-text-secondary: var(--fs-gray-700);
+  --sc-color-text-muted: var(--fs-gray-600);
+  --sc-color-text-tertiary: var(--fs-gray-600);
+  --sc-color-text-subtle: var(--fs-gray-500);
+  --sc-color-text-technical: var(--fs-gray-800);
+  --sc-color-text-unit: var(--fs-gray-600);
+  --sc-color-text-disabled: var(--fs-gray-400);
+  /* Un control apagado que SIGUE mostrando contenido obligatorio —el valor y su
+     unidad dentro de un campo inactivo— no se acoge a la exención de WCAG 1.4.3
+     para componentes inactivos: ese texto hay que poder leerlo. 5,74:1. */
+  --sc-color-text-disabled-content: var(--fs-gray-700);
+  --sc-color-text-inverse: var(--fs-gray-0);
+  --sc-color-text-on-action: var(--fs-gray-0);
+  /* Un enlace no se distingue por color en este sistema: lo hace por subrayado
+     y por peso. La tinta es la misma del texto. */
+  --sc-color-text-link: var(--fs-gray-950);
 
-  /* Acción primaria — invariante por tema, con etiqueta blanca. */
-  --sc-color-action-primary: #007d61;
-  --sc-color-action-hover: #006d55;
-  --sc-color-action-pressed: #005e49;
-  --sc-color-action-foreground: var(--sc-white);
-  --sc-color-action-edge: var(--sc-color-action-primary);
-  /* Trazo de marca: canto, icono sobre superficie, snap y hover técnico. */
-  --sc-color-action-ink: var(--sc-color-action-primary);
-  /* CRI-113 · Tinta de marca cuando el fondo es el tinte suave de acción y no
-     una superficie base. `--sc-color-action-ink` mide 4,45:1 sobre `accent-soft`
-     en Día pero 2,76:1 en Noche —bajo el piso no textual de 3:1— porque el
-     tinte nocturno aclara la base casi negra justo lo suficiente para comerse
-     el canto menta. La señal de marca sigue siendo invariante; lo que se
-     recalibra por tema es la tinta que la escribe, exactamente como ya ocurre
-     con `--sc-color-state-warning-foreground` y `--sc-color-state-error-foreground`.
-     En Día no cambia nada. */
-  --sc-color-action-ink-on-soft: var(--sc-color-action-ink);
-  /* Fondo suave derivado de la superficie del tema; no crea un HEX semántico
-     alternativo en el bloque Noche. */
-  --sc-color-action-subtle: color-mix(in srgb, var(--sc-color-action-primary) 8%, var(--sc-color-surface-1));
-  --sc-color-brand-secondary: var(--sc-color-action-primary);
+  /* Filetes. Tres pesos: el que separa datos, el que dibuja un control y el que
+     tiene que sobrevivir encima del lienzo. */
+  --sc-color-border-soft: var(--fs-gray-150);
+  --sc-color-border: var(--fs-gray-200);
+  --sc-color-border-strong: var(--fs-gray-400);
+  --sc-color-divider: var(--fs-gray-150);
+  /* El chrome que flota sobre el dibujo técnico necesita un filete que no
+     desaparezca contra el lienzo blanco ni contra una línea de diagrama. */
+  --sc-color-border-canvas-chrome: var(--fs-gray-400);
 
-  --sc-color-accent-blue-soft: var(--sc-sky-100);
-  --sc-color-accent-violet-soft: var(--sc-lilac-100);
+  /* ---- ACCIÓN: la marca es la tinta -----------------------------------
+     No hay color de marca. La acción primaria es un plano de tinta plena con
+     la etiqueta en el papel. En Noche se invierte exactamente. Es la decisión
+     que más separa a FusionStructure de sus dos orígenes: ni menta ni azul de
+     sistema, sencillamente el contraste máximo disponible. */
+  --sc-color-action-primary: var(--fs-gray-950);
+  --sc-color-action-hover: var(--fs-gray-800);
+  --sc-color-action-pressed: var(--fs-gray-700);
+  --sc-color-action-foreground: var(--fs-gray-0);
+  --sc-color-action-edge: var(--fs-gray-950);
+  --sc-color-action-ink: var(--fs-gray-950);
+  --sc-color-action-ink-on-soft: var(--fs-gray-950);
+  --sc-color-action-subtle: var(--fs-gray-50);
+  --sc-color-brand: var(--fs-gray-950);
+  --sc-color-brand-secondary: var(--fs-gray-700);
+  --sc-color-accent-blue-soft: var(--fs-gray-50);
+  --sc-color-accent-violet-soft: var(--fs-gray-50);
 
-  /* Selección y foco — INVARIANTES. Un mismo índigo, 3,22:1 en el peor de los
-     cuatro fondos (antes: 2,87:1 en Día y 1,94:1 en Noche, ambos por debajo
-     del suelo). `--sc-color-selection` es el relleno suave, y por ser fondo sí
-     cambia de fase. */
-  --sc-color-focus: #7657d5;
-  --sc-color-info: #7657d5;
-  --sc-color-selection: #e9e3fa;
-  --sc-color-selection-stroke: #7657d5;
+  /* Foco y selección: también acromáticos. Un anillo de tinta con 2px de
+     separación se ve sobre el papel, sobre un plano de tinta y en modo de alto
+     contraste, y no introduce un sexto color en la pantalla. */
+  --sc-color-focus: var(--fs-gray-950);
+  --sc-color-selection: var(--fs-gray-100);
+  --sc-color-selection-stroke: var(--fs-gray-950);
+  --sc-color-selection-outline: var(--fs-gray-950);
+  /* Informativo es dominio (dice algo del modelo), así que sí lleva hue. */
+  --sc-color-info: var(--fs-blue);
 
-  /* Estados — INVARIANTES. Success se mueve porque #2f9a2a colapsaba entre
-     la nueva menta y la lima de cortante. #2d7c36 conserva separación en
-     color, grayscale, deuteranopia y protanopia; peor fondo 3,10:1. */
-  --sc-color-state-success: var(--sc-green-700);
-  --sc-color-state-warning: var(--sc-amber-500);
-  --sc-color-state-error: var(--sc-red-600);
-  --sc-color-state-critical: #c93028;
-  --sc-color-state-info: var(--sc-blue-500);
-  --sc-color-state-stale: var(--sc-amber-500);
-  --sc-color-state-loading: var(--sc-blue-500);
-  --sc-color-state-pending: #6f7b75;
-  --sc-color-state-warning-foreground: #6f5210;
-  --sc-color-state-error-foreground: var(--sc-red-700);
+  /* ---- ESTADOS -------------------------------------------------------
+     Cuatro de los cinco hues trabajan aquí, y sólo aquí dentro del chrome: un
+     estado es información del sistema, no decoración. Se usan como trazo,
+     punto o filete —nunca como fondo de un panel entero. */
+  --sc-color-state-success: var(--fs-green);
+  --sc-color-state-warning: var(--fs-yellow);
+  --sc-color-state-error: var(--fs-red);
+  --sc-color-state-critical: var(--fs-red-ink);
+  --sc-color-state-info: var(--fs-blue);
+  --sc-color-state-stale: var(--fs-yellow);
+  --sc-color-state-loading: var(--fs-gray-500);
+  --sc-color-state-pending: var(--fs-gray-500);
+  /* Tintas de estado: el mismo hue en el escalón que un texto necesita. Éstas
+     SÍ se recalibran en Noche, porque su fondo cambia. */
+  --sc-color-state-success-foreground: var(--fs-green-ink);
+  --sc-color-state-warning-foreground: var(--fs-yellow-ink);
+  --sc-color-state-error-foreground: var(--fs-red-ink);
 
-  /* Superficies sólidas: success usa el mismo HEX semántico; con blanco mide
-     5,19:1. Error conserva su pareja vigente. */
-  --sc-color-success-solid: var(--sc-color-state-success);
-  --sc-color-success-on-solid: var(--sc-white);
-  --sc-color-error-solid: #c93028;
-  --sc-color-error-on-solid: var(--sc-white);
+  /* Rellenos plenos de estado. Existen para el caso —raro— en que un estado
+     tiene que gritar: un error bloqueante. Llevan su propia tinta encima. */
+  --sc-color-success-solid: var(--fs-green-ink);
+  --sc-color-success-on-solid: var(--fs-gray-0);
+  --sc-color-error-solid: var(--fs-red-ink);
+  --sc-color-error-on-solid: var(--fs-gray-0);
+  --sc-color-on-signal: var(--fs-gray-0);
 
-  /* Canario: el único hue que no puede ser relleno y tinta a la vez (1,39:1
-     como trazo sobre marfil). Va siempre a relleno pleno con su propia tinta
-     encima, 5,10:1, y nunca es trazo suelto. */
-  --sc-color-canario: #f4d75e;
-  --sc-color-canario-ink: #6f5210;
+  /* Canario: el amarillo nunca es trazo suelto sobre papel (1,6:1). Cuando hace
+     falta amarillo visible va a relleno pleno con su propia tinta encima. */
+  --sc-color-canario: #f2d24b;
+  --sc-color-canario-ink: var(--fs-yellow-ink);
 
-  /* Aula es un acento de EXPERIENCIA (a quién le habla la app), no un resultado
-     del solver, y por eso nunca comparte hue con la deformada. #c94a8f es la
-     señal de Aula vigente. Para un control RELLENO con
-     texto encima hace falta un escalón más profundo: sobre #c94a8f el blanco
-     sólo llega a 4,32:1, por debajo del suelo de texto — de ahí `-solid`. */
-  --sc-color-aula: var(--sc-pink-500);
-  --sc-color-aula-solid: #c23e82;
-  --sc-color-aula-foreground: var(--sc-white);
+  /* Aula es un acento de EXPERIENCIA —a quién le habla la app—, no un resultado
+     del solver. Se queda con el rosa para no compartir hue con ninguna acción
+     interna. */
+  --sc-color-aula: var(--fs-pink);
+  --sc-color-aula-solid: var(--fs-pink-ink);
+  --sc-color-aula-foreground: var(--fs-gray-0);
 
-  /* Tinta única para un icono o glifo sobre un relleno técnico/de estado. Los
-     rellenos son invariantes, así que su tinta también puede serlo — y ésta es
-     la razón por la que no hereda de `--sc-color-text-inverse`, que sí cambia
-     de tema. Sobre los rellenos técnicos llega a 3,4-4,8:1: vale para icono y
-     forma (WCAG 1.4.11); para TEXTO usa el `-solid` del rol, que está medido
-     un escalón más profundo. */
-  --sc-color-on-signal: var(--sc-white);
+  /* Lienzo y documento. La rejilla es lo más tenue que dibuja la aplicación:
+     tiene que estar sin que se vea. */
+  --sc-color-canvas-grid: #f0f0f0;
+  --sc-color-canvas-grid-strong: #e0e0e0;
+  --sc-color-canvas-member: var(--fs-gray-950);
+  --sc-color-canvas-node-fill: var(--fs-gray-0);
+  --sc-color-overlay-soft: rgb(10 10 10 / .16);
+  --sc-color-overlay-sheet: rgb(10 10 10 / .24);
+  --sc-color-overlay-strong: rgb(10 10 10 / .40);
 
-  /* Lienzo y documento: explícitos, nunca producidos por inversión. */
-  --sc-color-canvas-grid: #e8e1d7;
-  --sc-color-canvas-grid-strong: #d9d0c4;
-  --sc-color-canvas-member: #102b2d;
-  --sc-color-canvas-node-fill: #fbf8f2;
-  --sc-color-overlay-soft: rgba(4, 11, 7, 0.28);
-  --sc-color-overlay-sheet: rgba(2, 10, 6, 0.34);
-  --sc-color-overlay-strong: rgba(5, 18, 11, 0.58);
-
-  /* Materiales del pórtico del hero. Son roles de ilustración, no de interfaz:
-     nada de texto se apoya en ellos, así que se eligen por lectura de volumen
-     y no por contraste. */
-  --sc-color-illustration-ivory: #f7f4ee;
-  --sc-color-illustration-ivory-deep: #e8e1d7;
-  /* Alias históricos consumidos por el pórtico del Welcome. El nombre se
-     conserva para no tocar src/features/**; el significado ya es brand minimal. */
-  --sc-color-illustration-lime: var(--sc-mint-500);
-  --sc-color-illustration-lime-deep: var(--sc-mint-600);
+  /* Materiales de ilustración (el pórtico de la bienvenida). Los nombres son
+     históricos; el significado ya es acromático. */
+  --sc-color-illustration-ivory: var(--fs-gray-50);
+  --sc-color-illustration-ivory-deep: var(--fs-gray-150);
+  --sc-color-illustration-lime: var(--fs-gray-800);
+  --sc-color-illustration-lime-deep: var(--fs-gray-950);
 
   /* ------------------------------------------------------------------ */
   /* 3 · ROLES TÉCNICOS DEL DOMINIO — INVARIANTES POR TEMA               */
   /* ------------------------------------------------------------------ */
-  /* Un solo HEX por significado, medido sobre los cuatro fondos (lienzo y
-     superficie × Día y Noche). El peor de los cuatro va anotado en cada línea;
-     el suelo es 3:1 (WCAG 1.4.11, contraste no textual).
+  /* Aquí vive TODO el color de la aplicación. La asignación es mnemotécnica y
+     no se negocia por pantalla:
+       ROJO     · lo que se aplica a la estructura (cargas)
+       AZUL     · N, axial, y la deformada (desplazamiento)
+       VERDE    · V, cortante, y las reacciones (la respuesta del apoyo)
+       AMARILLO · cotas y geometría de referencia
+       ROSA     · M, momento flector
+     Un mismo HEX por significado, en Día y en Noche. */
 
-     La versión anterior tenía dos hexes por rol y sólo medía el lienzo: sobre
-     la superficie de Noche, los valores nocturnos caían a 1,39-2,56:1. Unificar
-     no fue sólo una decisión de identidad — subió el suelo real de toda la
-     familia técnica por encima de 3:1 por primera vez. */
-  /* Applied actions have their own identities. Response diagrams keep the
-     established N/V/M palette so an applied moment never reads as its result. */
-  --sc-color-load-point: #2f73c8;
-  --sc-color-load-distributed: #65a323;
-  --sc-color-load-moment-applied: #c65f86;
-  --sc-color-technical-load: var(--sc-color-load-point);
-  --sc-color-technical-axial: #2f73c8;
-  --sc-color-technical-shear: #168a6c;
-  --sc-color-technical-shear-area: var(--sc-lime-100); /* área; el canto carga el gate */
-  --sc-color-technical-moment: #d85c4a;
-  --sc-color-technical-deformed: #7657d5;
-  --sc-color-technical-reaction: #2f73c8;
-  --sc-color-technical-dimension: var(--sc-amber-700); /* 3,18:1 */
-  --sc-color-technical-axis: #ad5e18;                  /* 3,36:1 */
-  /* Alias del rol distribuido: la codificación del canvas usa el color de
-     cortante para la carga repartida, y la interfaz necesita nombrarlo. */
-  --sc-color-technical-distributed: var(--sc-color-load-distributed);
-  --sc-color-technical-distributed-area: var(--sc-color-technical-shear-area);
+  /* Acciones aplicadas — ROJO. */
+  --sc-color-load-point: var(--fs-red);
+  --sc-color-load-distributed: var(--fs-red);
+  --sc-color-load-moment-applied: var(--fs-red);
+  --sc-color-load-moment: var(--fs-red);
+  --sc-color-technical-load: var(--fs-red);
+  --sc-color-technical-distributed: var(--fs-red);
+  --sc-color-technical-distributed-area: rgb(229 72 77 / .10);
 
-  /* Rampa del índice elástico estimado (CRI-42). Es una escala secuencial de
-     una sola familia: comunica *cuánta* demanda hay, no si eso es aceptable.
-     El verde/ámbar/rojo anterior leía como semáforo de seguridad y este
-     producto no hace comprobación normativa. `reference` es un tono aparte —
-     ni rojo ni verde, para no reintroducir el juicio— reservado al único hecho
-     con significado propio: η alcanza el Fy declarado del material. */
-  --sc-color-demand-base: #5f8f9e;
-  --sc-color-demand-peak: #0f4c5c;
-  --sc-color-demand-reference: #6a3fa0;
-  /* Segundo tramo de la rampa: por encima de η = 1 el color sigue creciendo en
-     esta familia hasta el techo declarado, en vez de aplanar toda la sobre-
-     referencia en un solo tono que borraba la magnitud. */
-  --sc-color-demand-reference-peak: #43206c;
-  /* Miembro que no pudo evaluarse: ni color de demanda ni trazo normal. */
-  --sc-color-demand-unevaluated: #8a8f8d;
+  /* Acciones internas — AZUL / VERDE / ROSA. */
+  --sc-color-technical-axial: var(--fs-blue);
+  --sc-color-technical-shear: var(--fs-green);
+  --sc-color-technical-shear-area: rgb(34 160 107 / .10);
+  --sc-color-technical-moment: var(--fs-pink);
+  --sc-color-technical-deformed: var(--fs-blue);
+  --sc-color-technical-reaction: var(--fs-green);
 
-  /* Roles estructurales formalizados (Sección 12 del sistema).
-     Mapean sobre los técnicos verificados; los roles "reservados"
-     documentan intención sin alterar la codificación actual del canvas. */
+  /* Referencia geométrica — AMARILLO y tinta. */
+  --sc-color-technical-dimension: var(--fs-yellow-ink);
+  --sc-color-technical-axis: var(--fs-gray-400);
+
+  /* Rampa del índice elástico. Es una escala SECUENCIAL —dice cuánta demanda
+     hay, no si es aceptable—, así que no puede ser un semáforo. Se recorre en
+     valor sobre un único hue azul, y el punto de referencia (η alcanza el Fy
+     declarado) es el único escalón que cambia de familia. */
+  --sc-color-demand-base: #9dc0f2;
+  --sc-color-demand-peak: #1d5fd1;
+  --sc-color-demand-reference: var(--fs-pink);
+  --sc-color-demand-reference-peak: var(--fs-pink-ink);
+  --sc-color-demand-unevaluated: var(--fs-gray-400);
+
+  /* Roles estructurales. La estructura en reposo es TINTA: un pórtico sin
+     resultados no tiene por qué llevar color. */
   --sc-color-structure-member: var(--sc-color-canvas-member);
   --sc-color-structure-member-selected: var(--sc-color-selection-stroke);
   --sc-color-structure-node: var(--sc-color-canvas-member);
   --sc-color-structure-node-selected: var(--sc-color-selection-stroke);
   --sc-color-structure-support: var(--sc-color-canvas-member);
-  --sc-color-structure-spring: var(--sc-color-technical-axis);
-  --sc-color-structure-hinge: var(--sc-color-technical-axis);
-  --sc-color-structure-release: var(--sc-color-technical-axis);
-  --sc-color-load-moment: var(--sc-color-load-moment-applied);
-  --sc-color-reaction: var(--sc-color-technical-reaction);
-  --sc-color-axial-tension: var(--sc-color-technical-axial);
-  --sc-color-axial-compression: var(--sc-plum-500); /* reservado: el canvas codifica signo por lado/etiqueta */
-  --sc-color-shear-positive: var(--sc-color-technical-shear);
-  --sc-color-shear-negative: var(--sc-color-technical-shear);
-  --sc-color-moment-positive: var(--sc-color-technical-moment);
-  --sc-color-moment-negative: var(--sc-color-technical-moment);
-  --sc-color-deformation: var(--sc-color-technical-deformed);
-  /* Influencia: área rosa empolvada + canto rosa volumen (3,95:1 peor caso).
-     El consumidor debe mantener stroke-dasharray; el patrón no sustituye el
-     contraste. Deformada conserva trazo continuo en la autoridad visual. */
-  --sc-color-influence-area: #e7c6d2;
-  --sc-color-influence-line: #b26b91;
-  --sc-color-envelope: #8966db;
-  --sc-color-critical-point: var(--sc-amber-500);
-  --sc-color-geometry-error: var(--sc-color-state-error);
-  --sc-color-stale-result: var(--sc-color-state-warning);
-  --sc-color-selection-outline: var(--sc-color-selection-stroke);
-  /* Snap y hover técnico sí siguen a la marca; influencia ya no. */
-  --sc-color-snap-target: var(--sc-color-action-ink);
-  --sc-color-hover-target: var(--sc-color-action-ink);
+  --sc-color-structure-spring: var(--fs-gray-500);
+  --sc-color-structure-hinge: var(--fs-gray-500);
+  --sc-color-structure-release: var(--fs-gray-500);
 
-  /* Identificación de herramientas: refleja el canvas. Selección/foco = azul. */
+  --sc-color-reaction: var(--sc-color-technical-reaction);
+  --sc-color-axial-tension: var(--fs-blue);
+  --sc-color-axial-compression: var(--fs-blue-ink);
+  --sc-color-shear-positive: var(--fs-green);
+  --sc-color-shear-negative: var(--fs-green);
+  --sc-color-moment-positive: var(--fs-pink);
+  --sc-color-moment-negative: var(--fs-pink);
+  --sc-color-deformation: var(--fs-blue);
+  /* Influencia: área rosa muy diluida con canto rosa. El consumidor mantiene
+     `stroke-dasharray`; el patrón acompaña al contraste, no lo sustituye. */
+  --sc-color-influence-area: rgb(217 70 155 / .12);
+  --sc-color-influence-line: var(--fs-pink);
+  --sc-color-envelope: var(--fs-gray-500);
+  --sc-color-critical-point: var(--fs-yellow-ink);
+  --sc-color-geometry-error: var(--fs-red);
+  --sc-color-stale-result: var(--fs-yellow-ink);
+  /* Snap y hover técnico son ayudas de edición, no resultados: tinta. */
+  --sc-color-snap-target: var(--fs-gray-950);
+  --sc-color-hover-target: var(--fs-gray-950);
+
+  /* Identificación de herramientas: refleja exactamente la codificación del
+     lienzo, para que la herramienta y lo que dibuja compartan color. */
   --sc-color-tool-navigation: var(--sc-color-text-secondary);
   --sc-color-tool-structure: var(--sc-color-text-primary);
-  --sc-color-tool-point-load: var(--sc-color-load-point);
-  --sc-color-tool-distributed-load: var(--sc-color-load-distributed);
-  --sc-color-tool-moment: var(--sc-color-load-moment-applied);
-  --sc-color-tool-dimension: var(--sc-color-technical-dimension);
-  --sc-color-tool-cut: var(--sc-color-technical-axis);
-  --sc-color-tool-destructive: var(--sc-color-state-error);
+  --sc-color-tool-point-load: var(--fs-red);
+  --sc-color-tool-distributed-load: var(--fs-red);
+  --sc-color-tool-moment: var(--fs-red);
+  --sc-color-tool-dimension: var(--fs-yellow-ink);
+  --sc-color-tool-cut: var(--fs-gray-500);
+  --sc-color-tool-destructive: var(--fs-red);
 
   /* ------------------------------------------------------------------ */
   /* 4 · ESPACIADO, TAMAÑOS Y FORMA                                      */
   /* ------------------------------------------------------------------ */
+  /* Escala de 4px. El minimalismo denso vive en los tres primeros escalones;
+     los grandes son para separar secciones, no para airear controles. */
   --sc-space-1: 4px;
   --sc-space-2: 8px;
   --sc-space-3: 12px;
@@ -352,53 +339,41 @@
   --sc-space-7: 32px;
   --sc-space-8: 40px;
 
-  --sc-size-icon-sm: 16px;
-  --sc-size-icon-md: 20px;
-  --sc-size-icon-lg: 24px;
-  --sc-size-icon-tool: 22px;
-  --sc-size-target-pointer: 36px;
+  --sc-size-icon-sm: 14px;
+  --sc-size-icon-md: 16px;
+  --sc-size-icon-lg: 20px;
+  --sc-size-icon-tool: 18px;
+  --sc-size-target-pointer: 30px;
   --sc-size-target-touch: 44px;
 
   --sc-border-width: 1px;
-  --sc-border-width-strong: 2px;
-  --sc-focus-ring-width: 3px;
+  --sc-border-width-strong: 1px;
+  --sc-hairline: 1px solid var(--sc-color-border-soft);
+  /* El anillo de foco es fino y separado: a 2px del control se lee sobre
+     cualquiera de los cuatro planos sin engordar el control. */
+  --sc-focus-ring-width: 2px;
   --sc-focus-ring-width-compact: 2px;
   --sc-focus-ring-offset: 2px;
 
-  /* ---- Radios por rol · V-05 ----------------------------------------
-     La escala la fija el historic visual spec y esto la implementa:
+  /* ---- RADIOS ---------------------------------------------------------
+     La escala anterior (10 / 18 / 24 / 28px) era la forma del claymorphism:
+     una pieza de arcilla necesita esquinas gordas para leerse como volumen. Sin
+     volumen, ese radio sólo infla la caja. La escala nueva es la mínima que
+     evita el canto duro:
 
-       control 10px · card 18px · panel/sheet 24px · modal 28px · pill 999px
+       data 0 · control 3px · card 4px · panel 6px · modal 8px
 
-     El reparto es por ROL, no por tamaño de la caja: un botón de 44px y otro
-     de 36px son los dos controles y comparten radio. Un panel no hereda el
-     radio de sus controles por estar hecho de ellos.
-
-     `data` es el escalón cero de la rejilla técnica. No es "un radio muy
-     pequeño": es la ausencia deliberada de radio en una celda comparable.
-     Redondear una rejilla de datos la vuelve más difícil de escanear, no más
-     amable, y convertir cada valor en una ficha destruye el barrido lineal.
-
-     La escala genérica de abajo (xs/sm/md/…) sobrevive sólo como alias de
-     migración para los ~180 consumidores que ya la nombran. Ninguno de esos
-     alias puede volver a declarar un valor propio: cada uno resuelve a un
-     escalón de arriba, y `minimalReconciliation.test.ts` lo comprueba. Antes eran
-     ocho valores (8/12/14/26/26/32/26/28) que no coincidían con ninguno de los
-     cinco del historic visual spec — la desviación que LEDGER-01 gobierna y que este
-     slice cierra. */
+     `data` sigue siendo el escalón cero de la rejilla técnica: redondear una
+     celda comparable destruye el barrido lineal de la columna. */
   --sc-radius-data: 0;
-  --sc-radius-control: 10px;
-  --sc-radius-card: 18px;
-  --sc-radius-panel: 24px;
-  --sc-radius-modal: 28px;
+  --sc-radius-control: 3px;
+  --sc-radius-card: 4px;
+  --sc-radius-panel: 6px;
+  --sc-radius-modal: 8px;
+  --sc-radius-sheet: 6px;
   --sc-radius-pill: 999px;
 
-  /* Alias de migración. El rol al que apunta cada uno se eligió por lo que sus
-     consumidores REALES son hoy, no por su nombre: `md` viste botones, campos,
-     herramientas y pastillas de segmento —controles todos— y por eso cae en el
-     escalón de control. Los pocos consumidores cuyo rol no coincidía con su
-     alias (el diálogo, la superficie del popover, el panel de capas) se
-     repuntaron uno a uno al token de rol correcto. */
+  /* Alias de migración. Ninguno declara valor propio. */
   --sc-radius-xs: var(--sc-radius-control);
   --sc-radius-sm: var(--sc-radius-control);
   --sc-radius-md: var(--sc-radius-control);
@@ -406,318 +381,259 @@
   --sc-radius-xl: var(--sc-radius-panel);
   --sc-radius-2xl: var(--sc-radius-panel);
   --sc-radius-hero: var(--sc-radius-panel);
-  /* V-05 reparte "panel/sheet" al mismo escalón: una hoja es un panel que nace
-     de un borde, no una interrupción centrada. */
-  --sc-radius-sheet: var(--sc-radius-panel);
 
   /* ------------------------------------------------------------------ */
-  /* 5 · MATERIA: cuatro profundidades mate y una sola fuente de luz     */
+  /* 5 · MATERIA: el filete, y un solo escalón de elevación              */
   /* ------------------------------------------------------------------ */
-  /* La sombra es tinta de marca diluida, no negro. Sobre porcelana el negro
-     puro ensucia; un grafito verdoso mantiene el aire del papel. */
-  --sc-shadow-raised: 2px 3px 6px rgba(52, 42, 30, 0.14), -2px -2px 4px rgba(255, 255, 255, 0.72);
-  --sc-shadow-lifted: 4px 5px 10px rgba(52, 42, 30, 0.16), -3px -3px 8px rgba(255, 255, 255, 0.76), inset 0 1px 0 rgba(255, 255, 255, 0.68);
-  --sc-shadow-floating: 4px 5px 10px rgba(52, 42, 30, 0.16), -3px -3px 8px rgba(255, 255, 255, 0.76), inset 0 1px 0 rgba(255, 255, 255, 0.68);
-  --sc-shadow-modal: 5px 6px 10px rgba(52, 42, 30, 0.2), -3px -3px 8px rgba(255, 255, 255, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.68);
-  --sc-shadow-popover: 3px 4px 8px rgba(52, 42, 30, 0.16), -2px -2px 6px rgba(255, 255, 255, 0.72);
-  /* drop-shadow() sólo admite una capa, así que la elevación flotante tiene una
-     variante propia para elementos con forma recortada. */
-  --sc-shadow-drop: 4px 5px 10px rgba(52, 42, 30, 0.16);
-  /* Hoja: la única sombra del sistema que sube, y no porque tenga otra fuente
-     de luz. Una hoja nace pegada al borde del viewport; el canto que se ve es
-     el de entrada, y lo que lo separa del plano de trabajo es oclusión de
-     contacto, no la sombra proyectada por la luz clave. Por eso no lleva
-     componente horizontal: no hay silueta que proyectar contra ese borde. */
-  --sc-shadow-sheet: 0 -4px 10px rgba(52, 42, 30, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  /* Lo que separaba las piezas en el sistema anterior era una sombra por pieza
+     con luz propia arriba-izquierda y oscuridad abajo-derecha, más dos capas
+     `inset`. Eso era el claymorphism, y no queda nada de él: aquí una pieza se
+     apoya en el plano y lo que la delimita es un filete de 1px.
 
-  /* ---- Sistema minimal -------------------------------------------------
-     Una superficie de interfaz son cuatro capas y una sola fuente de luz, a 145°
-     (arriba-izquierda, ver --sc-surface-fill). En orden: sombra exterior
-     difusa abajo-derecha, luz interior arriba-izquierda, sombra interior
-     abajo-derecha, y el canto de 1px que separa la superficie del fondo.
+     La ÚNICA excepción es lo que de verdad flota por encima del contenido y
+     puede taparlo —popover, menú, hoja, modal, toast—. Ahí una sombra de
+     contacto neutra dice "esto está delante", que es información, no adorno.
+     Es una sola dirección, sin luz interior y sin tinte. */
+  --sc-shadow-raised: none;
+  --sc-shadow-lifted: none;
+  --sc-shadow-xs: none;
+  --sc-shadow-sm: none;
+  --sc-shadow-md: none;
+  --sc-shadow-inset: none;
+  --sc-shadow-pressed: none;
+  --sc-shadow-action: none;
+  --sc-shadow-action-hover: none;
+  --sc-shadow-action-pressed: none;
+  --sc-shadow-lg: 0 1px 2px rgb(10 10 10 / .05), 0 8px 24px rgb(10 10 10 / .08);
+  --sc-shadow-floating: var(--sc-shadow-lg);
+  --sc-shadow-popover: var(--sc-shadow-lg);
+  --sc-shadow-modal: 0 1px 2px rgb(10 10 10 / .06), 0 16px 40px rgb(10 10 10 / .12);
+  --sc-shadow-sheet: 0 -1px 2px rgb(10 10 10 / .05), 0 -12px 32px rgb(10 10 10 / .10);
+  /* `drop-shadow()` sólo admite una capa. */
+  --sc-shadow-drop: 0 6px 16px rgb(10 10 10 / .10);
 
-     El pórtico del hero proyecta esta misma fuente de luz en isométrico
-     (src/graphics/isometricPortal.ts), pero la proyección no conserva el
-     ángulo: en pantalla cae a ~151,7° en convención `linear-gradient` —
-     mismo cuadrante, ~6,7° de diferencia. No son intercambiables.
-
-     La tinta es grafito verdoso diluido, nunca negro: sobre un fondo cálido el
-     negro puro ensucia y delata el degradado.
-
-     ESCALA POR TAMAÑO, NUNCA POR IMPORTANCIA (V-04). Cada escalón está
-     emparejado con un radio de la escala de arriba, y su desenfoque NO puede
-     superarlo: una sombra más difusa que la esquina deja de leerse como
-     contacto y empieza a leerse como halo.
-
-       xs · control en reposo      → radio control 10px · blur  8px
-       sm · control elevado/hover  → radio control 10px · blur 10px
-       md · tarjeta y panel RAISED → radio card    18px · blur 16px
-       lg · FLOATING               → radio panel   24px · blur 10px
-       sheet                       → radio panel   24px · blur 10px
-       modal                       → radio modal   28px · blur 10px
-
-     De xs a sm la pieza no cambia de radio, así que la diferencia de altura la
-     lleva el DESPLAZAMIENTO y la opacidad, no el desenfoque: es lo correcto
-     físicamente dentro del tope, y lo que hace que un control en hover se
-     separe sin convertirse en una nube.
-
-     Los paneles a sangre completa (topbar, inspector acoplado) llevan radio 0
-     porque CRI-90 lo quita contra el viewport: ahí la desigualdad no tiene
-     nada que acotar y quien los separa del lienzo es el canto de 1px, no la
-     sombra. Es el único caso en el que el tope no muerde, y por eso el canto
-     es obligatorio precisamente ahí. */
-  --sc-shadow-xs: 1px 2px 4px rgba(52, 42, 30, 0.11), -1px -1px 2px rgba(255, 255, 255, 0.68), inset 0 1px 0 rgba(255, 255, 255, 0.7), inset -1px -1px 2px rgba(52, 42, 30, 0.07);
-  --sc-shadow-sm: 2px 3px 6px rgba(52, 42, 30, 0.14), -2px -2px 4px rgba(255, 255, 255, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.72), inset -1px -1px 3px rgba(52, 42, 30, 0.08);
-  --sc-shadow-md: 3px 4px 8px rgba(52, 42, 30, 0.16), -2px -2px 6px rgba(255, 255, 255, 0.74), inset 0 1px 0 rgba(255, 255, 255, 0.72), inset -2px -2px 4px rgba(52, 42, 30, 0.09);
-  --sc-shadow-lg: 4px 5px 10px rgba(52, 42, 30, 0.18), -3px -3px 8px rgba(255, 255, 255, 0.76), inset 0 1px 0 rgba(255, 255, 255, 0.72), inset -2px -2px 5px rgba(52, 42, 30, 0.1);
-  --sc-shadow-floating: 4px 5px 10px rgba(52, 42, 30, 0.18), -3px -3px 8px rgba(255, 255, 255, 0.76), inset 0 1px 0 rgba(255, 255, 255, 0.72), inset -2px -2px 5px rgba(52, 42, 30, 0.1);
-  /* A resting well is shallower than a pressed piece: both are cavities, but
-     only the second communicates an active touch. */
-  --sc-shadow-inset: inset 2px 2px 4px rgba(52, 42, 30, 0.14), inset -1px -1px 3px rgba(255, 255, 255, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.28);
-  /* Pulsado: la luz se invierte. Sólo capas interiores — cualquier sombra
-     exterior lo devolvería a parecer que flota. */
-  /* Una cavidad estándar es volumen neutra: el color de marca queda para el
-     relleno de acciones/selecciones y no contamina campos, cards o capas. */
-  --sc-shadow-pressed: inset 2px 3px 5px rgba(52, 42, 30, 0.18), inset -1px -1px 3px rgba(255, 255, 255, 0.66), inset 0 1px 0 rgba(255, 255, 255, 0.32);
-
-  /* Public material contract: four named depths with a defined 1px edge. */
+  /* Contrato público de materia: cuatro niveles, y sólo el último tiene sombra. */
   --sc-depth-base-border: 1px solid var(--sc-color-border-soft);
   --sc-depth-base-shadow: none;
-  --sc-depth-inset-border: 1px solid var(--sc-color-border);
-  --sc-depth-inset-shadow: inset 2px 2px 4px rgba(52, 42, 30, 0.14), inset -1px -1px 3px rgba(255, 255, 255, 0.62);
-  --sc-depth-raised-border: 1px solid var(--sc-color-border);
-  --sc-depth-raised-shadow: 2px 3px 6px rgba(52, 42, 30, 0.14), -2px -2px 4px rgba(255, 255, 255, 0.72);
-  --sc-depth-floating-border: 1px solid var(--sc-color-border-strong);
-  --sc-depth-floating-shadow: 4px 5px 10px rgba(52, 42, 30, 0.18), -3px -3px 8px rgba(255, 255, 255, 0.76);
+  --sc-depth-inset-border: 1px solid var(--sc-color-border-soft);
+  --sc-depth-inset-shadow: none;
+  --sc-depth-raised-border: 1px solid var(--sc-color-border-soft);
+  --sc-depth-raised-shadow: none;
+  --sc-depth-floating-border: 1px solid var(--sc-color-border);
+  --sc-depth-floating-shadow: var(--sc-shadow-lg);
 
-  --sc-surface-edge: 1px solid color-mix(in srgb, var(--sc-color-border) 58%, white);
+  --sc-surface-edge: 1px solid var(--sc-color-border-soft);
   --sc-surface-fill: var(--sc-color-surface-1);
-
-  /* El hundimiento de una tecla minimal: baja 2px y encoge de forma visible. Es un token
-     y no un literal porque `prefers-reduced-motion` lo anula de una sola vez
-     para todos los controles, en lugar de repetir un `transform:none` por
-     selector al final de la hoja. */
-  --sc-press-transform: translateY(2px) scale(0.98);
-
-  /* CRI-120 · el mismo hundimiento sin el `scale(.98)`, para los controles cuyo
-     objetivo táctil ya está en el mínimo de 44px: encoger un 2 % los deja en
-     43px medidos en WebKit. Es un token y no un literal por la misma razón que
-     el anterior — `prefers-reduced-motion` tiene que poder anularlo — y sólo
-     debe usarse donde la reducción del área tocable esté demostrada. */
-  --sc-press-transform-flat: translateY(2px);
-
-  /* volumen teñida de marca: la única pieza que se rellena con el acento en
-     lugar de con la superficie. Misma anatomía que el resto de la escala
-     (sombra exterior abajo, luz interior arriba, sombra interior abajo), pero
-     medida sobre el color de acción para que el volumen siga leyéndose cuando
-     el relleno ya no es marfil. La consume el Design System (`ui.css`) en
-     `.sc-button--primary` / `.sc-icon-button--primary`; antes vivía repetida
-     tres veces al final de `styles.css`.
-
-     CRI-105: el relleno, el canto y la tinta son los que fijó CRI-91 y no se
-     tocan. Lo que cambia es de dónde viene la luz. La elevación EXTERIOR pasa
-     a ser la misma física neutra que el resto del sistema (misma geometría que
-     `--sc-shadow-xs`/`-sm`, misma tinta de grafito): antes proyectaba
-     `0 5px 11px` de menta al 28%, una sombra de color que hacía de halo y
-     encendía el botón primario desde una fuente verde propia, en vertical, sin
-     el contraluz de arriba-izquierda que tiene todo lo demás. El acento sigue
-     modelando el volumen DENTRO de la pieza —ahí es relleno, no luz—, y esa
-     sombra interior se muda a abajo-derecha como el resto de la escala. */
   --sc-surface-fill-action: var(--sc-color-action-primary);
-  --sc-shadow-action: 1px 2px 4px rgba(52, 42, 30, 0.14), -1px -1px 2px rgba(255, 255, 255, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset -1px -1px 3px color-mix(in srgb, var(--sc-color-action-primary) 45%, black);
-  --sc-shadow-action-hover: 2px 3px 6px rgba(52, 42, 30, 0.16), -2px -2px 4px rgba(255, 255, 255, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.24), inset -1px -1px 4px color-mix(in srgb, var(--sc-color-action-primary) 48%, black);
-  /* Rehundido con color: la cavidad neutra desaparecería sobre el relleno de
-     marca, así que la tinta de la cavidad también se mide sobre el acento. La
-     cavidad se ilumina desde arriba-izquierda igual que la neutra. */
-  --sc-shadow-action-pressed: inset 2px 3px 5px color-mix(in srgb, var(--sc-color-action-primary) 48%, black), inset -1px -1px 3px rgba(255, 255, 255, 0.18);
 
+  /* Sin volumen no hay nada que hundir: un control pulsado cambia de plano, no
+     de posición. Mover 2px una interfaz plana la hace parecer suelta. */
+  --sc-press-transform: none;
+  --sc-press-transform-flat: none;
 
-  /* Anillos: 1px de luz interior en el borde superior. Es lo que separa una
-     tarjeta "plana con sombra" de una tarjeta con canto. */
-  --sc-ring-inset: inset 0 1px 0 color-mix(in srgb, var(--sc-white) 72%, transparent);
-  --sc-ring-focus: 0 0 0 var(--sc-focus-ring-width) color-mix(in srgb, var(--sc-color-focus) 30%, transparent);
-
-  /* Matte identity: no decorative light source, glossy sheen or display ink. */
-  --sc-glow-accent: 0 0 transparent;
-  --sc-glow-aula: 0 0 transparent;
+  /* Sin luz propia: no hay anillo interior, ni brillo, ni degradado. */
+  --sc-ring-inset: none;
+  --sc-ring-focus: 0 0 0 var(--sc-focus-ring-width) var(--sc-color-focus);
+  --sc-glow-accent: none;
+  --sc-glow-aula: none;
   --sc-gradient-brand-soft: none;
   --sc-gradient-display: none;
   --sc-gradient-sheen: none;
 
   /* ------------------------------------------------------------------ */
-  /* 6 · TIPOGRAFÍA (Instrumento de Precisión)                           */
+  /* 6 · TIPOGRAFÍA                                                      */
   /* ------------------------------------------------------------------ */
-  /* Interface, display and measured values are self-hosted. */
-  --sc-font-display: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  /* Dos familias, autoalojadas. Instrument Sans escribe; Geist Mono mide.
+     Ninguna cifra del producto se escribe con la de texto: una columna de
+     resultados sólo se puede barrer si los dígitos tienen el mismo ancho. */
   --sc-font-ui: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
-  --sc-font-heading: var(--sc-font-display);
+  --sc-font-display: var(--sc-font-ui);
+  --sc-font-heading: var(--sc-font-ui);
+  --sc-font-sans: var(--sc-font-ui);
   --sc-font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", monospace;
+
   --sc-font-weight-regular: 400;
-  --sc-font-weight-medium: 550;
-  --sc-font-weight-semibold: 650;
-  --sc-font-weight-bold: 750;
-  --sc-font-weight-heavy: 800;
-  --sc-font-weight-display: 400;
-  --sc-font-size-caption: 10px;
-  --sc-font-size-technical: 12px;
-  --sc-font-size-label: 12px;
-  --sc-font-size-body: 14px;
-  --sc-font-size-control: 14px;
-  --sc-font-size-subtitle: 15px;
-  --sc-font-size-panel: 17px;
-  --sc-font-size-screen: 26px;
-  /* Escala de display: sólo la usan superficies editoriales (bienvenida,
-     estados vacíos grandes). La interfaz de trabajo no crece con la ventana. */
-  --sc-font-size-display-xl: clamp(2.625rem, 1.55rem + 4.3vw, 4.25rem);
-  --sc-font-size-display-md: 1.3125rem;
-  --sc-font-size-lead: clamp(1rem, 0.93rem + 0.32vw, 1.1875rem);
-  --sc-line-height-display: 1.015;
+  --sc-font-weight-medium: 500;
+  --sc-font-weight-semibold: 600;
+  --sc-font-weight-bold: 650;
+  --sc-font-weight-heavy: 700;
+  --sc-font-weight-display: 600;
+
+  /* Escala corta y densa. El sistema anterior abría hasta 40px de display; sin
+     color ni sombra que ordenen la pantalla, el tamaño es el instrumento de
+     jerarquía que queda, y por eso se usa con más disciplina, no con más rango. */
+  --sc-font-size-display-xl: 26px;
+  --sc-font-size-display-md: 19px;
+  --sc-font-size-screen: 16px;
+  --sc-font-size-title: 15px;
+  --sc-font-size-subtitle: 13px;
+  --sc-font-size-lead: 13px;
+  --sc-font-size-panel: 12.5px;
+  --sc-font-size-body: 12.5px;
+  --sc-font-size-control: 12px;
+  --sc-font-size-technical: 11.5px;
+  --sc-font-size-caption: 11px;
+  --sc-font-size-label: 10px;
+  --sc-font-size-xs: 10px;
+
+  --sc-line-height-display: 1.1;
   --sc-line-height-tight: 1.2;
   --sc-line-height-compact: 1.35;
+  --sc-line-height-control: 1.2;
   --sc-line-height-body: 1.5;
-  --sc-line-height-control: 1.25;
-  --sc-tracking-display: -0.038em;
-  --sc-tracking-tight: -0.025em;
-  --sc-tracking-control: -0.008em;
-  --sc-tracking-technical: 0.01em;
-  --sc-tracking-eyebrow: 0.16em;
-  --sc-numeric-variant: tabular-nums lining-nums;
-  --sc-numeric-features: "tnum" 1, "lnum" 1, "cv02" 1, "cv03" 1, "cv04" 1, "cv11" 1;
+  --sc-line-height-relaxed: 1.6;
+
+  --sc-tracking-display: -0.03em;
+  --sc-tracking-tight: -0.02em;
+  --sc-tracking-control: -0.01em;
+  --sc-tracking-technical: 0;
+  --sc-tracking-eyebrow: 0.09em;
+  --sc-tracking-wide: 0.06em;
+
+  /* Cifras tabulares en todas partes. No es una opción de componente. */
+  --sc-numeric-variant: tabular-nums;
+  --sc-numeric-features: "tnum" 1, "cv01" 1;
 
   /* ------------------------------------------------------------------ */
-  /* 7 · CONTROLES, LAYOUT Y DENSIDAD (Mesa Modular)                     */
+  /* 7 · CONTROLES, LAYOUT Y DENSIDAD                                    */
   /* ------------------------------------------------------------------ */
-  --sc-control-height-sm: 36px;
-  --sc-control-height-md: 40px;
+  /* Controles más bajos que en cualquiera de los dos productos de origen. Con
+     el filete de 1px como único delimitador, un control de 36px se lee vacío. */
+  --sc-control-height-sm: 24px;
+  --sc-control-height-md: 28px;
   --sc-control-height-touch: 44px;
-  --sc-layout-topbar: 68px;
-  --sc-layout-rail: 164px;
-  --sc-layout-rail-compact: 76px;
-  --sc-layout-inspector: 320px;
-  --sc-layout-inspector-compact: 290px;
-  --sc-layout-results: 285px;
-  --sc-layout-gutter: 18px;
-  --sc-layout-reading: 1200px;
 
-  /* Densidades: la profesional es compacta pero legible; la táctil se
-     activa por breakpoint/pointer, Aula usa la cómoda. */
-  --sc-density-row-compact: 30px;
-  --sc-density-row-comfortable: 36px;
+  --sc-density-row-compact: 24px;
+  --sc-density-row: 28px;
+  --sc-density-row-comfortable: 32px;
   --sc-density-row-touch: 44px;
-  /* Densidad efectiva de fila. Su valor lo conmuta la clase de composición
-     (CRI-89) y nadie más; este es sólo el defecto para superficies que se
-     renderizan fuera del shell (Inicio, Component Lab). */
-  --sc-density-row: var(--sc-density-row-comfortable);
+
+  /* Marco de la aplicación. La barra baja de 58px a 44px y el riel deja de
+     llevar texto: es un dock de iconos. */
+  --sc-layout-topbar: 44px;
+  /* El riel es un dock de iconos en toda composición: 38px de tecla + 4px de
+     aire a cada lado + el filete. Ya no hay una variante «con etiqueta». */
+  --sc-layout-rail: 48px;
+  --sc-layout-rail-compact: 48px;
+  --sc-layout-inspector: 300px;
+  --sc-layout-inspector-compact: 272px;
+  --sc-layout-results: 248px;
+  --sc-layout-gutter: 12px;
+  --sc-layout-reading: 68ch;
 
   /* ------------------------------------------------------------------ */
   /* 8 · MOTION Y APILAMIENTO                                            */
   /* ------------------------------------------------------------------ */
-  --sc-motion-instant: 70ms;
-  --sc-motion-press: 70ms;
-  --sc-motion-fast: 140ms;
-  --sc-motion-control: 160ms;
-  --sc-motion-standard: 220ms;
-  --sc-motion-slow: 360ms;
-  --sc-motion-reveal: 620ms;
-  --sc-motion-loading: 800ms;
-  --sc-motion-distance-factor: 1;
-  --sc-motion-morph-duration: var(--sc-motion-standard);
-  --sc-motion-dock-scale: 1.16;
-  --sc-ease-standard: cubic-bezier(.22, 1, .36, 1);
-  --sc-ease-enter: cubic-bezier(.22, 1, .36, 1);
+  /* Rápido y corto. Sin muelles: un sistema sin volumen no rebota. */
+  --sc-motion-instant: 50ms;
+  --sc-motion-press: 60ms;
+  --sc-motion-fast: 100ms;
+  --sc-motion-control: 120ms;
+  --sc-motion-standard: 150ms;
+  --sc-motion-slow: 200ms;
+  --sc-motion-reveal: 240ms;
+  --sc-motion-loading: 700ms;
+  --sc-motion-morph-duration: 200ms;
+  --sc-motion-distance-factor: 0.5;
+  --sc-motion-dock-scale: 1;
+
+  --sc-ease-standard: cubic-bezier(.2, 0, 0, 1);
+  --sc-ease-enter: cubic-bezier(0, 0, .2, 1);
   --sc-ease-exit: cubic-bezier(.4, 0, 1, 1);
-  --sc-ease-press: cubic-bezier(.2, .8, .2, 1);
-  --sc-ease-emphasized: cubic-bezier(.32, .72, 0, 1);
-  --sc-spring-soft: cubic-bezier(.3, 1.18, .35, 1);
-  --sc-spring-panel: cubic-bezier(.26, 1.08, .32, 1);
+  --sc-ease-press: cubic-bezier(.2, 0, 0, 1);
+  --sc-ease-emphasized: cubic-bezier(.2, 0, 0, 1);
+  --sc-spring-soft: cubic-bezier(.2, 0, 0, 1);
+  --sc-spring-panel: cubic-bezier(.2, 0, 0, 1);
+
   --sc-transition-control:
     background-color var(--sc-motion-control) var(--sc-ease-standard),
     border-color var(--sc-motion-control) var(--sc-ease-standard),
     color var(--sc-motion-control) var(--sc-ease-standard),
-    box-shadow var(--sc-motion-control) var(--sc-ease-standard),
-    transform var(--sc-motion-control) var(--sc-ease-standard);
-  /** Same as --sc-transition-control but without `transform` — for elements whose transform is already driven by motion's own spring, so the two don't fight over the same property. */
-  --sc-transition-control-no-transform:
-    background-color var(--sc-motion-control) var(--sc-ease-standard),
-    border-color var(--sc-motion-control) var(--sc-ease-standard),
-    color var(--sc-motion-control) var(--sc-ease-standard),
-    box-shadow var(--sc-motion-control) var(--sc-ease-standard);
+    opacity var(--sc-motion-control) var(--sc-ease-standard);
+  --sc-transition-control-no-transform: var(--sc-transition-control);
   --sc-transition-theme:
     background-color var(--sc-motion-standard) var(--sc-ease-standard),
     border-color var(--sc-motion-standard) var(--sc-ease-standard),
-    color var(--sc-motion-fast) var(--sc-ease-standard);
+    color var(--sc-motion-standard) var(--sc-ease-standard);
+
   --sc-z-base: 0;
-  --sc-z-panel: 10;
-  --sc-z-sticky: 20;
+  --sc-z-sticky: 10;
+  --sc-z-panel: 20;
   --sc-z-topbar: 30;
-  --sc-z-drawer: 60;
-  --sc-z-sheet: 70;
-  --sc-z-popover: 80;
-  --sc-z-modal: 1200;
-  --sc-z-toast: 1300;
+  --sc-z-drawer: 40;
+  --sc-z-sheet: 50;
+  --sc-z-popover: 60;
+  --sc-z-modal: 70;
+  --sc-z-toast: 80;
 
   /* ------------------------------------------------------------------ */
-  /* 9 · ALIAS DE COMPATIBILIDAD (migración por rol)                     */
+  /* 9 · ALIAS DE COMPATIBILIDAD                                         */
   /* ------------------------------------------------------------------ */
+  /* El CSS heredado de ambos productos nombra estos alias cortos. Ninguno
+     declara un valor propio: todos resuelven a un rol de arriba, así que el
+     tema oscuro los arrastra sin repetir una sola línea. */
   --app-bg: var(--sc-color-bg-app);
-  --surface: var(--sc-color-surface-1);
-  --surface-2: var(--sc-color-surface-2);
-  --surface-3: color-mix(in srgb, var(--sc-color-surface-2) 82%, var(--sc-color-border));
   --canvas-bg: var(--sc-color-bg-canvas);
+  --surface: var(--sc-color-surface-1);
+  --surface-1: var(--sc-color-surface-1);
+  --surface-raised: var(--sc-color-surface-1);
+  --surface-2: var(--sc-color-surface-2);
+  --surface-3: var(--sc-color-surface-3);
   --text: var(--sc-color-text-primary);
   --muted: var(--sc-color-text-secondary);
-  --muted-strong: color-mix(in srgb, var(--sc-color-text-primary) 78%, var(--sc-color-text-secondary));
+  --muted-strong: var(--sc-color-text-technical);
   --subtle: var(--sc-color-text-muted);
+  --text-muted: var(--sc-color-text-muted);
   --border: var(--sc-color-border);
   --border-soft: var(--sc-color-border-soft);
-  --shadow: var(--sc-shadow-floating);
-  /* OJO al reparto. --accent es el alias histórico de trazo/tinta y conserva
-     el canto menta medido (3,17:1 peor caso). El relleno vive en --accent-fill
-     y sólo puede llevar --accent-foreground, medido en todos sus estados. */
-  --accent: var(--sc-color-action-ink);
+  --line: var(--sc-color-divider);
+  --shadow: var(--sc-shadow-lg);
+  --shadow-lg: var(--sc-shadow-lg);
+
+  --accent: var(--sc-color-action-primary);
   --accent-fill: var(--sc-color-action-primary);
   --accent-hover: var(--sc-color-action-hover);
   --accent-pressed: var(--sc-color-action-pressed);
-  --accent-soft: color-mix(in srgb, var(--sc-color-action-primary) 10%, var(--sc-color-surface-1));
-  /* Pareja obligatoria del tinte suave. Quien pinte tinta encima usa ésta y no
-     `--accent`, que sólo está medido contra las superficies base (CRI-113). */
+  --accent-soft: var(--sc-color-action-subtle);
   --accent-on-soft: var(--sc-color-action-ink-on-soft);
   --accent-foreground: var(--sc-color-action-foreground);
   --accent-edge: var(--sc-color-action-edge);
   --accent-ink: var(--sc-color-action-ink);
   --brand-secondary: var(--sc-color-brand-secondary);
+
   --focus: var(--sc-color-focus);
   --selection: var(--sc-color-selection-stroke);
   --selection-soft: var(--sc-color-selection);
-  --axial: var(--sc-color-technical-axial);
-  --shear: var(--sc-color-technical-shear);
-  --moment: var(--sc-color-technical-moment);
-  --force: var(--sc-color-load-point);
-  --dimension: var(--sc-color-technical-dimension);
-  --axis: var(--sc-color-technical-axis);
-  --deformed: var(--sc-color-technical-deformed);
-  --reaction: var(--sc-color-technical-reaction);
-  --warning: var(--sc-color-state-warning);
-  --error: var(--sc-color-state-error);
-  --danger: var(--sc-color-state-error);
-  --success: var(--sc-color-state-success);
-  --success-solid: var(--sc-color-success-solid);
-  --success-foreground: var(--sc-color-success-on-solid);
-  --error-solid: var(--sc-color-error-solid);
-  --error-foreground: var(--sc-color-error-on-solid);
   --grid: var(--sc-color-canvas-grid);
   --grid-strong: var(--sc-color-canvas-grid-strong);
   --member: var(--sc-color-canvas-member);
   --node-fill: var(--sc-color-canvas-node-fill);
-  --radius-sm: var(--sc-radius-sm);
-  --radius-md: var(--sc-radius-md);
-  --radius-lg: var(--sc-radius-lg);
-  --topbar-h: var(--sc-layout-topbar);
-  --toolbar-w: var(--sc-layout-rail);
-  --inspector-w: var(--sc-layout-inspector);
+
+  --force: var(--sc-color-technical-load);
+  --axial: var(--sc-color-technical-axial);
+  --shear: var(--sc-color-technical-shear);
+  --moment: var(--sc-color-technical-moment);
+  --deformed: var(--sc-color-technical-deformed);
+  --reaction: var(--sc-color-technical-reaction);
+  --dimension: var(--sc-color-technical-dimension);
+  --axis: var(--sc-color-technical-axis);
+
+  --success: var(--sc-color-state-success);
+  --success-solid: var(--sc-color-success-solid);
+  --success-foreground: var(--sc-color-state-success-foreground);
+  --warning: var(--sc-color-state-warning);
+  --error: var(--sc-color-state-error);
+  --error-solid: var(--sc-color-error-solid);
+  --error-foreground: var(--sc-color-state-error-foreground);
+  --danger: var(--sc-color-state-error);
+
+  --radius-sm: var(--sc-radius-control);
+  --radius-md: var(--sc-radius-card);
+  --radius-lg: var(--sc-radius-panel);
+
+  --motion-press: var(--sc-motion-press);
   --motion-fast: var(--sc-motion-fast);
   --motion-control: var(--sc-motion-control);
-  --motion-press: var(--sc-motion-press);
   --motion-standard: var(--sc-motion-standard);
   --motion-slow: var(--sc-motion-slow);
   --motion-loading: var(--sc-motion-loading);
@@ -725,178 +641,120 @@
   --ease-enter: var(--sc-ease-enter);
   --ease-exit: var(--sc-ease-exit);
   --ease-press: var(--sc-ease-press);
+
+  --topbar-h: var(--sc-layout-topbar);
+  --toolbar-w: var(--sc-layout-rail);
+  --inspector-w: var(--sc-layout-inspector);
 }
 
-/*
- * TEMA NOCHE · petróleo profundo
- * No es una inversión del Día: los neutros y la materia se calibran para el
- * fondo oscuro; la paleta técnica permanece idéntica.
- */
+/* ==================================================================== */
+/* 10 · TEMA NOCHE                                                       */
+/* ==================================================================== */
+/* Sólo neutros y tintas de estado. Ni un hue del dominio se repite aquí: el
+   bloque es corto a propósito, y que lo sea es la prueba de que la identidad
+   vive en `:root`. */
 :root[data-theme='dark'] {
-  --sc-color-bg-app: #07161b;
-  --sc-color-bg-canvas: #0b1d23;
-  --sc-color-surface-1: #112830;
-  /* `surface-2` separa campos, trays y botones secundarios del fondo base. */
-  --sc-color-surface-2: #163039;
-  --sc-color-surface-elevated: #1a3540;
-  --sc-color-surface-pressed: #0b1d23;
-  --sc-color-surface-inset: #0b1d23;
-  --sc-color-surface-toolbar: #112830;
-  --sc-color-surface-input: #0b1d23;
+  color-scheme: dark;
 
-  --sc-color-text-primary: #f3f0e8;
-  --sc-color-text-secondary: #b5c2bf;
-  --sc-color-text-muted: #93a4a1;
-  --sc-color-text-disabled: #64746f;
-  --sc-color-text-disabled-content: #849590;
-  --sc-color-text-inverse: #07161b;
-  --sc-color-text-link: #95d0e5;
-  --sc-color-text-technical: #d1ddd8;
-  --sc-color-text-unit: #a6b6b0;
+  --sc-color-bg-app: #0b0b0b;
+  --sc-color-bg-canvas: #0b0b0b;
+  --sc-color-surface-1: #121212;
+  --sc-color-surface-2: #171717;
+  --sc-color-surface-3: #1e1e1e;
+  --sc-color-surface-elevated: #171717;
+  --sc-color-surface-floating: #1a1a1a;
+  --sc-color-surface-inset: #171717;
+  --sc-color-surface-pressed: #262626;
+  --sc-color-surface-toolbar: #121212;
+  --sc-color-surface-input: #171717;
 
-  --sc-color-border: #33474f;
-  --sc-color-border-soft: #263941;
-  --sc-color-border-strong: #58717a;
-  --sc-color-border-canvas-chrome: #58717a;
-  --sc-color-divider: #20313a;
+  --sc-color-fill-primary: #262626;
+  --sc-color-fill-secondary: #1e1e1e;
+  --sc-color-fill-tertiary: #171717;
+  --sc-color-fill-quaternary: #171717;
 
-  /* CRI-113 · Única excepción del bloque de marca, y por la misma razón que las
-     tintas de estado de más abajo: sobre el tinte suave nocturno el canto menta
-     (mint-700) mide 2,76:1. El relleno de marca —mint-500, que ya vive en el
-     sistema— mide 4,46:1 sobre ese mismo fondo. No se inventa ningún HEX. */
-  --sc-color-action-ink-on-soft: var(--sc-color-action-primary);
+  --sc-color-text-primary: #f7f7f7;
+  --sc-color-text-secondary: #a6a6a6;
+  --sc-color-text-muted: #8c8c8c;
+  --sc-color-text-tertiary: #8c8c8c;
+  --sc-color-text-subtle: #737373;
+  --sc-color-text-technical: #cccccc;
+  --sc-color-text-unit: #8c8c8c;
+  --sc-color-text-disabled: #5a5a5a;
+  --sc-color-text-disabled-content: #a6a6a6;
+  --sc-color-text-inverse: #0b0b0b;
+  --sc-color-text-on-action: #0b0b0b;
+  --sc-color-text-link: #f7f7f7;
 
-  /* Marca, estados, trazo de selección, foco y Aula NO se redeclaran aquí:
-     son invariantes y viven una sola vez en :root. Los rellenos suaves de
-     acción y selección son fondos; el primero se deriva y el segundo se
-     calibra abajo contra la materia nocturna. */
+  --sc-color-border-soft: #242424;
+  --sc-color-border: #303030;
+  --sc-color-border-strong: #545454;
+  --sc-color-divider: #242424;
+  --sc-color-border-canvas-chrome: #545454;
 
-  --sc-color-accent-blue-soft: #1d2c38;
-  --sc-color-accent-violet-soft: #272138;
+  /* La tinta se invierte entera: la acción primaria es papel sobre tinta. */
+  --sc-color-action-primary: #f7f7f7;
+  --sc-color-action-hover: #ffffff;
+  --sc-color-action-pressed: #d4d4d4;
+  --sc-color-action-foreground: #0b0b0b;
+  --sc-color-action-edge: #f7f7f7;
+  --sc-color-action-ink: #f7f7f7;
+  --sc-color-action-ink-on-soft: #f7f7f7;
+  --sc-color-action-subtle: #1e1e1e;
+  --sc-color-brand: #f7f7f7;
+  --sc-color-brand-secondary: #a6a6a6;
+  --sc-color-accent-blue-soft: #1e1e1e;
+  --sc-color-accent-violet-soft: #1e1e1e;
 
-  /* Relleno suave de selección: fondo. El trazo de selección es invariante. */
-  --sc-color-selection: #223050;
+  --sc-color-focus: #f7f7f7;
+  --sc-color-selection: #262626;
+  --sc-color-selection-stroke: #f7f7f7;
+  --sc-color-selection-outline: #f7f7f7;
 
-  --sc-color-state-pending: #a6b6b0;
-  /* Tintas de texto sobre superficie. Éstas SÍ cambian por tema, y no por
-     descuido: entre la superficie Día y la de Noche hay 15,7:1, así que ningún
-     color puede estar a 4,5:1 de las dos (harían falta 20,25:1). La señal de
-     estado es invariante; lo que se recalibra es la tinta que la escribe.
-     Medido sobre #15232b: canario 11,03:1, rojo claro 6,53:1. */
-  --sc-color-state-warning-foreground: var(--sc-color-canario);
-  --sc-color-state-error-foreground: #f79b93;
+  /* Las tintas de estado se recalibran porque su fondo cambia; el hue no. */
+  --sc-color-state-success-foreground: #4ade9b;
+  --sc-color-state-warning-foreground: #e8c05a;
+  --sc-color-state-error-foreground: #f87171;
+  --sc-color-state-critical: #f87171;
+  --sc-color-state-loading: #8c8c8c;
+  --sc-color-state-pending: #8c8c8c;
 
-  --sc-color-canvas-grid: #20363d;
-  --sc-color-canvas-grid-strong: #314950;
-  --sc-color-canvas-member: #f3f0e8;
-  --sc-color-canvas-node-fill: #0b1d23;
-  --sc-color-overlay-soft: rgba(0, 0, 0, 0.34);
-  --sc-color-overlay-sheet: rgba(0, 0, 0, 0.46);
-  --sc-color-overlay-strong: rgba(0, 0, 0, 0.68);
+  --sc-color-canario-ink: #0b0b0b;
 
-  /* Sólo el marfil cambia de fase. La menta del pórtico es la misma en ambos
-     temas: la marca no tiene dos versiones. */
-  --sc-color-illustration-ivory: #1a3540;
-  --sc-color-illustration-ivory-deep: #112830;
+  --sc-color-canvas-grid: #1a1a1a;
+  --sc-color-canvas-grid-strong: #262626;
+  --sc-color-canvas-member: #f7f7f7;
+  --sc-color-canvas-node-fill: #0b0b0b;
+  --sc-color-overlay-soft: rgb(0 0 0 / .40);
+  --sc-color-overlay-sheet: rgb(0 0 0 / .52);
+  --sc-color-overlay-strong: rgb(0 0 0 / .66);
 
-  /* Los roles técnicos NO se redeclaran: ésa es exactamente la regla que este
-     cierre cromático establece. Antes había un segundo juego aquí, y sobre la
-     superficie de Noche medía entre 1,39:1 y 2,56:1 — por debajo del suelo,
-     porque sólo se había medido contra el lienzo. */
+  --sc-color-illustration-ivory: #1e1e1e;
+  --sc-color-illustration-ivory-deep: #171717;
+  --sc-color-illustration-lime: #d4d4d4;
+  --sc-color-illustration-lime-deep: #f7f7f7;
 
-  /* Rampa del índice elástico: única excepción técnica que sigue cambiando por
-     tema, y a propósito. No es un significado sino una escala secuencial: tiene
-     que crecer alejándose del fondo, y el fondo se invierte entre temas. En Día
-     crece hacia el oscuro; aquí, hacia el claro. Misma familia, misma lectura
-     de magnitud. */
-  --sc-color-demand-base: #6f9fb0;
-  --sc-color-demand-peak: #a9dcea;
-  --sc-color-demand-reference: #c4a6f5;
-  --sc-color-demand-reference-peak: #ede2ff;
-  --sc-color-demand-unevaluated: #7f8b8f;
+  /* La estructura en reposo sigue siendo tinta: ahora la tinta es clara. */
+  --sc-color-structure-spring: #8c8c8c;
+  --sc-color-structure-hinge: #8c8c8c;
+  --sc-color-structure-release: #8c8c8c;
+  --sc-color-technical-axis: #545454;
+  --sc-color-technical-dimension: #e8c05a;
+  --sc-color-critical-point: #e8c05a;
+  --sc-color-stale-result: #e8c05a;
+  --sc-color-snap-target: #f7f7f7;
+  --sc-color-hover-target: #f7f7f7;
+  --sc-color-envelope: #8c8c8c;
+  --sc-color-demand-base: #1d5fd1;
+  --sc-color-demand-peak: #9dc0f2;
+  --sc-color-demand-unevaluated: #545454;
 
-  --sc-shadow-raised: 2px 3px 6px rgba(0, 0, 0, 0.42), -2px -2px 4px rgba(67, 98, 108, 0.14);
-  --sc-shadow-lifted: 4px 5px 10px rgba(0, 0, 0, 0.48), -3px -3px 8px rgba(67, 98, 108, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --sc-shadow-floating: 4px 5px 10px rgba(0, 0, 0, 0.48), -3px -3px 8px rgba(67, 98, 108, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --sc-shadow-modal: 5px 6px 10px rgba(0, 0, 0, 0.56), -3px -3px 8px rgba(67, 98, 108, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --sc-shadow-popover: 3px 4px 8px rgba(0, 0, 0, 0.46), -2px -2px 6px rgba(67, 98, 108, 0.16);
-  --sc-shadow-drop: 4px 5px 10px rgba(0, 0, 0, 0.48);
-  --sc-shadow-sheet: 0 -4px 10px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --sc-color-tool-dimension: #e8c05a;
+  --sc-color-tool-cut: #8c8c8c;
 
-  /* En Noche la sombra pierde trabajo —no queda luz que quitar— y el borde lo
-     gana: sin un canto visible los paneles se funden con el fondo. La luz
-     interior pasa de blanca a un velo de marca muy tenue; el blanco puro sobre
-     grafito se lee como un arañazo. */
-  --sc-shadow-xs: 1px 2px 4px rgba(0, 0, 0, 0.36), -1px -1px 2px rgba(67, 98, 108, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.04), inset -1px -1px 2px rgba(0, 0, 0, 0.22);
-  --sc-shadow-sm: 2px 3px 6px rgba(0, 0, 0, 0.42), -2px -2px 4px rgba(67, 98, 108, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset -1px -1px 3px rgba(0, 0, 0, 0.25);
-  --sc-shadow-md: 3px 4px 8px rgba(0, 0, 0, 0.46), -2px -2px 6px rgba(67, 98, 108, 0.17), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset -2px -2px 4px rgba(0, 0, 0, 0.28);
-  --sc-shadow-lg: 4px 5px 10px rgba(0, 0, 0, 0.5), -3px -3px 8px rgba(67, 98, 108, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset -2px -2px 5px rgba(0, 0, 0, 0.3);
-  --sc-shadow-floating: 4px 5px 10px rgba(0, 0, 0, 0.5), -3px -3px 8px rgba(67, 98, 108, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset -2px -2px 5px rgba(0, 0, 0, 0.3);
-  --sc-shadow-inset: inset 2px 2px 4px rgba(0, 0, 0, 0.36), inset -1px -1px 3px rgba(67, 98, 108, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  /* Las cavidades neutras conservan volumen con carbón y luz azul grisácea;
-     el verde se reserva al control primario o a una selección real. */
-  --sc-shadow-pressed: inset 2px 3px 5px rgba(0, 0, 0, 0.44), inset -1px -1px 3px rgba(67, 98, 108, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-
-  --sc-depth-base-border: 1px solid var(--sc-color-border-soft);
-  --sc-depth-base-shadow: none;
-  --sc-depth-inset-border: 1px solid var(--sc-color-border);
-  --sc-depth-inset-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.36), inset -1px -1px 3px rgba(67, 98, 108, 0.14);
-  --sc-depth-raised-border: 1px solid var(--sc-color-border);
-  --sc-depth-raised-shadow: 2px 3px 6px rgba(0, 0, 0, 0.42), -2px -2px 4px rgba(67, 98, 108, 0.14);
-  --sc-depth-floating-border: 1px solid var(--sc-color-border-strong);
-  --sc-depth-floating-shadow: 4px 5px 10px rgba(0, 0, 0, 0.5), -3px -3px 8px rgba(67, 98, 108, 0.18);
-
-  --sc-surface-edge: 1px solid var(--sc-color-border);
-  --sc-surface-fill: var(--sc-color-surface-1);
-
-  /* Noche: el relleno de marca ya es lo más claro de la pantalla, así que la
-     luz interior baja de 0.38 a 0.18 — el mismo recorte que hace el resto de
-     la escala minimal. El gradiente no cambia: se mide sobre el mismo acento. La
-     elevación exterior es la neutra nocturna, igual que cualquier otro
-     control: la acción no tiene una fuente de luz verde propia. */
-  --sc-shadow-action: 1px 2px 4px rgba(0, 0, 0, 0.38), -1px -1px 2px rgba(67, 98, 108, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset -1px -1px 3px color-mix(in srgb, var(--sc-color-action-primary) 44%, black);
-  --sc-shadow-action-hover: 2px 3px 6px rgba(0, 0, 0, 0.44), -2px -2px 4px rgba(67, 98, 108, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.14), inset -1px -1px 4px color-mix(in srgb, var(--sc-color-action-primary) 48%, black);
-  --sc-shadow-action-pressed: inset 2px 3px 5px color-mix(in srgb, var(--sc-color-action-primary) 46%, black), inset -1px -1px 3px rgba(255, 255, 255, 0.1);
-
-
-  --sc-ring-inset: inset 0 1px 0 color-mix(in srgb, var(--sc-color-action-primary) 14%, transparent);
+  /* La sombra de contacto necesita más peso sobre un plano oscuro. */
+  --sc-shadow-lg: 0 1px 2px rgb(0 0 0 / .5), 0 8px 24px rgb(0 0 0 / .6);
+  --sc-shadow-modal: 0 1px 2px rgb(0 0 0 / .5), 0 16px 40px rgb(0 0 0 / .7);
+  --sc-shadow-sheet: 0 -1px 2px rgb(0 0 0 / .5), 0 -12px 32px rgb(0 0 0 / .6);
+  --sc-shadow-drop: 0 6px 16px rgb(0 0 0 / .6);
 }
-
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --sc-motion-instant: 0.001ms;
-    --sc-motion-press: 0.001ms;
-    --sc-motion-fast: 0.001ms;
-    --sc-motion-control: 0.001ms;
-    --sc-motion-standard: 0.001ms;
-    --sc-motion-slow: 0.001ms;
-    --sc-motion-reveal: 0.001ms;
-    --sc-motion-loading: 0.001ms;
-    --sc-motion-distance-factor: 0;
-    --sc-motion-morph-duration: 0.001ms;
-    --sc-motion-dock-scale: 1;
-    --sc-ease-emphasized: linear;
-    --sc-spring-soft: linear;
-    --sc-spring-panel: linear;
-    /* Anular la duración no basta: un `transform` sin transición sigue saltando.
-       Neutralizar el token apaga el hundimiento en todos los controles minimal a
-       la vez, y el estado sigue leyéndose por la cavidad de la sombra. */
-    --sc-press-transform: none;
-    --sc-press-transform-flat: none;
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* DENSIDAD POR CLASE DE COMPOSICIÓN — CRI-89                          */
-/* ------------------------------------------------------------------ */
-/* Los tres tokens de densidad existían desde el principio y nadie los
-   conmutaba: la clase de composición es lo que faltaba. `data-shell-class` lo
-   publica el shell con la salida del resolutor, y es la ÚNICA condición que
-   elige densidad — ninguna media query de ancho vuelve a hacerlo.
-
-   Expanded es trabajo de puntero fino sobre pantalla ancha y paga la fila
-   profesional; Medium respira; Compact llega al objetivo táctil de 44px que
-   LEDGER-07 ya exigía. */
-.app-shell[data-shell-class='X2'] { --sc-density-row: var(--sc-density-row-compact); }
-.app-shell[data-shell-class='M1'] { --sc-density-row: var(--sc-density-row-comfortable); }
-.app-shell[data-shell-class='K0'] { --sc-density-row: var(--sc-density-row-touch); }

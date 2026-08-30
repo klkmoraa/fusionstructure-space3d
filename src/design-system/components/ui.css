@@ -1,20 +1,27 @@
-/* StructureCo isolated component library. All colors and motion resolve through Phase 4 tokens.
+/* FusionStructure · Biblioteca de componentes
  *
- * SISTEMA MINIMAL — una sola gramática, y vive aquí porque el Design System es
- * quien posee estos componentes. Tres estados, sin excepciones:
+ * Todos los colores, medidas y tiempos resuelven a través de la fundación
+ * (`design-system/tokens.css`). Este archivo no declara un solo literal.
  *
- *   · reposo           → superficie elevada (`--sc-shadow-xs`)
- *   · hover            → un punto más de elevación (`--sc-shadow-sm`)
- *   · activo / elegido → cavidad rehundida (`--sc-shadow-pressed`)
+ * UNA SOLA GRAMÁTICA, TRES ESTADOS. La versión anterior los expresaba con
+ * volumen —reposo elevado, hover un punto más alto, elegido hundido en una
+ * cavidad—, que es exactamente el claymorphism que FusionStructure retira.
+ * Aquí los tres estados son PLANOS:
  *
- * Antes esta materia estaba reescrita al final de `styles.css` con selectores
- * duplicados (`.sc-button.sc-button--primary`) que sólo existían para ganar la
- * cascada a este archivo. `ui.css` se carga después que `styles.css` (el
- * WorkspaceShell es lazy), así que declararla aquí gana sin duplicar nada y sin
- * un solo `!important`. Lo que queda en `styles.css` son estilos de feature.
+ *   · reposo           → sin fondo ni contorno (o filete de 1px si es un campo)
+ *   · hover            → el plano de fondo sube un escalón
+ *   · activo / elegido → invierte a tinta plena
  *
- * Los campos son la excepción deliberada: un input es una cavidad en reposo,
- * no un objeto elevado, y por eso arrancan ya rehundidos. */
+ * Los tokens de sombra siguen consumiéndose por nombre y resuelven a `none`
+ * en toda la escala salvo la de contacto: así un tema alternativo puede
+ * devolver la profundidad sin tocar una regla de este archivo.
+ *
+ * `ui.css` se carga después de `styles.css` (el WorkspaceShell es lazy), así
+ * que su materia gana la cascada sin duplicar selectores y sin `!important`.
+ *
+ * Los campos son la excepción deliberada: un input sí dibuja su filete en
+ * reposo, porque tiene que decir «aquí se escribe» antes de que nadie lo
+ * toque. */
 
 :where(
   .sc-button,
@@ -133,12 +140,12 @@
 .sc-button--primary:not(:disabled):hover {
   background: var(--sc-surface-fill-action);
   box-shadow: var(--sc-shadow-action-hover);
-  transform: translateY(-1px);
+
 }
 .sc-button--primary:not(:disabled):active { box-shadow: var(--sc-shadow-action-pressed); transform: var(--sc-press-transform); }
 
 .sc-button--secondary { background: var(--sc-color-surface-1); color: var(--sc-color-text-primary); border-color: var(--sc-color-border); box-shadow: var(--sc-shadow-xs); }
-.sc-button--secondary:not(:disabled):hover { background: var(--sc-color-surface-elevated); border-color: var(--sc-color-action-edge); box-shadow: var(--sc-shadow-sm); transform: translateY(-1px); }
+.sc-button--secondary:not(:disabled):hover { background: var(--sc-color-surface-elevated); border-color: var(--sc-color-action-edge); box-shadow: var(--sc-shadow-sm); }
 .sc-button--secondary:not(:disabled):active { background: var(--sc-color-surface-inset); box-shadow: var(--sc-shadow-pressed); transform: var(--sc-press-transform); }
 /* `ghost` es la excepción por definición: en reposo no hay objeto que elevar.
    Gana materia al tocarlo y la pierde al soltarlo, como el resto. */
@@ -149,7 +156,7 @@
    heredaba la tinta de la acción primaria; ahora esa tinta es oscura y sobre el
    rojo habría caído por debajo del suelo. */
 .sc-button--danger { background: var(--sc-color-error-solid); color: var(--sc-color-error-on-solid); border-color: transparent; box-shadow: var(--sc-shadow-xs); }
-.sc-button--danger:not(:disabled):hover { background: color-mix(in srgb, var(--sc-color-error-solid) 84%, var(--sc-color-text-primary)); box-shadow: var(--sc-shadow-sm); transform: translateY(-1px); }
+.sc-button--danger:not(:disabled):hover { background: color-mix(in srgb, var(--sc-color-error-solid) 84%, var(--sc-color-text-primary)); box-shadow: var(--sc-shadow-sm); }
 .sc-button--danger:not(:disabled):active { box-shadow: var(--sc-shadow-pressed); transform: var(--sc-press-transform); }
 
 .sc-icon-button {
@@ -163,7 +170,7 @@
 .sc-icon-button--touch { width: var(--sc-control-height-touch); height: var(--sc-control-height-touch); }
 /* Genérico primero, variantes después: así cada variante puede corregir el
    reposo/hover neutro sin necesitar más peso del que ya tiene. */
-.sc-icon-button:not(:disabled):hover { background: var(--sc-color-surface-elevated); color: var(--sc-color-text-primary); box-shadow: var(--sc-shadow-sm); transform: translateY(-1px); }
+.sc-icon-button:not(:disabled):hover { background: var(--sc-color-surface-elevated); color: var(--sc-color-text-primary); box-shadow: var(--sc-shadow-sm); }
 .sc-icon-button:not(:disabled):active { background: var(--sc-color-surface-inset); box-shadow: var(--sc-shadow-pressed); transform: var(--sc-press-transform); }
 .sc-icon-button--secondary { background: var(--sc-color-surface-1); color: var(--sc-color-text-primary); border-color: var(--sc-color-border); box-shadow: var(--sc-shadow-xs); }
 .sc-icon-button--ghost { background: transparent; color: var(--sc-color-text-secondary); }
@@ -290,7 +297,7 @@
   white-space: nowrap;
 }
 .sc-segmented--sm button { min-height: var(--sc-control-height-sm); }
-.sc-segmented button:not(:disabled):not([aria-checked='true']):hover { color: var(--sc-color-text-primary); box-shadow: var(--sc-shadow-sm); transform: translateY(-1px); }
+.sc-segmented button:not(:disabled):not([aria-checked='true']):hover { color: var(--sc-color-text-primary); box-shadow: var(--sc-shadow-sm); }
 .sc-segmented button[aria-checked='true'] {
   background: var(--sc-color-surface-inset);
   color: var(--sc-color-action-primary);
@@ -347,7 +354,7 @@
   color: var(--sc-color-text-primary);
   box-shadow: var(--sc-shadow-xs);
 }
-.sc-popover__trigger:not(:disabled):hover { border-color: var(--sc-color-action-primary); background: var(--sc-color-surface-elevated); box-shadow: var(--sc-shadow-sm); transform: translateY(-1px); }
+.sc-popover__trigger:not(:disabled):hover { border-color: var(--sc-color-action-primary); background: var(--sc-color-surface-elevated); box-shadow: var(--sc-shadow-sm); }
 /* Abierto no es "resaltado", es un botón que se quedó pulsado. */
 .sc-popover__trigger[aria-expanded='true'],
 .sc-popover__trigger[aria-expanded='true']:not(:disabled):hover {
@@ -616,14 +623,14 @@
 .sc-tool-button {
   --sc-tool-color: var(--sc-color-tool-navigation);
   width: 100%;
-  min-height: 54px;
+  min-height: var(--sc-control-height-md);
   display: grid;
   grid-template-columns: var(--sc-size-icon-tool) minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--sc-space-3);
-  padding: var(--sc-space-2) var(--sc-space-3);
+  gap: var(--sc-space-2);
+  padding: var(--sc-space-1) var(--sc-space-2);
   border: var(--sc-border-width) solid transparent;
-  border-radius: var(--sc-radius-md);
+  border-radius: var(--sc-radius-control);
   background: transparent;
   color: var(--sc-color-text-primary);
   text-align: left;
@@ -635,20 +642,21 @@
 .sc-tool-button--dimension { --sc-tool-color: var(--sc-color-tool-dimension); }
 .sc-tool-button--cut { --sc-tool-color: var(--sc-color-tool-cut); }
 .sc-tool-button--destructive { --sc-tool-color: var(--sc-color-tool-destructive); }
-/* Tecla de volumen. La herramienta se reconoce por el color del icono; el
-   estado, por el volumen — elegida = hundida, nunca rellena de color. */
-.sc-tool-button:not(:disabled) { background: var(--sc-color-surface-1); border-color: color-mix(in srgb, var(--sc-color-border) 58%, var(--sc-color-surface-elevated)); box-shadow: var(--sc-shadow-xs); }
-.sc-tool-button:not(:disabled):hover { background: var(--sc-color-surface-elevated); box-shadow: var(--sc-shadow-sm); transform: translateY(-1.5px); }
+/* Tecla plana. En reposo no dibuja nada: es un glifo sobre el papel. Elegida
+   invierte a tinta, que es la señal más fuerte que hay sin usar color. */
+.sc-tool-button:not(:disabled) { background: transparent; border-color: transparent; box-shadow: none; }
+.sc-tool-button:not(:disabled):hover { background: var(--sc-color-surface-2); box-shadow: none; transform: none; }
 .sc-tool-button.is-active,
 .sc-tool-button.is-active:not(:disabled):hover {
-  border-color: color-mix(in srgb, var(--sc-tool-color) 26%, var(--sc-color-border));
-  background: var(--sc-color-surface-inset);
-  color: var(--sc-tool-color);
-  box-shadow: var(--sc-shadow-pressed);
-  transform: var(--sc-press-transform);
+  border-color: var(--sc-color-action-primary);
+  background: var(--sc-color-action-primary);
+  color: var(--sc-color-action-foreground);
+  box-shadow: none;
+  transform: none;
 }
-.sc-tool-button.is-active kbd { color: color-mix(in srgb, var(--sc-tool-color) 74%, var(--sc-color-text-secondary)); }
-.sc-tool-button:not(:disabled):active { background: var(--sc-color-surface-inset); box-shadow: var(--sc-shadow-pressed); transform: var(--sc-press-transform); }
+.sc-tool-button.is-active .sc-tool-button__icon { color: var(--sc-color-action-foreground); }
+.sc-tool-button.is-active kbd { color: var(--sc-color-action-foreground); opacity: .7; }
+.sc-tool-button:not(:disabled):active { background: var(--sc-color-surface-pressed); box-shadow: none; transform: none; }
 .sc-tool-button__icon { width: var(--sc-size-icon-tool); height: var(--sc-size-icon-tool); display: grid; place-items: center; color: var(--sc-tool-color); }
 .sc-tool-button__copy { min-width: 0; display: grid; gap: 2px; }
 .sc-tool-button__copy strong { overflow: hidden; text-overflow: ellipsis; font-size: var(--sc-font-size-label); font-weight: var(--sc-font-weight-semibold); white-space: nowrap; }
@@ -717,7 +725,7 @@
 
 .sc-layer-toggle { width: 100%; min-height: 56px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sc-space-3); padding: var(--sc-space-2) var(--sc-space-3); border: var(--sc-border-width) solid transparent; border-radius: var(--sc-radius-md); background: transparent; color: var(--sc-color-text-primary); text-align: left; }
 .sc-layer-toggle:not(:disabled) { background: var(--sc-color-surface-1); border-color: color-mix(in srgb, var(--sc-color-border) 58%, var(--sc-color-surface-elevated)); box-shadow: var(--sc-shadow-xs); }
-.sc-layer-toggle:not(:disabled):hover { background: var(--sc-color-surface-elevated); box-shadow: var(--sc-shadow-sm); transform: translateY(-1px); }
+.sc-layer-toggle:not(:disabled):hover { background: var(--sc-color-surface-elevated); box-shadow: var(--sc-shadow-sm); }
 .sc-layer-toggle.is-checked,
 .sc-layer-toggle.is-checked:not(:disabled):hover {
   border-color: color-mix(in srgb, var(--sc-color-action-primary) 24%, var(--sc-color-border));
