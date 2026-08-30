@@ -1,26 +1,25 @@
-/* La sistema visual anterior componible.
+/* FusionStructure · Materia
  *
- * Se declara UNA VEZ por rol de elevación, aplicada por lista de selectores.
- * Cambiar la materia es editar un bloque aquí, no perseguir siete reglas
- * repartidas por `styles.css`. Cada tarea de vestido añade sus propios
- * selectores al grupo que le corresponde.
+ * La materia se declara UNA vez por rol de elevación y se aplica por lista de
+ * selectores. Cambiar cómo se ve una superficie es editar un bloque aquí, no
+ * perseguir reglas repartidas por las hojas de feature.
  *
- * Se importa desde `App.tsx` DESPUÉS de `styles.css`, así que queda en el
- * chunk de entrada (nunca sufre el retraso del chunk lazy de `ui.css`) y
- * gana la cascada a todo `styles.css` sin necesitar `!important`.
+ * Este archivo es la aplicación literal de la regla 3 de la fundación: la
+ * profundidad es el filete. Cinco de los seis niveles no llevan sombra —lo que
+ * los distingue es el plano de fondo y el borde de 1px— y sólo lo que puede
+ * TAPAR contenido (popover, hoja, modal, toast) recibe la sombra de contacto.
  *
- * Un elemento sólo tiene un valor de `data-level` a la vez, así que los seis
- * grupos de nivel no compiten entre sí. `[data-pressed='true']` sí puede
- * coexistir con un nivel, y por eso va al final: gana la cascada por orden de
- * aparición cuando ambos atributos están presentes en el mismo elemento.
+ * Se importa desde `App.tsx` DESPUÉS de `styles.css`, así que vive en el chunk
+ * de entrada y gana la cascada sin necesitar `!important`.
  *
  * `Surface` (`design-system/components/surface.tsx`) emite `data-level` y
- * `data-pressed`. Cualquier otro selector puede sumarse a un grupo sin pasar
- * por `Surface`: por eso `[data-level='…']` genérico también engancha marcado
- * que no usa el componente React. */
+ * `data-pressed`. Un elemento sólo tiene un `data-level` a la vez, así que los
+ * grupos no compiten entre sí; `[data-pressed='true']` sí puede coexistir con
+ * un nivel y por eso va al final. */
 
-/* flat: sin volumen. Zonas técnicas densas — tablas, filas del inspector,
-   el lienzo. Es el nivel por defecto en esas zonas, no una excepción. */
+/* flat · rejilla técnica. El nivel por defecto de las zonas densas: tablas,
+   filas del inspector, el lienzo. Sin fondo propio y sin borde alrededor: lo
+   que separa una fila de la siguiente es la línea de la propia rejilla. */
 .sc-surface[data-level='flat'],
 [data-level='flat'],
 .selection-card,
@@ -42,78 +41,65 @@
   box-shadow: none;
 }
 
-/* inset: una cavidad de interacción. Es una profundidad distinta de BASE,
-   nunca una tarjeta anidada.
-   `.toolbar` (la bandeja del riel) vive aquí a propósito: CRI-98 la hunde para
-   que las herramientas `RAISED` que se apoyan encima lean como piezas sobre
-   una mesa, en vez de un panel plano más. */
+/* inset · una cavidad de interacción. Ya no se hunde con sombra interior:
+   ahora es un plano un escalón por debajo de la superficie. */
 .sc-surface[data-level='inset'],
 [data-level='inset'],
-/* CRI-104 · la bandeja de filtros de la vitrina es una cavidad de
-   interacción, no una pieza que flote sobre el panel: las pastillas se apoyan
-   DENTRO de ella. */
 .welcome-filter-tabs,
 .toolbar {
   background: var(--sc-color-surface-inset);
   border: 1px solid var(--sc-color-border-soft);
-  box-shadow: var(--sc-shadow-inset);
+  box-shadow: none;
 }
 
 .toolbar { border-width: var(--toolbar-border-width, 1px); }
 
-/* raised: la superficie normal — paneles, barras, tarjetas.
-   CRI-105 · `.inspector-summary` salió de este grupo: se renderiza DENTRO de
-   `.inspector-panel`, que ya es RAISED, así que estaba elevándose sobre una
-   elevación sin cambio de nivel entre las dos. Baja a BASE con el resto del
-   contenido del panel, más abajo. */
+/* raised · la superficie normal: paneles, barras, tarjetas. En este sistema
+   «elevado» significa «tiene filete propio», no «proyecta sombra». */
 .sc-surface[data-level='raised'],
 [data-level='raised'],
 .topbar,
-/* CRI-104 · la cabecera de la bienvenida es una barra de aplicación, igual que
-   `.topbar`: RAISED. Estaba en `floating`, que es la elevación de lo que se
-   despega del plano (popovers, menús) y no la de una barra fija. */
 .welcome-header,
 .inspector-panel,
 .results-panel {
   background: var(--sc-color-surface-1);
   border: var(--sc-surface-edge);
-  box-shadow: var(--sc-shadow-md);
+  box-shadow: none;
 }
 
-/* CRI-104 · la cabecera va a sangre completa y pegada al borde superior del
-   viewport: sólo lleva el canto que de verdad separa, el de abajo. Vive aquí
-   —y no en `styles.css`— porque este archivo se importa después y su `border`
-   en atajo ganaría a cualquier longhand declarado antes. */
+/* Las barras a sangre completa sólo llevan el canto que de verdad separa. */
 .welcome-header { border-width: 0 0 1px; }
-
 .inspector-panel { border-width: var(--inspector-border-width, 1px); }
 .results-panel { border-width: var(--results-border-width, 1px 0 0); }
 
-/* floating: lo que se despega del plano — popovers, hojas, menús. */
+/* floating · lo único que se despega del plano. Aquí sí hay sombra, y es
+   información: dice que esta pieza está DELANTE de lo que tapa. */
 .sc-surface[data-level='floating'],
 [data-level='floating'],
 .popover,
+.sc-popover__content,
 .sc-toast-card,
 .import-center-dialog,
 .mobile-tool-palette {
-  background: var(--sc-color-surface-1);
-  border: var(--sc-surface-edge);
+  background: var(--sc-color-surface-floating);
+  border: 1px solid var(--sc-color-border);
   box-shadow: var(--sc-shadow-lg);
 }
 
-.sc-toast-card--success { border-color: color-mix(in srgb, var(--sc-color-action-primary) 40%, var(--sc-color-border-soft)); }
-.sc-toast-card--info { border-color: color-mix(in srgb, var(--sc-color-info) 40%, var(--sc-color-border-soft)); }
-.sc-toast-card--warning { border-color: color-mix(in srgb, var(--sc-color-state-warning) 40%, var(--sc-color-border-soft)); }
-.sc-toast-card--error { border-color: color-mix(in srgb, var(--sc-color-state-error) 40%, var(--sc-color-border-soft)); }
+/* Un toast se identifica por una barra de estado de 2px en su canto de
+   entrada, no tiñendo el borde entero: el color entra por la puerta estrecha. */
+.sc-toast-card { border-inline-start-width: 2px; }
+.sc-toast-card--success { border-inline-start-color: var(--sc-color-state-success); }
+.sc-toast-card--info { border-inline-start-color: var(--sc-color-state-info); }
+.sc-toast-card--warning { border-inline-start-color: var(--sc-color-state-warning); }
+.sc-toast-card--error { border-inline-start-color: var(--sc-color-state-error); }
 
-/* sheet: un plano que nace de un borde. La sombra del token sube, porque la
-   fuente de luz sigue arriba-izquierda. El radio sólo queda del lado de
-   entrada; el borde que toca el viewport permanece recto. */
+/* sheet · un plano que nace de un borde del viewport. */
 .sc-surface[data-level='sheet'],
 [data-level='sheet'],
 .sc-modal-surface.sc-modal-surface--drawer {
-  background: var(--sc-color-surface-1);
-  border: var(--sc-surface-edge);
+  background: var(--sc-color-surface-floating);
+  border: 1px solid var(--sc-color-border);
   box-shadow: var(--sc-shadow-sheet);
 }
 
@@ -125,30 +111,23 @@
 .sc-modal-surface--right { border-right-width: 0; }
 .sc-modal-surface--left { border-left-width: 0; }
 
-/* modal: sólo este nivel usa el velo que separa el contexto interrumpido del
-   espacio de trabajo. El token cambia por tema; no hay rgba local. */
+/* modal · el único nivel con velo. */
 .sc-surface[data-level='modal'],
 [data-level='modal'],
 .sc-modal-surface.sc-modal-surface--dialog,
 .sc-modal-surface.sc-modal-surface--fullscreen {
-  background: var(--sc-color-surface-1);
-  border: var(--sc-surface-edge);
+  background: var(--sc-color-surface-floating);
+  border: 1px solid var(--sc-color-border);
   box-shadow: var(--sc-shadow-modal);
 }
 
 .sc-overlay { background: var(--sc-color-overlay-strong); }
 
-/* BASE técnico: el borde suave sólo separa datos; no hay canto, gradiente ni
-   elevación. Cada selector se revisa en Día y Noche junto con su superficie. */
-/* CRI-104 · el contenido de la bienvenida vive DENTRO de `.welcome-frame`,
-   que ya es la superficie RAISED. Sus bloques interiores vuelven a BASE: el
-   ciclo de trabajo, los chips de método y el pie no son siete tarjetas
-   apiladas sobre una tarjeta, y darles materia propia es exactamente el
-   card-inside-card que la gramática prohíbe. */
-/* CRI-105 · el resumen de selección del Inspector es una agrupación dentro del
-   panel, no una tarjeta apoyada sobre él. Conserva su canto suave para que se
-   lea como grupo; lo que pierde es la elevación repetida. */
+/* Contenido dentro de una superficie: vuelve a plano. Nada de tarjeta dentro
+   de tarjeta — es la regla que mantiene el minimalismo legible cuando el
+   inspector se llena. */
 .inspector-summary,
+.inspector-property-group,
 .welcome-workflow,
 .welcome-highlight-item,
 .welcome-footer,
@@ -164,10 +143,15 @@
   box-shadow: none;
 }
 
-/* Una tabla dentro de una tarjeta va PLANA: la tarjeta ya es el marco (V-10).
-   Sin sombra, sin canto de volumen, sin celdas redondeadas y sin un segundo
-   borde alrededor del scroll. Comparar cuarenta posiciones sigue siendo
-   posible porque la rejilla no se convierte en fichas. */
+/* Una agrupación dentro de un panel se marca con UNA línea, no con un marco. */
+.inspector-summary,
+.inspector-property-group {
+  border-width: 0 0 1px;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Una tabla dentro de una tarjeta va plana: la tarjeta ya es el marco. */
 [data-level='raised'] > .table-wrap,
 [data-level='raised'] > .summary-table-wrap {
   border: 0;
@@ -186,14 +170,12 @@
   box-shadow: none;
 }
 
-/* El escalón cero de la escala V-05. Una celda comparable no es una pieza
-   independiente: redondearla rompe el barrido lineal de la columna. */
+/* El escalón cero de la escala: una celda comparable no se redondea. */
 .datasheet-grid tbody th,
 .datasheet-grid tbody td,
 .datasheet-cell-editor { border-radius: var(--sc-radius-data); }
 
-/* Un nivel no se repite dentro de sí mismo: el contenido vuelve a BASE para
-   que la jerarquía física no invente una elevación adicional. */
+/* Un nivel no se repite dentro de sí mismo. */
 [data-level='raised'] [data-level='raised'],
 [data-level='floating'] [data-level='floating'],
 [data-level='modal'] [data-level='modal'] {
@@ -202,39 +184,27 @@
   box-shadow: none;
 }
 
-/* CRI-105 · radio por rol sobre el componente `Surface`, que es el único sitio
-   donde el nivel determina el rol por completo (V-05).
-   `flat` es rejilla técnica y se queda en el escalón cero; `inset` y `raised`
-   son tarjeta; `floating`, `sheet` y `modal` son las tres piezas grandes.
-   Las superficies de feature (`.topbar`, `.inspector-panel`, `.results-panel`)
-   NO entran: van a sangre contra el borde del viewport y CRI-90 les quita
-   deliberadamente el redondeo contra él. Ahí quien separa es el canto. */
+/* Radio por rol sobre el componente `Surface`. Las superficies de feature que
+   van a sangre contra el viewport (`.topbar`, `.inspector-panel`,
+   `.results-panel`) no entran: ahí quien separa es el canto. */
 .sc-surface[data-level='flat'] { border-radius: var(--sc-radius-data); }
 .sc-surface[data-level='inset'],
 .sc-surface[data-level='raised'] { border-radius: var(--sc-radius-card); }
 .sc-surface[data-level='floating'] { border-radius: var(--sc-radius-panel); }
 .sc-surface[data-level='modal'] { border-radius: var(--sc-radius-modal); }
 
-/* pressed: invierte la iluminación. Coexiste con cualquier nivel — por eso
-   va al final y sólo toca lo que un estado pulsado necesita cambiar. */
+/* pressed · coexiste con cualquier nivel. Cambia de plano, no de posición. */
 .sc-surface[data-pressed='true'],
 [data-pressed='true'] {
   background: var(--sc-color-surface-pressed);
-  box-shadow: var(--sc-shadow-pressed);
+  box-shadow: none;
 }
 
-/* Chrome del lienzo — lo que flota sobre el dibujo técnico (badge de modo,
-   chips, controles de zoom, status, leyenda, quick-entry, tooltip de corte,
-   panel de capas). Su relleno opaco y borde medido sustituyen el vidrio sin
-   tocar el lienzo ni sus colores técnicos.
-   El lienzo en sí —miembros, nudos, cargas, diagramas, deformada, cotas— no
-   aparece aquí y no recibe materia: sólo la recibe lo que flota ENCIMA.
-
-   CRI-105 · la profundidad se reparte por TAMAÑO (V-04). El grupo entero usaba
-   `--sc-shadow-floating`, la sombra de un panel grande, sobre pastillas de
-   28-40px cuyo radio ronda los 10px: 22px de desenfoque bajo una esquina de
-   10px es exactamente el halo que V-04 prohíbe. Las piezas grandes conservan
-   la sombra de flotante; las pastillas bajan al escalón que les corresponde. */
+/* Chrome del lienzo — lo que flota sobre el dibujo técnico. Es el único grupo
+   que necesita un filete más fuerte: se apoya sobre un plano que puede tener
+   una línea de diagrama justo debajo. El dibujo en sí (miembros, nudos,
+   cargas, diagramas, deformada, cotas) no recibe materia: sólo la recibe lo
+   que flota ENCIMA. */
 .canvas-mode-badge,
 .canvas-view-chips span,
 .canvas-controls,
@@ -246,26 +216,19 @@
 .quick-entry-bar,
 .selection-cycle-indicator,
 .canvas-layer-trigger,
-.repeat-action-control {
-  background: var(--sc-color-surface-2);
-  border: 1px solid var(--sc-color-border-canvas-chrome);
-  box-shadow: var(--sc-shadow-sm);
-}
-
-/* Piezas grandes del mismo chrome: una lectura de corte y un aviso de repetición
-   son tarjetas flotantes, no pastillas. */
+.repeat-action-control,
 .cut-tooltip,
 .repeat-preview {
-  background: var(--sc-color-surface-2);
-  border: 1px solid var(--sc-color-border-canvas-chrome);
-  border-radius: var(--sc-radius-card);
-  box-shadow: var(--sc-shadow-md);
+  background: var(--sc-color-surface-1);
+  border: 1px solid var(--sc-color-border);
+  border-radius: var(--sc-radius-control);
+  box-shadow: none;
 }
 
-/* El panel de capas es el único FLOATING de verdad del chrome. */
+/* El panel de capas es el único FLOATING de verdad del chrome del lienzo. */
 .canvas-layer-panel {
-  background: var(--sc-color-surface-2);
-  border: 1px solid var(--sc-color-border-canvas-chrome);
+  background: var(--sc-color-surface-floating);
+  border: 1px solid var(--sc-color-border);
   border-radius: var(--sc-radius-panel);
   box-shadow: var(--sc-shadow-lg);
 }

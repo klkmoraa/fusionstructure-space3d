@@ -39,7 +39,6 @@ import type { ProjectModel } from '../../types';
 import type { Space3DStorageLike } from '../../space3d/data/storage';
 import type { Space3DWorkerClient } from '../../space3d/runtime/workerClient';
 import './space3d.css';
-import './space3dMinimal.css';
 
 const VIEW_LABEL_KEYS: Record<Space3DViewPreset, TranslationKey> = {
   front: 'space3d.viewFront',

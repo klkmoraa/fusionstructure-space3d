@@ -89,9 +89,9 @@
   font-weight: var(--sc-font-weight-bold);
   letter-spacing: var(--sc-tracking-eyebrow);
   text-transform: uppercase;
-  /* El canario del historic visual spec no admite tinta blanca: su pareja medida es
-     #7a5a12 sobre relleno pleno. */
-  color: #7a5a12;
+  /* El amarillo no admite tinta blanca encima: su pareja medida es la tinta
+     amarilla del sistema sobre el relleno pleno. */
+  color: var(--sc-color-canario-ink);
 }
 
 .space3d-destinations {
@@ -213,7 +213,7 @@
 .space3d-tool:hover:not(:disabled),
 .space3d-button:hover:not(:disabled) {
   border-color: var(--sc-color-border-strong);
-  transform: translateY(-1px);
+
   box-shadow: var(--sc-shadow-sm);
 }
 
@@ -350,7 +350,7 @@
 
 .space3d-rail-button:hover:not(:disabled) {
   color: var(--sc-color-text-primary);
-  transform: translateY(-1px);
+
   box-shadow: var(--sc-shadow-sm);
 }
 
