@@ -1,8 +1,8 @@
 /**
  * Viewport Three.js de Space 3D.
  *
- * Reglas visuales heredadas del brandbook: **el dibujo estructural es plano**.
- * Nada de clay, brillos ni materiales físicos sobre la geometría; el volumen
+ * Reglas visuales heredadas del historic visual spec: **el dibujo estructural es plano**.
+ * Nada de minimal, brillos ni materiales físicos sobre la geometría; el volumen
  * táctil vive en los controles de la interfaz, no en el modelo. Aquí sólo hay
  * líneas nítidas, colores con significado técnico fijo y una rejilla que sitúa
  * el plano de suelo sin competir con la estructura.

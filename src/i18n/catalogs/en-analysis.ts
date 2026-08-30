@@ -142,7 +142,7 @@ export const enAnalysis = {
   'modelDoctor.allClearBody': 'We found no issues in the geometry, supports, loads, or properties we can check.',
   'modelDoctor.explain': 'Explain',
   'modelDoctor.collapse': 'Hide explanation',
-  'modelDoctor.detected': 'What StructureCo detected',
+  'modelDoctor.detected': 'What FusionStructure detected',
   'modelDoctor.why': 'Why it matters',
   'modelDoctor.action': 'Recommended action',
   'modelDoctor.affected': 'Affected objects',

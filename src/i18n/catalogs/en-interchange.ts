@@ -29,7 +29,7 @@ export const enInterchange = {
   'portable.previewUnavailable': 'Preview is unavailable in this browser. You can download the same PDF.',
   'portable.preparingBundle': 'Preparing package…',
   'portable.reportShareTitle': '{name} - calculation report',
-  'portable.bundleShareTitle': '{name} - structureCo package',
+  'portable.bundleShareTitle': '{name} - FusionStructure package',
   'portable.exportFailed': 'The package could not be generated.',
   'storage.local': 'Local',
   'storage.localDescription': 'Saved locally in this browser.',

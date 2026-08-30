@@ -1,7 +1,7 @@
 /*
  * Space 3D · superficie
  * ---------------------------------------------------------------------------
- * Traducción del brandbook Clay a la superficie espacial, sobre los mismos
+ * Traducción del historic visual spec Minimal a la superficie espacial, sobre los mismos
  * tokens del producto (`design-system/tokens.css`). No hay un segundo sistema
  * de diseño aquí: todo color, radio, sombra y motion sale de `--sc-*`.
  *
@@ -12,7 +12,7 @@
  *   2. El dibujo estructural es plano. `.space3d-canvas-surface` no lleva
  *      sombra, degradado ni brillo — la lectura del modelo es analítica.
  *   3. Un toggle activo se hunde. Elevar el estado activo es lo que hace que
- *      una interfaz clay se sienta inflada.
+ *      una interfaz minimal se sienta inflada.
  *
  * Móvil: lienzo primero, paneles apilados debajo, barra de herramientas
  * pegajosa, objetivos táctiles de 44px.
@@ -46,8 +46,8 @@
     var(--sc-space-3)
     max(var(--sc-space-5), env(safe-area-inset-left));
   background: var(--sc-color-surface-toolbar);
-  border-block-end: var(--sc-clay-edge);
-  box-shadow: var(--sc-shadow-clay-xs);
+  border-block-end: var(--sc-surface-edge);
+  box-shadow: var(--sc-shadow-xs);
 }
 
 .space3d-identity {
@@ -89,7 +89,7 @@
   font-weight: var(--sc-font-weight-bold);
   letter-spacing: var(--sc-tracking-eyebrow);
   text-transform: uppercase;
-  /* El canario del brandbook no admite tinta blanca: su pareja medida es
+  /* El canario del historic visual spec no admite tinta blanca: su pareja medida es
      #7a5a12 sobre relleno pleno. */
   color: #7a5a12;
 }
@@ -113,7 +113,7 @@
   padding: 4px var(--sc-space-3);
   border-radius: var(--sc-radius-md);
   background: var(--sc-color-surface-inset);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
   min-inline-size: 0;
 }
 
@@ -173,7 +173,7 @@
   padding: 6px;
   border-radius: var(--sc-radius-lg);
   background: var(--sc-color-surface-inset);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
 }
 
 .space3d-tray--layers { color: var(--sc-color-text-secondary); padding-inline-start: var(--sc-space-3); }
@@ -195,11 +195,11 @@
   min-block-size: var(--sc-size-target-touch);
   min-inline-size: var(--sc-size-target-touch);
   padding-inline: var(--sc-space-3);
-  border: var(--sc-clay-edge);
+  border: var(--sc-surface-edge);
   border-radius: var(--sc-radius-md);
   background: var(--sc-color-surface-1);
   color: var(--sc-color-text-primary);
-  box-shadow: var(--sc-shadow-clay-xs);
+  box-shadow: var(--sc-shadow-xs);
   font-family: var(--sc-font-ui);
   font-size: var(--sc-font-size-control);
   font-weight: var(--sc-font-weight-semibold);
@@ -214,15 +214,15 @@
 .space3d-button:hover:not(:disabled) {
   border-color: var(--sc-color-border-strong);
   transform: translateY(-1px);
-  box-shadow: var(--sc-shadow-clay-sm);
+  box-shadow: var(--sc-shadow-sm);
 }
 
 /* Misma gramática que el editor 2D: al pulsar, la tecla baja de verdad. */
 .space3d-tool:active:not(:disabled),
 .space3d-button:active:not(:disabled) {
   background: var(--sc-color-surface-inset);
-  transform: var(--sc-clay-press-transform);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  transform: var(--sc-press-transform);
+  box-shadow: var(--sc-shadow-pressed);
 }
 
 .space3d-tool:disabled,
@@ -233,12 +233,12 @@
   opacity: 0.72;
 }
 
-/* La regla clay que más se olvida: al seleccionarse, baja. */
+/* La regla minimal que más se olvida: al seleccionarse, baja. */
 .space3d-tool--toggle[aria-pressed='true'] {
   background: var(--sc-color-action-subtle);
   border-color: color-mix(in srgb, var(--sc-color-action-primary) 42%, var(--sc-color-border));
   color: var(--sc-color-action-primary);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
   transform: none;
 }
 
@@ -246,7 +246,7 @@
   background: var(--sc-color-action-primary);
   border-color: var(--sc-color-action-edge);
   color: var(--sc-color-action-foreground);
-  box-shadow: var(--sc-shadow-clay-action);
+  box-shadow: var(--sc-shadow-action);
 }
 
 .space3d-button--primary:hover:not(:disabled) { background: var(--sc-color-action-hover); }
@@ -284,10 +284,10 @@
 .space3d-rail {
   min-inline-size: 0;
   min-block-size: 0;
-  border: var(--sc-clay-edge);
+  border: var(--sc-surface-edge);
   border-radius: var(--sc-radius-xl);
   background: var(--sc-color-surface-1);
-  box-shadow: var(--sc-shadow-clay-md);
+  box-shadow: var(--sc-shadow-md);
 }
 
 .space3d-stage {
@@ -314,10 +314,10 @@
   justify-content: space-between;
   gap: var(--sc-space-2);
   padding: var(--sc-space-2);
-  border: var(--sc-clay-edge);
+  border: var(--sc-surface-edge);
   border-radius: var(--sc-radius-lg);
   background: var(--sc-color-surface-inset);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
 }
 
 .space3d-rail-vertical-group {
@@ -335,11 +335,11 @@
   min-block-size: var(--sc-size-target-touch);
   min-inline-size: var(--sc-size-target-touch);
   padding: 6px 4px;
-  border: var(--sc-clay-edge);
+  border: var(--sc-surface-edge);
   border-radius: var(--sc-radius-md);
   background: var(--sc-color-surface-1);
   color: var(--sc-color-text-secondary);
-  box-shadow: var(--sc-shadow-clay-xs);
+  box-shadow: var(--sc-shadow-xs);
   font-family: var(--sc-font-ui);
   font-size: 10px;
   font-weight: var(--sc-font-weight-semibold);
@@ -351,16 +351,16 @@
 .space3d-rail-button:hover:not(:disabled) {
   color: var(--sc-color-text-primary);
   transform: translateY(-1px);
-  box-shadow: var(--sc-shadow-clay-sm);
+  box-shadow: var(--sc-shadow-sm);
 }
 
-.space3d-rail-button:active:not(:disabled) { transform: none; box-shadow: var(--sc-shadow-clay-pressed); }
+.space3d-rail-button:active:not(:disabled) { transform: none; box-shadow: var(--sc-shadow-pressed); }
 
 .space3d-rail-button[aria-pressed='true'] {
   background: var(--sc-color-action-subtle);
   border-color: color-mix(in srgb, var(--sc-color-action-primary) 42%, var(--sc-color-border));
   color: var(--sc-color-action-primary);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
   transform: none;
 }
 
@@ -379,10 +379,10 @@
   min-inline-size: 0;
   min-block-size: 0;
   overflow-y: auto;
-  border: var(--sc-clay-edge);
+  border: var(--sc-surface-edge);
   border-radius: var(--sc-radius-xl);
   background: var(--sc-color-surface-1);
-  box-shadow: var(--sc-shadow-clay-md);
+  box-shadow: var(--sc-shadow-md);
   padding: var(--sc-space-3);
 }
 
@@ -434,7 +434,7 @@
   padding: 1px 6px;
   border-radius: var(--sc-radius-pill);
   background: var(--sc-color-surface-inset);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
   font-family: var(--sc-font-mono);
   font-size: var(--sc-font-size-caption);
   text-align: center;
@@ -504,7 +504,7 @@
   border: 1px solid var(--sc-color-border-soft);
   border-radius: var(--sc-radius-sm);
   background: var(--sc-color-surface-input);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
   color: var(--sc-color-text-primary);
   font-family: var(--sc-font-ui);
   font-size: var(--sc-font-size-control);
@@ -536,7 +536,7 @@
   }
 }
 
-/* --- Lienzo (plano, sin clay) ------------------------------------------- */
+/* --- Lienzo (plano, sin minimal) ------------------------------------------- */
 
 .space3d-canvas {
   min-block-size: 0;
@@ -592,8 +592,8 @@
   padding: 4px;
   border-radius: var(--sc-radius-md);
   background: var(--sc-color-surface-1);
-  border: var(--sc-clay-edge);
-  box-shadow: var(--sc-shadow-clay-xs);
+  border: var(--sc-surface-edge);
+  box-shadow: var(--sc-shadow-xs);
 }
 
 .space3d-view-select {
@@ -603,8 +603,8 @@
   padding: 6px var(--sc-space-3);
   border-radius: var(--sc-radius-md);
   background: var(--sc-color-surface-1);
-  border: var(--sc-clay-edge);
-  box-shadow: var(--sc-shadow-clay-xs);
+  border: var(--sc-surface-edge);
+  box-shadow: var(--sc-shadow-xs);
   color: var(--sc-color-text-primary);
   font-size: var(--sc-font-size-control);
   font-weight: var(--sc-font-weight-semibold);
@@ -686,7 +686,7 @@
   background: var(--sc-color-surface-1);
   border-color: var(--sc-color-border);
   color: var(--sc-color-text-primary);
-  box-shadow: var(--sc-shadow-clay-xs);
+  box-shadow: var(--sc-shadow-xs);
 }
 
 .space3d-results-select {
@@ -696,7 +696,7 @@
   padding: var(--sc-space-2) var(--sc-space-3);
   border-radius: var(--sc-radius-md);
   background: var(--sc-color-surface-inset);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
   backdrop-filter: none;
   inline-size: 100%;
 }
@@ -785,10 +785,10 @@
   flex-direction: column;
   gap: var(--sc-space-3);
   padding: var(--sc-space-3);
-  border: var(--sc-clay-edge);
+  border: var(--sc-surface-edge);
   border-radius: var(--sc-radius-lg);
   background: var(--sc-color-surface-2);
-  box-shadow: var(--sc-shadow-clay-sm);
+  box-shadow: var(--sc-shadow-sm);
 }
 
 .space3d-editor-head h3 {
@@ -849,7 +849,7 @@
   border-radius: var(--sc-radius-sm);
   /* Un campo recibe contenido: baja. */
   background: var(--sc-color-surface-input);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
   color: var(--sc-color-text-primary);
   font-family: var(--sc-font-mono);
   font-size: var(--sc-font-size-control);
@@ -895,7 +895,7 @@
   background: var(--sc-color-action-subtle);
   border-color: color-mix(in srgb, var(--sc-color-action-primary) 42%, var(--sc-color-border));
   color: var(--sc-color-action-primary);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
 }
 
 .space3d-inline-actions { display: flex; flex-wrap: wrap; gap: var(--sc-space-2); margin-block-start: var(--sc-space-2); }
@@ -927,7 +927,7 @@
   padding: 4px 10px;
   border-radius: var(--sc-radius-pill);
   background: var(--sc-color-surface-inset);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
   font-family: var(--sc-font-mono);
   font-size: var(--sc-font-size-caption);
   color: var(--sc-color-technical-deformed);
@@ -1017,11 +1017,11 @@
   gap: var(--sc-space-2);
   margin-inline: max(var(--sc-space-5), env(safe-area-inset-left)) max(var(--sc-space-5), env(safe-area-inset-right));
   padding: var(--sc-space-3);
-  border: var(--sc-clay-edge);
+  border: var(--sc-surface-edge);
   border-inline-start: 3px solid var(--sc-color-brand-secondary);
   border-radius: var(--sc-radius-lg);
   background: var(--sc-color-surface-1);
-  box-shadow: var(--sc-shadow-clay-xs);
+  box-shadow: var(--sc-shadow-xs);
 }
 
 .space3d-bridge header {
@@ -1046,10 +1046,10 @@
   gap: var(--sc-space-2);
   margin-inline: max(var(--sc-space-5), env(safe-area-inset-left)) max(var(--sc-space-5), env(safe-area-inset-right));
   padding: var(--sc-space-3);
-  border: var(--sc-clay-edge);
+  border: var(--sc-surface-edge);
   border-radius: var(--sc-radius-lg);
   background: var(--sc-color-surface-1);
-  box-shadow: var(--sc-shadow-clay-sm);
+  box-shadow: var(--sc-shadow-sm);
 }
 
 .space3d-status {
@@ -1165,10 +1165,10 @@
     display: flex;
     flex-direction: column;
     min-block-size: 0;
-    border: var(--sc-clay-edge);
+    border: var(--sc-surface-edge);
     border-radius: var(--sc-radius-xl);
     background: var(--sc-color-surface-1);
-    box-shadow: var(--sc-shadow-clay-md);
+    box-shadow: var(--sc-shadow-md);
     overflow: hidden;
   }
   .space3d-sheet-handle { display: none; }
@@ -1236,8 +1236,8 @@
     border-start-start-radius: var(--sc-radius-sheet);
     border-start-end-radius: var(--sc-radius-sheet);
     background: var(--sc-color-surface-1);
-    box-shadow: var(--sc-shadow-clay-floating);
-    border: var(--sc-clay-edge);
+    box-shadow: var(--sc-shadow-floating);
+    border: var(--sc-surface-edge);
     border-block-end: 0;
     overflow: hidden;
     transition: max-block-size 0.2s ease;
@@ -1298,10 +1298,10 @@
     min-block-size: 0;
     align-self: stretch;
     overflow: hidden;
-    border: var(--sc-clay-edge);
+    border: var(--sc-surface-edge);
     border-radius: var(--sc-radius-xl);
     background: var(--sc-color-surface-1);
-    box-shadow: var(--sc-shadow-clay-md);
+    box-shadow: var(--sc-shadow-md);
   }
 
   .space3d-sheet-handle { display: none; }
@@ -1375,18 +1375,18 @@
     min-block-size: 44px;
     min-inline-size: 0;
     padding-inline: 10px;
-    border: var(--sc-clay-edge);
+    border: var(--sc-surface-edge);
     border-radius: var(--sc-radius-md);
     background: var(--sc-color-surface-1);
     color: var(--sc-color-text-primary);
-    box-shadow: var(--sc-shadow-clay-xs);
+    box-shadow: var(--sc-shadow-xs);
     font: 600 var(--sc-font-size-control)/1 var(--sc-font-ui);
   }
 
   .space3d-mobile-controls[aria-expanded='true'] {
     background: var(--sc-color-action-subtle);
     color: var(--sc-color-action-primary);
-    box-shadow: var(--sc-shadow-clay-pressed);
+    box-shadow: var(--sc-shadow-pressed);
   }
 
   .space3d-toolbar > .space3d-tray:not(.space3d-tray--run) { display: none; }

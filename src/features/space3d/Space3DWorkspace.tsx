@@ -4,7 +4,7 @@
  * Composición: cabecera de identidad, bandeja de herramientas, viewport como
  * protagonista, carril de modelo/resultados y tira de estado. En móvil el
  * lienzo se queda arriba y los paneles bajan apilados, siguiendo la regla del
- * brandbook «canvas primero en móvil».
+ * historic visual spec «canvas primero en móvil».
  *
  * El módulo trae su propio `Space3DProjectProvider`: es la superficie completa
  * y lo único que la aplicación necesita cargar de forma diferida.
@@ -33,7 +33,6 @@ import { Space3DToolRail, type Space3DActiveTool } from './Space3DToolRail';
 import { Space3DModelNav, type Space3DModelFocus } from './Space3DModelNav';
 import { translate, type Language, type TranslationKey } from '../../i18n/catalogs';
 import { formatNumber } from '../../utils/numberFormat';
-import { BrandMark } from '../topbar/BrandMark';
 import type { Space3DCommand } from '../../space3d/data/commands';
 import type { Space3DProjectV1, Space3DRestraints } from '../../space3d/model/types';
 import type { ProjectModel } from '../../types';
@@ -400,7 +399,7 @@ const WorkspaceBody = ({
   return <div className="space3d-screen" data-space3d-layout="canvas-command-dock">
     <header className="space3d-header">
       <div className="space3d-identity">
-        <BrandMark size={30} />
+        <strong className="space3d-wordmark">FS</strong>
         <span>
           <strong>{t('space3d.title')}</strong>
           <small>{t('space3d.subtitle')}</small>

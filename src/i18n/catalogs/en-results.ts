@@ -94,7 +94,7 @@ export const enResults = {
   'results.deformed': 'Deformed',
   'results.learn': 'Learn',
   'results.readyTitle': 'The model is ready for analysis',
-  'results.readyBody': 'structureCo will validate supports, units, stability, and loads before solving.',
+  'results.readyBody': 'FusionStructure will validate supports, units, stability, and loads before solving.',
   'results.nextStep': 'Next: {title}',
   'results.analyzeStructure': 'Analyze structure',
   'results.failedTitle': 'No results were generated',

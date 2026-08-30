@@ -142,7 +142,7 @@ export const esAnalysis = {
   'modelDoctor.allClearBody': 'No encontramos problemas en la geometría, apoyos, cargas ni propiedades que podemos revisar.',
   'modelDoctor.explain': 'Explicar',
   'modelDoctor.collapse': 'Ocultar explicación',
-  'modelDoctor.detected': 'Qué detectó StructureCo',
+  'modelDoctor.detected': 'Qué detectó FusionStructure',
   'modelDoctor.why': 'Por qué importa',
   'modelDoctor.action': 'Acción recomendada',
   'modelDoctor.affected': 'Objetos afectados',
