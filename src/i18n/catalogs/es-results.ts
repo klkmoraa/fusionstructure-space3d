@@ -94,7 +94,7 @@ export const esResults = {
   'results.deformed': 'Deformada',
   'results.learn': 'Aprender',
   'results.readyTitle': 'El modelo está listo para analizarse',
-  'results.readyBody': 'structureCo validará apoyos, unidades, estabilidad y cargas antes de resolver.',
+  'results.readyBody': 'FusionStructure validará apoyos, unidades, estabilidad y cargas antes de resolver.',
   'results.nextStep': 'Siguiente: {title}',
   'results.analyzeStructure': 'Analizar estructura',
   'results.failedTitle': 'No se generaron resultados',

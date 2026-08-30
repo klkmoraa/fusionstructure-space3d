@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo): void {
-    console.error('[structureCo] Unhandled render error', error, info.componentStack);
+    console.error('[FusionStructure] Unhandled render error', error, info.componentStack);
   }
 
   private handleReload = (): void => {
@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       <div className="sc-error-boundary" role="alert">
         <EmptyState
           icon={<TriangleAlert size={22} />}
-          title="Algo se rompió en structureCo · Something broke in structureCo"
+          title="Algo se rompió en FusionStructure · Something broke in FusionStructure"
           description={<>Ocurrió un error inesperado. Tus proyectos guardados permanecen en este navegador.<br />An unexpected error occurred. Your saved projects remain in this browser.</>}
           action={<Button variant="primary" onClick={this.handleReload}>Recargar · Reload</Button>}
         />

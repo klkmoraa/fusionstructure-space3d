@@ -1,4 +1,4 @@
-/* La materia clay componible.
+/* La sistema visual anterior componible.
  *
  * Se declara UNA VEZ por rol de elevación, aplicada por lista de selectores.
  * Cambiar la materia es editar un bloque aquí, no perseguir siete reglas
@@ -56,10 +56,10 @@
 .toolbar {
   background: var(--sc-color-surface-inset);
   border: 1px solid var(--sc-color-border-soft);
-  box-shadow: var(--sc-shadow-clay-inset);
+  box-shadow: var(--sc-shadow-inset);
 }
 
-.toolbar { border-width: var(--toolbar-clay-border-width, 1px); }
+.toolbar { border-width: var(--toolbar-border-width, 1px); }
 
 /* raised: la superficie normal — paneles, barras, tarjetas.
    CRI-105 · `.inspector-summary` salió de este grupo: se renderiza DENTRO de
@@ -76,8 +76,8 @@
 .inspector-panel,
 .results-panel {
   background: var(--sc-color-surface-1);
-  border: var(--sc-clay-edge);
-  box-shadow: var(--sc-shadow-clay-md);
+  border: var(--sc-surface-edge);
+  box-shadow: var(--sc-shadow-md);
 }
 
 /* CRI-104 · la cabecera va a sangre completa y pegada al borde superior del
@@ -86,8 +86,8 @@
    en atajo ganaría a cualquier longhand declarado antes. */
 .welcome-header { border-width: 0 0 1px; }
 
-.inspector-panel { border-width: var(--inspector-clay-border-width, 1px); }
-.results-panel { border-width: var(--results-clay-border-width, 1px 0 0); }
+.inspector-panel { border-width: var(--inspector-border-width, 1px); }
+.results-panel { border-width: var(--results-border-width, 1px 0 0); }
 
 /* floating: lo que se despega del plano — popovers, hojas, menús. */
 .sc-surface[data-level='floating'],
@@ -97,8 +97,8 @@
 .import-center-dialog,
 .mobile-tool-palette {
   background: var(--sc-color-surface-1);
-  border: var(--sc-clay-edge);
-  box-shadow: var(--sc-shadow-clay-lg);
+  border: var(--sc-surface-edge);
+  box-shadow: var(--sc-shadow-lg);
 }
 
 .sc-toast-card--success { border-color: color-mix(in srgb, var(--sc-color-action-primary) 40%, var(--sc-color-border-soft)); }
@@ -113,7 +113,7 @@
 [data-level='sheet'],
 .sc-modal-surface.sc-modal-surface--drawer {
   background: var(--sc-color-surface-1);
-  border: var(--sc-clay-edge);
+  border: var(--sc-surface-edge);
   box-shadow: var(--sc-shadow-sheet);
 }
 
@@ -132,7 +132,7 @@
 .sc-modal-surface.sc-modal-surface--dialog,
 .sc-modal-surface.sc-modal-surface--fullscreen {
   background: var(--sc-color-surface-1);
-  border: var(--sc-clay-edge);
+  border: var(--sc-surface-edge);
   box-shadow: var(--sc-shadow-modal);
 }
 
@@ -220,7 +220,7 @@
 .sc-surface[data-pressed='true'],
 [data-pressed='true'] {
   background: var(--sc-color-surface-pressed);
-  box-shadow: var(--sc-shadow-clay-pressed);
+  box-shadow: var(--sc-shadow-pressed);
 }
 
 /* Chrome del lienzo — lo que flota sobre el dibujo técnico (badge de modo,
@@ -231,7 +231,7 @@
    aparece aquí y no recibe materia: sólo la recibe lo que flota ENCIMA.
 
    CRI-105 · la profundidad se reparte por TAMAÑO (V-04). El grupo entero usaba
-   `--sc-shadow-clay-floating`, la sombra de un panel grande, sobre pastillas de
+   `--sc-shadow-floating`, la sombra de un panel grande, sobre pastillas de
    28-40px cuyo radio ronda los 10px: 22px de desenfoque bajo una esquina de
    10px es exactamente el halo que V-04 prohíbe. Las piezas grandes conservan
    la sombra de flotante; las pastillas bajan al escalón que les corresponde. */
@@ -249,7 +249,7 @@
 .repeat-action-control {
   background: var(--sc-color-surface-2);
   border: 1px solid var(--sc-color-border-canvas-chrome);
-  box-shadow: var(--sc-shadow-clay-sm);
+  box-shadow: var(--sc-shadow-sm);
 }
 
 /* Piezas grandes del mismo chrome: una lectura de corte y un aviso de repetición
@@ -259,7 +259,7 @@
   background: var(--sc-color-surface-2);
   border: 1px solid var(--sc-color-border-canvas-chrome);
   border-radius: var(--sc-radius-card);
-  box-shadow: var(--sc-shadow-clay-md);
+  box-shadow: var(--sc-shadow-md);
 }
 
 /* El panel de capas es el único FLOATING de verdad del chrome. */
@@ -267,7 +267,7 @@
   background: var(--sc-color-surface-2);
   border: 1px solid var(--sc-color-border-canvas-chrome);
   border-radius: var(--sc-radius-panel);
-  box-shadow: var(--sc-shadow-clay-lg);
+  box-shadow: var(--sc-shadow-lg);
 }
 
 @media print {

@@ -1,7 +1,7 @@
 /**
  * Carril vertical de herramientas de Space 3D.
  *
- * Traduce el carril de mesa del brandbook a las acciones reales de la
+ * Traduce el carril de mesa del historic visual spec a las acciones reales de la
  * superficie: no hay «Medir» porque el dominio espacial no tiene medición
  * todavía, y «Apoyo» edita las restricciones de un nudo existente en vez de
  * crear una entidad nueva, porque en S3D-1 el apoyo es un atributo del nudo.

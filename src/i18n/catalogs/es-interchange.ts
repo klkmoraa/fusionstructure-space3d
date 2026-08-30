@@ -29,7 +29,7 @@ export const esInterchange = {
   'portable.previewUnavailable': 'La vista previa no está disponible en este navegador. Puedes descargar el mismo PDF.',
   'portable.preparingBundle': 'Preparando paquete…',
   'portable.reportShareTitle': '{name} - memoria de cálculo',
-  'portable.bundleShareTitle': '{name} - expediente structureCo',
+  'portable.bundleShareTitle': '{name} - expediente FusionStructure',
   'portable.exportFailed': 'No se pudo generar el expediente.',
   'storage.local': 'Local',
   'storage.localDescription': 'Guardado localmente en este navegador.',
