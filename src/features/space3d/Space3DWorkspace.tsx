@@ -12,7 +12,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ChevronDown, ChevronLeft, CircleStop, Download, Grid3x3, Home, Layers, Minus,
-  Moon, PenLine, Play, Plus, SlidersHorizontal, Sparkles, Spline, Sun, Tag, Upload, Weight,
+  PenLine, Play, Plus, SlidersHorizontal, Sparkles, Spline, Tag, Upload, Weight,
 } from 'lucide-react';
 import { Space3DProjectProvider, useSpace3DProject, type Space3DSelection } from '../../space3d/store/Space3DProjectContext';
 import {
@@ -39,15 +39,6 @@ import type { ProjectModel } from '../../types';
 import type { Space3DStorageLike } from '../../space3d/data/storage';
 import type { Space3DWorkerClient } from '../../space3d/runtime/workerClient';
 import './space3d.css';
-
-type Space3DThemeMode = 'light' | 'dark';
-
-const readStoredTheme = (): Space3DThemeMode => {
-  if (typeof window === 'undefined') return 'light';
-  const saved = window.localStorage?.getItem('structureCo.theme');
-  if (saved === 'light' || saved === 'dark') return saved;
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-};
 
 const VIEW_LABEL_KEYS: Record<Space3DViewPreset, TranslationKey> = {
   front: 'space3d.viewFront',
@@ -201,7 +192,7 @@ const WorkspaceBody = ({
    * confirma antes de actuar, salvo que no haya nada que perder.
    */
   const [pendingReplace, setPendingReplace] = useState<'example' | 'blank' | null>(null);
-  const [theme, setThemeState] = useState<Space3DThemeMode>(readStoredTheme);
+  const theme = 'light' as const;
   const [activeView, setActiveView] = useState<Space3DViewPreset>('isometric');
   const [modelNavFocus, setModelNavFocus] = useState<Space3DModelFocus>('node');
   const [propertiesOpen, setPropertiesOpen] = useState(false);
@@ -231,15 +222,10 @@ const WorkspaceBody = ({
 
   const submit = useCallback((command: Space3DCommand) => execute(command).ok, [execute]);
 
-  // El tema es local a Space 3D (la superficie es independiente del editor
-  // 2D, ver cabecera del módulo) pero comparte la misma clave de almacenamiento
-  // y el mismo atributo de documento que el editor 2D, así que ambas
-  // superficies quedan visualmente consistentes sin depender la una de la otra.
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     try { window.localStorage?.setItem('structureCo.theme', theme); } catch { /* almacenamiento no disponible */ }
   }, [theme]);
-  const toggleTheme = () => setThemeState((current) => (current === 'light' ? 'dark' : 'light'));
 
   // El resultado listo no trae marca de tiempo propia (el dominio no la
   // modela): se anota aquí, en la superficie, sólo para mostrarla junto al
@@ -412,10 +398,6 @@ const WorkspaceBody = ({
         {targetSelect}
       </div>
       <nav className="space3d-destinations" aria-label={t('space3d.title')}>
-        <button type="button" className="space3d-tool space3d-theme-toggle" onClick={toggleTheme} title={theme === 'light' ? t('theme.dark') : t('theme.light')}>
-          {theme === 'light' ? <Moon size={16} aria-hidden="true" /> : <Sun size={16} aria-hidden="true" />}
-          <span className="space3d-visually-hidden">{theme === 'light' ? t('theme.dark') : t('theme.light')}</span>
-        </button>
         {onOpenHome ? <button type="button" className="space3d-button" onClick={onOpenHome} aria-label={t('space3d.home')} title={t('space3d.home')}>
           <Home size={16} aria-hidden="true" /><span className="space3d-button-label">{t('space3d.home')}</span>
         </button> : null}
