@@ -1,0 +1,219 @@
+/* Flat visual layer for the deferred Space 3D surface.
+   Space 3D loads after the application shell, so its original surface rules
+   need an explicit local tail to keep the same quiet, almost-white treatment.
+   The canvas keeps its own technical colours; this file only styles chrome. */
+
+.space3d-screen {
+  --sc-color-bg-app: #ffffff;
+  --sc-color-bg-canvas: #ffffff;
+  --sc-color-surface-1: #ffffff;
+  --sc-color-surface-2: #f8fafc;
+  --sc-color-surface-3: #f1f5f9;
+  --sc-color-surface-inset: #f8fafc;
+  --sc-color-surface-elevated: #ffffff;
+  --sc-color-surface-pressed: #f1f5f9;
+  --sc-color-surface-toolbar: #ffffff;
+  --sc-color-surface-input: #ffffff;
+  --sc-color-text-primary: #111827;
+  --sc-color-text-secondary: #4b5563;
+  --sc-color-text-muted: #6b7280;
+  --sc-color-text-disabled: #9ca3af;
+  --sc-color-text-technical: #374151;
+  --sc-color-text-unit: #6b7280;
+  --sc-color-border: #d1d5db;
+  --sc-color-border-soft: #e5e7eb;
+  --sc-color-border-strong: #9ca3af;
+  --sc-color-divider: #e5e7eb;
+  --sc-color-action-primary: #111827;
+  --sc-color-action-hover: #000000;
+  --sc-color-action-pressed: #374151;
+  --sc-color-action-foreground: #ffffff;
+  --sc-color-action-edge: #111827;
+  --sc-color-action-subtle: #f1f5f9;
+  --sc-color-text-link: #111827;
+  --sc-shadow-xs: none;
+  --sc-shadow-sm: none;
+  --sc-shadow-md: none;
+  --sc-shadow-lg: none;
+  --sc-shadow-floating: none;
+  --sc-shadow-inset: none;
+  --sc-shadow-pressed: none;
+  --sc-shadow-action: none;
+  --sc-shadow-action-hover: none;
+  --sc-shadow-action-pressed: none;
+}
+
+.space3d-screen,
+.space3d-screen .space3d-header,
+.space3d-screen .space3d-toolbar,
+.space3d-screen .space3d-tray,
+.space3d-screen .space3d-stage,
+.space3d-screen .space3d-rail,
+.space3d-screen .space3d-model-nav-panel,
+.space3d-screen .space3d-editor,
+.space3d-screen .space3d-transfer,
+.space3d-screen .space3d-bridge,
+.space3d-screen .space3d-status,
+.space3d-screen .space3d-rail-vertical {
+  background: #ffffff !important;
+  background-image: none !important;
+  border-color: #e5e7eb !important;
+  box-shadow: none !important;
+}
+
+.space3d-screen {
+  color: #111827 !important;
+  background: #ffffff !important;
+}
+
+.space3d-screen :is(
+  .space3d-header,
+  .space3d-stage,
+  .space3d-rail,
+  .space3d-model-nav-panel,
+  .space3d-editor,
+  .space3d-transfer,
+  .space3d-bridge,
+  .space3d-status,
+  .space3d-tray,
+  .space3d-rail-vertical,
+  .space3d-canvas-topbar-actions,
+  .space3d-view-select,
+  .space3d-results-select,
+  .space3d-project-picker,
+  .space3d-check,
+  .space3d-metrics > div,
+  .space3d-notice,
+  .space3d-empty
+) {
+  border-radius: 8px !important;
+}
+
+.space3d-screen :is(
+  .space3d-tool,
+  .space3d-button,
+  .space3d-tab,
+  .space3d-rail-button,
+  .space3d-mobile-controls,
+  .space3d-linkish
+) {
+  border-color: #e5e7eb !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+}
+
+.space3d-screen :is(
+  .space3d-tool,
+  .space3d-button,
+  .space3d-tab,
+  .space3d-rail-button,
+  .space3d-mobile-controls,
+  .space3d-linkish
+):hover:not(:disabled) {
+  border-color: #d1d5db !important;
+  background: #f8fafc !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.space3d-screen :is(
+  .space3d-tool,
+  .space3d-button,
+  .space3d-tab,
+  .space3d-rail-button,
+  .space3d-mobile-controls,
+  .space3d-linkish
+):active:not(:disabled),
+.space3d-screen :is(.space3d-tool, .space3d-tab, .space3d-rail-button)[aria-pressed='true'],
+.space3d-screen .space3d-tab[aria-selected='true'],
+.space3d-screen .space3d-mobile-controls[aria-expanded='true'] {
+  border-color: #d1d5db !important;
+  background: #f1f5f9 !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+  transform: translateY(1px) !important;
+}
+
+.space3d-screen .space3d-button--primary {
+  border-color: #111827 !important;
+  background: #111827 !important;
+  color: #ffffff !important;
+}
+
+.space3d-screen .space3d-button--primary:hover:not(:disabled) {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.space3d-screen .space3d-badge,
+.space3d-screen .space3d-state,
+.space3d-screen .space3d-chip {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important;
+  background: #f8fafc !important;
+  color: #4b5563 !important;
+  box-shadow: none !important;
+}
+
+.space3d-screen .space3d-canvas-stage {
+  border-color: #e5e7eb !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.space3d-screen :is(.space3d-target select, .space3d-field input, .space3d-field select, .space3d-field textarea) {
+  border-color: #d1d5db !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+}
+
+.space3d-screen .space3d-target select:focus-visible,
+.space3d-screen :is(.space3d-field input, .space3d-field select, .space3d-field textarea):focus-visible {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 18%) !important;
+}
+
+.space3d-screen .space3d-experimental {
+  color: #4b5563 !important;
+  background: #f8fafc !important;
+  border-color: #e5e7eb !important;
+}
+
+@media (max-width: 599px) {
+  .space3d-screen {
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .space3d-screen .space3d-header,
+  .space3d-screen .space3d-toolbar {
+    background: #ffffff !important;
+  }
+
+  .space3d-screen .space3d-rail-vertical {
+    border-top: 1px solid #e5e7eb !important;
+    border-radius: 0 !important;
+  }
+
+  .space3d-screen .space3d-sheet {
+    border-color: #e5e7eb !important;
+    border-radius: 8px 8px 0 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .space3d-screen *,
+  .space3d-screen *::before,
+  .space3d-screen *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
