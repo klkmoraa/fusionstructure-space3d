@@ -12,7 +12,7 @@ const tokens = leer(`${SRC}/design-system/tokens.css`);
 /**
  * Guarda de la identidad visual de FusionStructure.
  *
- * La fusión de StructureCo y Copia-web llegó con la dirección visual del
+ * La interfaz actual de FusionStructure se verifica con la dirección visual del
  * primero —claymorphism, marfil cálido, acento menta— y una capa de parches
  * encima que la tapaba de blanco con `!important`. Estas pruebas existen para
  * que ninguna de las dos cosas pueda volver por la puerta de atrás: no basta

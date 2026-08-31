@@ -1,5 +1,5 @@
 export const enInterchange = {
-  'portable.bundleLabel': '.structureco package',
+  'portable.bundleLabel': '.fusionstructure package',
   'portable.analyzingBundle': 'Analyzing and preparing package…',
   'portable.generatingPreview': 'Generating preview…',
   'portable.previewLabel': 'Prepare calculation PDF',
@@ -53,7 +53,7 @@ export const enInterchange = {
   'export.share': 'Copy link',
   'export.shareLinkCopied': 'Link copied to clipboard',
   'export.shareFailed': 'The link could not be copied.',
-  'export.shareTooLarge': 'This model is too large for a link ({characters} of {limit} characters). Use Save to disk or the .structureco package.',
+  'export.shareTooLarge': 'This model is too large for a link ({characters} of {limit} characters). Use Save to disk or the .fusionstructure package.',
   'export.copySuccessful': 'Copied!',
   'export.copyFallbackDownloaded': 'Clipboard unavailable: file downloaded instead',
   'export.completed': 'Export ready',

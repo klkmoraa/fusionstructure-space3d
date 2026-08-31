@@ -224,7 +224,7 @@ const WorkspaceBody = ({
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    try { window.localStorage?.setItem('structureCo.theme', theme); } catch { /* almacenamiento no disponible */ }
+    try { window.localStorage?.setItem('FusionStructure.theme', theme); } catch { /* almacenamiento no disponible */ }
   }, [theme]);
 
   // El resultado listo no trae marca de tiempo propia (el dominio no la

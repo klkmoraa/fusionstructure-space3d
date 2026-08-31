@@ -1,5 +1,5 @@
 export const esInterchange = {
-  'portable.bundleLabel': 'Expediente .structureco',
+  'portable.bundleLabel': 'Expediente .fusionstructure',
   'portable.analyzingBundle': 'Analizando y preparando paquete…',
   'portable.generatingPreview': 'Generando vista previa…',
   'portable.previewLabel': 'Preparar PDF de cálculo',
@@ -53,7 +53,7 @@ export const esInterchange = {
   'export.share': 'Copiar enlace',
   'export.shareLinkCopied': 'Enlace copiado al portapapeles',
   'export.shareFailed': 'No se pudo copiar el enlace.',
-  'export.shareTooLarge': 'Este modelo es demasiado grande para un enlace ({characters} de {limit} caracteres). Usa Guardar en el disco o el expediente .structureco.',
+  'export.shareTooLarge': 'Este modelo es demasiado grande para un enlace ({characters} de {limit} caracteres). Usa Guardar en el disco o el expediente .fusionstructure.',
   'export.copySuccessful': '¡Copiado!',
   'export.copyFallbackDownloaded': 'Portapapeles no disponible: se descargó el archivo',
   'export.completed': 'Exportación lista',

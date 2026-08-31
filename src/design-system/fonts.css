@@ -1,4 +1,4 @@
-/* StructureCo typography is bundled with the app: no CDN or runtime request. */
+/* FusionStructure typography is bundled with the app: no CDN or runtime request. */
 @font-face {
   font-family: 'Instrument Sans';
   src: url('/fonts/instrument-sans-variable.woff2') format('woff2');
