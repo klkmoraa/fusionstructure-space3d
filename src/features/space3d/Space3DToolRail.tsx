@@ -13,7 +13,7 @@ import type { TranslationKey } from '../../i18n/catalogs';
 
 export type Space3DActiveTool = 'select' | 'node' | 'member' | 'load';
 
-export interface Space3DToolRailProps {
+export interface Space3DConsoleToolsProps {
   readonly t: (key: TranslationKey, variables?: Record<string, string | number>) => string;
   readonly activeTool: Space3DActiveTool;
   readonly onSelectTool: () => void;
@@ -34,11 +34,11 @@ export interface Space3DToolRailProps {
   readonly onDelete: () => void;
 }
 
-export const Space3DToolRail = ({
+export const Space3DConsoleTools = ({
   t, activeTool, onSelectTool, onNewNode, onNewMember, onNewLoad, onEditSupport,
   canNewMember, canNewLoad, canEditSupport, onCycleView,
   canUndo, canRedo, canDelete, onUndo, onRedo, onDelete,
-}: Space3DToolRailProps) => <nav className="space3d-rail-vertical" aria-label={t('space3d.toolRailLabel')}>
+}: Space3DConsoleToolsProps) => <nav className="space3d-console-tools space3d-rail-vertical" aria-label={t('space3d.toolRailLabel')}>
   <div className="space3d-rail-vertical-group" role="group" aria-label={t('space3d.toolRailLabel')}>
     <button
       type="button"
