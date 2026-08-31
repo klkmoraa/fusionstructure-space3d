@@ -1,12 +1,15 @@
 /// <reference types="node" />
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 /** Los saltos de línea CRLF no pueden desactivar los emparejadores por línea. */
 const leer = (ruta: string) => readFileSync(ruta, 'utf8').replace(/\r\n/g, '\n');
 
-const SRC = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
+/** `URL.pathname` antepone una barra al drive en Windows (`/C:/…`). */
+const SRC = fileURLToPath(new URL('..', import.meta.url)).replace(/[\\/]$/, '');
+const ROOT = fileURLToPath(new URL('../..', import.meta.url)).replace(/[\\/]$/, '');
 const tokens = leer(`${SRC}/design-system/tokens.css`);
 
 /**
@@ -161,6 +164,11 @@ describe('forma · la escala de radios es la del sistema sin volumen', () => {
 });
 
 describe('arquitectura · una sola verdad, sin capa de parches', () => {
+  it('el documento inicial no conserva colores de los productos de origen', () => {
+    const index = leer(`${ROOT}/index.html`).toLowerCase();
+    expect(index).not.toMatch(/#(?:007d61|168a6c|468c09|65a323|2f73c8|d85c4a|7657d5|c65f86|f3eee4|f7f1e8|fbf8f2|102b2d|ded8ce)/);
+  });
+
   it('no existe una hoja de reconciliación que tape la fundación', () => {
     const parches = rutas().filter((h) => /minimal\.css$|\/minimal\/|Minimal\.css$/.test(h));
     expect(parches).toEqual([]);
