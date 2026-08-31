@@ -8,11 +8,10 @@
  * `src/minimal/`. Editar la identidad de FusionStructure es editar este
  * archivo.
  *
- * No hereda la dirección de ninguno de los dos productos de origen:
- *   · StructureCo traía marfil cálido, acento menta y claymorphism —sombras de
- *     doble dirección con luz interior— sobre radios de 18/24/28px.
- *   · Copia-web traía gris acromático con un azul de sistema como marca.
- * FusionStructure no es ninguna de las dos ni su promedio.
+ * La fundación visual de FusionStructure es autónoma: una base acromática,
+ * colores reservados al dominio, jerarquía por espacio y filetes, y una escala
+ * tipográfica orientada a lectura técnica. El sistema visual puede evolucionar,
+ * pero cualquier cambio debe hacerse aquí y acompañarse de pruebas.
  *
  * LAS CUATRO REGLAS
  * ---------------------------------------------------------------------------
@@ -160,7 +159,7 @@
   /* ---- ACCIÓN: la marca es la tinta -----------------------------------
      No hay color de marca. La acción primaria es un plano de tinta plena con
      la etiqueta en el papel. En Noche se invierte exactamente. Es la decisión
-     que más separa a FusionStructure de sus dos orígenes: ni menta ni azul de
+     que define la interfaz de FusionStructure: no es decoración, es información de
      sistema, sencillamente el contraste máximo disponible. */
   --sc-color-action-primary: var(--fs-gray-950);
   --sc-color-action-hover: var(--fs-gray-800);
