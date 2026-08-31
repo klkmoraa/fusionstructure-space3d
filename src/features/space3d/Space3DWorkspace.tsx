@@ -29,8 +29,8 @@ import { SPACE3D_DEFAULT_LAYERS, type Space3DLayerVisibility } from '../../space
 import { SPACE3D_VIEW_PRESETS, type Space3DViewPreset } from '../../space3d/view/cameraModel';
 import { Space3DEntityEditor, type Space3DEditorTarget } from './Space3DEntityEditor';
 import { Space3DResultsPanel, type Space3DResultsTab } from './Space3DResultsPanel';
-import { Space3DToolRail, type Space3DActiveTool } from './Space3DToolRail';
-import { Space3DModelNav, type Space3DModelFocus } from './Space3DModelNav';
+import { Space3DConsoleTools, type Space3DActiveTool } from './Space3DToolRail';
+import { Space3DModelSummary, type Space3DModelFocus } from './Space3DModelNav';
 import { translate, type Language, type TranslationKey } from '../../i18n/catalogs';
 import { formatNumber } from '../../utils/numberFormat';
 import type { Space3DCommand } from '../../space3d/data/commands';
@@ -383,14 +383,9 @@ const WorkspaceBody = ({
   </label>;
 
   return <div className="space3d-screen" data-space3d-layout="canvas-command-dock">
-    <header className="space3d-header">
+    <aside className="space3d-console" aria-label={t('space3d.title')}>
       <div className="space3d-identity">
         <strong className="space3d-wordmark">FS</strong>
-        <span>
-          <strong>{t('space3d.title')}</strong>
-          <small>{t('space3d.subtitle')}</small>
-        </span>
-        <span className="space3d-badge">{t('space3d.badge')}</span>
       </div>
       <div className="space3d-project-picker">
         <ChevronDown size={14} aria-hidden="true" className="space3d-project-picker-caret" />
@@ -405,7 +400,7 @@ const WorkspaceBody = ({
           <PenLine size={16} aria-hidden="true" /><span className="space3d-button-label">{t('space3d.editor2D')}</span>
         </button> : null}
       </nav>
-    </header>
+    </aside>
 
     <p className="space3d-experimental" role="note">{t('space3d.experimentalNotice')}</p>
 
@@ -521,7 +516,7 @@ const WorkspaceBody = ({
       : null}
 
     <div className="space3d-layout">
-      <Space3DToolRail
+      <Space3DConsoleTools
         t={t}
         activeTool={activeTool}
         onSelectTool={clearToolSelection}
@@ -599,8 +594,8 @@ const WorkspaceBody = ({
           <span className="space3d-visually-hidden">{sheetExpanded ? t('space3d.mobileSheetCollapse') : t('space3d.mobileSheetExpand')}</span>
         </button>
 
-        <aside className="space3d-model-nav-panel">
-          <Space3DModelNav
+        <aside className="space3d-model-summary-panel space3d-model-nav-panel">
+          <Space3DModelSummary
             t={t}
             counts={modelCounts}
             focus={modelNavFocus}

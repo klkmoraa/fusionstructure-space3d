@@ -34,7 +34,7 @@
 
 /* --- Cabecera ----------------------------------------------------------- */
 
-.space3d-header {
+.space3d-console {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1135,7 +1135,7 @@
   .space3d-tray--run { margin-inline-start: 0; inline-size: 100%; }
   .space3d-tray--run .space3d-button--primary { flex: 1; }
   .space3d-canvas-summary { margin-inline-start: 0; inline-size: 100%; }
-  .space3d-header { position: sticky; inset-block-start: 0; z-index: var(--sc-z-topbar); }
+  .space3d-console { position: sticky; inset-block-start: 0; z-index: var(--sc-z-topbar); }
 
   .space3d-rail-vertical { flex-direction: column; }
   .space3d-rail-vertical-group { flex-direction: column; }
@@ -1193,7 +1193,7 @@
 
   /* Cabecera compacta: el viewport es protagonista, la cabecera no debe
      competir por altura en pantallas de ~390px. */
-  .space3d-header { padding: var(--sc-space-2) var(--sc-space-4); gap: 6px; }
+  .space3d-console { padding: var(--sc-space-2) var(--sc-space-4); gap: 6px; }
   .space3d-identity { flex: 1 1 auto; min-inline-size: 0; }
   .space3d-identity small { display: none; }
   .space3d-project-picker { order: 3; inline-size: 100%; }
@@ -1339,7 +1339,7 @@
     overflow: hidden;
   }
 
-  .space3d-header {
+  .space3d-console {
     padding: max(7px, env(safe-area-inset-top)) 10px 7px;
     gap: 5px;
   }

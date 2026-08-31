@@ -30,7 +30,7 @@ export interface Space3DModelProperties {
   readonly dofRestrained: number;
 }
 
-export interface Space3DModelNavProps {
+export interface Space3DModelSummaryProps {
   readonly t: (key: TranslationKey, variables?: Record<string, string | number>) => string;
   readonly counts: Space3DModelCounts;
   readonly focus: Space3DModelFocus;
@@ -50,10 +50,10 @@ const MODEL_ROWS: readonly { readonly focus: Space3DModelFocus; readonly key: Tr
   { focus: 'load', key: 'space3d.loads', countKey: 'loads' },
 ];
 
-export const Space3DModelNav = ({
+export const Space3DModelSummary = ({
   t, counts, focus, onFocusChange, views, viewLabels, activeView, onViewChange,
   properties, propertiesOpen, onToggleProperties,
-}: Space3DModelNavProps) => <div className="space3d-model-nav">
+}: Space3DModelSummaryProps) => <div className="space3d-model-summary space3d-model-nav">
   <section aria-label={t('space3d.modelSection')}>
     <h2 className="space3d-model-nav-heading">{t('space3d.modelSection')}</h2>
     <ul className="space3d-model-nav-list">
