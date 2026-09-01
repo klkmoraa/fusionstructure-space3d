@@ -63,6 +63,7 @@ export const enWorkspace = {
   'menu.sectionViews': 'Views',
   'menu.sectionExport': 'Export and save',
   'shell.skipToCanvas': 'Skip to workspace canvas',
+  'shell.surfaces': 'Project surfaces',
   'shell.viewLayout': 'Workspace layout',
   'shell.fullCanvas': 'Full canvas',
   'shell.exitFullCanvas': 'Exit full canvas',

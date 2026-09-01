@@ -1,0 +1,21 @@
+/*
+ * Marca y bloque de marca.
+ *
+ * Una sola geometría para los dos temas: la marca hereda la tinta con
+ * `currentColor` y sólo el registro y el glifo llevan color de colección. Nada
+ * aquí declara un valor: todo sale de la fundación.
+ */
+
+.fs-mark { display: block; flex: none; overflow: visible; }
+
+/* El voladizo medio es la única pieza con color propio: es el miembro que
+   responde a la carga. */
+.fs-mark__register { fill: var(--sc-color-signal-axial-ink); }
+
+/* Familia de herramientas: el marco lleva el color de la colección y el glifo
+   se queda en tinta, para que el color nunca sea el único identificador. */
+.fs-mark--solver2d .fs-mark__frame { fill: none; stroke: var(--fs-signal-action); stroke-width: 2; opacity: .55; }
+.fs-mark--solver2d .fs-mark__glyph { stroke: currentColor; }
+.fs-mark--solver2d .fs-mark__datum { stroke-width: 2; opacity: .34; }
+.fs-mark--solver2d .fs-mark__response { stroke-width: 2.6; }
+.fs-mark--solver2d .fs-mark__node { fill: currentColor; }

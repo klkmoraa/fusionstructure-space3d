@@ -63,6 +63,7 @@ export const esWorkspace = {
   'menu.sectionViews': 'Vistas',
   'menu.sectionExport': 'Exportar y guardar',
   'shell.skipToCanvas': 'Saltar a la mesa de trabajo',
+  'shell.surfaces': 'Superficies del proyecto',
   'shell.viewLayout': 'Distribución del espacio de trabajo',
   'shell.fullCanvas': 'Mesa de trabajo completa',
   'shell.exitFullCanvas': 'Salir de mesa completa',
