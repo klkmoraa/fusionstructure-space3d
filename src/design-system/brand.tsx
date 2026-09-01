@@ -3,24 +3,25 @@ import './brand.css';
 /**
  * Identidad de marca de FusionStructure y de sus módulos.
  *
- * El brandbook describe la marca madre como cuatro piezas estructurales
- * abiertas alrededor de un núcleo común, y la familia de herramientas como ese
- * mismo marco con un glifo funcional y un color de colección. Aquí vive la
- * implementación: una sola geometría, dibujada con `currentColor` para que
- * siga al tema en lugar de duplicarse en un archivo por tema.
+ * El brandbook describe la marca madre como una ménsula: un miembro vertical y
+ * dos voladizos cuyo peralte decrece de 9u a 5u hacia la punta, la forma que
+ * toma una sección dimensionada por el momento que recibe. Aquí vive la
+ * implementación: una sola geometría, dibujada con `currentColor` para que siga
+ * al tema en lugar de duplicarse en un archivo por tema.
+ *
+ * Un módulo no repite la marca madre: usa su glifo funcional dentro del mismo
+ * contenedor, con el color de la colección.
  *
  * Los SVG estáticos de `public/assets/brand/` existen para lo que no puede
- * renderizar React —favicon, manifiesto, Open Graph— y comparten estos mismos
- * trazados.
+ * renderizar React —favicon, manifiesto, Open Graph— y salen del mismo origen,
+ * `brandbook-site/scripts/glyph-library.mjs`.
  */
 
-/** Las cuatro piezas del marco compartido, en la retícula de 48. */
-const FRAME_PIECES = [
-  'M4 5h15v7h-7v7H4z',
-  'M29 5h15v14h-8v-7h-7z',
-  'M4 29h8v7h7v8H4z',
-  'M29 36h7v-7h8v15H29z',
-] as const;
+/** La ménsula, en la retícula de 48. */
+const MARK_BODY = 'M8 5h9v38H8z M17 5h24v5.5L17 14z';
+
+/** El voladizo medio: la única pieza que puede tomar el color de señal. */
+const MARK_ARM = 'M17 21h17v5L17 30z';
 
 export interface MarkProps {
   /** Lado en píxeles. La marca es cuadrada por construcción. */
@@ -45,8 +46,8 @@ export const FusionMark = ({ size = 24, label, className }: MarkProps) => (
     aria-hidden={label ? undefined : true}
     focusable="false"
   >
-    <g fill="currentColor">{FRAME_PIECES.map((d) => <path key={d} d={d} />)}</g>
-    <circle className="fs-mark__register" cx="39" cy="10" r="2.25" />
+    <path fill="currentColor" d={MARK_BODY} />
+    <path className="fs-mark__register" d={MARK_ARM} />
   </svg>
 );
 
@@ -69,7 +70,7 @@ export const Solver2DMark = ({ size = 24, label, className }: MarkProps) => (
     aria-hidden={label ? undefined : true}
     focusable="false"
   >
-    <g className="fs-mark__frame">{FRAME_PIECES.map((d) => <path key={d} d={d} />)}</g>
+    <rect className="fs-mark__frame" x="2" y="2" width="44" height="44" rx="11" />
     <g className="fs-mark__glyph" fill="none" strokeLinecap="round" strokeLinejoin="round">
       <path className="fs-mark__datum" d="M13 19h22" />
       <path className="fs-mark__response" d="M13 19c6.5 0 8 13 11 13s4.5-13 11-13" />
