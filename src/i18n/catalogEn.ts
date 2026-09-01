@@ -49,6 +49,8 @@ export const en: Catalog = {
   'results.criticalZero': 'Zero crossing',
   'results.pinCriticalPoint': 'Pin reading at {point}',
   'results.unpinCriticalPoint': 'Unpin reading at {point}',
+  'surface.loadFailed': 'This surface could not be loaded.',
+  'surface.reload': 'Reload',
   'space3d.bridgeCompleteNow': 'Complete now',
   'space3d.bridgeNextRequirement': 'Next requirement to analyse: {requirement}',
 };

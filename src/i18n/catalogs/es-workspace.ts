@@ -43,6 +43,8 @@ export const esWorkspace = {
   'topbar.projectHubImportDescription': 'Revisa un archivo antes de abrirlo.',
   'project.new': 'Proyecto nuevo',
   'project.importJson': 'Importar JSON',
+  'assistant.localLabel': 'Asistente local',
+  'assistant.localDescription': 'Propón un cambio revisable sin conexión.',
   'history.label': 'Historial',
   'history.undo': 'Deshacer',
   'history.redo': 'Rehacer',

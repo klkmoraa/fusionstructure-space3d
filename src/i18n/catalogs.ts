@@ -44,6 +44,8 @@ export const es = {
   'results.criticalZero': 'Cruce por cero',
   'results.pinCriticalPoint': 'Fijar lectura en {point}',
   'results.unpinCriticalPoint': 'Quitar lectura fijada de {point}',
+  'surface.loadFailed': 'No se pudo cargar esta superficie.',
+  'surface.reload': 'Recargar',
   'space3d.bridgeCompleteNow': 'Completar ahora',
   'space3d.bridgeNextRequirement': 'Siguiente requisito para analizar: {requirement}',
 } as const;
