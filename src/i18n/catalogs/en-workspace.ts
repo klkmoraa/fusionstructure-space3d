@@ -43,6 +43,8 @@ export const enWorkspace = {
   'topbar.projectHubImportDescription': 'Review a file before opening it.',
   'project.new': 'New project',
   'project.importJson': 'Import JSON',
+  'assistant.localLabel': 'Local assistant',
+  'assistant.localDescription': 'Propose a reviewable change without a connection.',
   'history.label': 'History',
   'history.undo': 'Undo',
   'history.redo': 'Redo',
