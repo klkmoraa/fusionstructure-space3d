@@ -15,12 +15,13 @@ const tokens = leer(`${SRC}/design-system/tokens.css`);
 /**
  * Guarda de la identidad visual de FusionStructure.
  *
- * La interfaz actual de FusionStructure se verifica con la dirección visual del
- * primero —claymorphism, marfil cálido, acento menta— y una capa de parches
- * encima que la tapaba de blanco con `!important`. Estas pruebas existen para
- * que ninguna de las dos cosas pueda volver por la puerta de atrás: no basta
- * con haberlas quitado una vez, porque cualquier regla nueva copiada de
- * cualquiera de los dos productos de origen las reintroduce.
+ * La fundación implementa el brandbook: papel y carbón para el chrome, seis
+ * señales para el dominio y una escala de movimiento corta. Estas pruebas
+ * existen para que la dirección visual de los dos productos de origen
+ * —claymorphism, marfil cálido, acento menta, y la capa de parches que la
+ * tapaba de blanco con `!important`— no pueda volver por la puerta de atrás:
+ * no basta con haberla quitado una vez, porque cualquier regla nueva copiada de
+ * cualquiera de los dos la reintroduce.
  */
 
 /** Todas las hojas del producto, en rutas relativas estables entre máquinas. */
@@ -60,6 +61,16 @@ const aRgb = (hex: string): [number, number, number] | null => {
   if (!m) return null;
   const n = parseInt(m[1], 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+
+/** Luminancia relativa y contraste WCAG, para medir señales contra su papel. */
+const luminancia = ([r, g, b]: [number, number, number]): number => {
+  const canal = (v: number) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  return 0.2126 * canal(r) + 0.7152 * canal(g) + 0.0722 * canal(b);
+};
+const contraste = (a: [number, number, number], b: [number, number, number]): number => {
+  const [claro, oscuro] = [luminancia(a), luminancia(b)].sort((x, y) => y - x);
+  return (claro + 0.05) / (oscuro + 0.05);
 };
 
 describe('materia · el claymorphism no puede volver', () => {
@@ -106,17 +117,25 @@ describe('color · la interfaz es acromática y el dominio es el único que tiñ
     '--sc-color-focus', '--sc-color-selection-stroke',
   ];
 
+  /**
+   * Papel y carbón tienen temperatura: el papel del brandbook es cálido y el
+   * carbón es frío. Esa desviación es identidad, no color de marca, así que la
+   * guarda mide su AMPLITUD en vez de exigir tres canales idénticos. Doce
+   * puntos sobre 255 es el techo: por debajo el chrome se lee neutro junto a
+   * una señal; por encima empieza a competir con el dominio.
+   */
+  const DESVIACION_MAXIMA_DE_CHROME = 12;
+
   for (const [tema, bloque] of [['día', bloqueRaiz], ['noche', bloqueNoche]] as const) {
-    it(`los roles de chrome no tienen hue en tema ${tema}`, () => {
+    it(`los roles de chrome se mantienen neutros en tema ${tema}`, () => {
       for (const rol of rolesDeChrome) {
         const declarado = valorEn(bloque, rol) ?? valorEn(bloqueRaiz, rol);
         expect(declarado, `${rol} no está declarado`).toBeTruthy();
         const rgb = aRgb(resolver(declarado!, bloque));
         expect(rgb, `${rol} no resuelve a un hex: ${declarado}`).not.toBeNull();
-        const [r, g, b] = rgb!;
-        // Acromático: los tres canales coinciden. Un solo canal distinto es un
-        // hue, y en el chrome de FusionStructure no hay ninguno.
-        expect(new Set([r, g, b]).size, `${rol} tiene hue (${declarado})`).toBe(1);
+        const desviacion = Math.max(...rgb!) - Math.min(...rgb!);
+        expect(desviacion, `${rol} tiene hue propio (${declarado} → desviación ${desviacion})`)
+          .toBeLessThanOrEqual(DESVIACION_MAXIMA_DE_CHROME);
       }
     });
   }
@@ -126,18 +145,59 @@ describe('color · la interfaz es acromática y el dominio es el único que tiñ
     expect(aRgb(resolver(valorEn(bloqueNoche, '--sc-color-action-primary')!, bloqueNoche))![0]).toBeGreaterThan(223);
   });
 
-  it('los cinco hues del dominio se declaran una vez y no se redefinen en Noche', () => {
-    const hues = ['--fs-red', '--fs-blue', '--fs-green', '--fs-yellow', '--fs-pink'];
-    for (const hue of hues) {
-      expect(valorEn(bloqueRaiz, hue), `${hue} debe declararse en :root`).toBeTruthy();
-      expect(valorEn(bloqueNoche, hue), `${hue} no puede redefinirse en Noche`).toBeNull();
+  it('las seis señales del dominio se declaran una vez y no se redefinen en Noche', () => {
+    const senales = ['axial', 'shear', 'moment', 'action', 'deformed', 'alert'];
+    for (const senal of senales) {
+      const trazo = `--fs-signal-${senal}`;
+      expect(valorEn(bloqueRaiz, trazo), `${trazo} debe declararse en :root`).toBeTruthy();
+      expect(valorEn(bloqueNoche, trazo), `${trazo} no puede redefinirse en Noche`).toBeNull();
     }
+    // Los alias por familia siguen existiendo para el CSS heredado, y siguen
+    // apuntando a la misma verdad en vez de declarar un segundo valor.
+    for (const alias of ['--fs-red', '--fs-blue', '--fs-green', '--fs-yellow', '--fs-pink', '--fs-purple']) {
+      expect(valorEn(bloqueRaiz, alias), `${alias} debe declararse en :root`).toMatch(/^var\(--fs-signal-/);
+      expect(valorEn(bloqueNoche, alias), `${alias} no puede redefinirse en Noche`).toBeNull();
+    }
+  });
+
+  it('cada señal se separa del papel y del carbón lo suficiente para leerse como trazo', () => {
+    // Mínimo gráfico de WCAG para un elemento no textual: 3:1. Una señal que no
+    // lo cumple en los dos temas no es una señal, es una decoración.
+    //
+    // El aviso queda fuera de esta lista por una razón física, no por una
+    // excepción cómoda: ningún amarillo llega a 3:1 sobre papel sin dejar de
+    // ser amarillo. Por eso el rol que lo pinta en Día es su tinta —lo
+    // comprueba la prueba siguiente— y el valor de trazo se reserva a Noche.
+    const papel = aRgb(resolver(valorEn(bloqueRaiz, '--sc-color-bg-canvas')!, bloqueRaiz))!;
+    const carbon = aRgb(resolver(valorEn(bloqueNoche, '--sc-color-bg-canvas')!, bloqueNoche))!;
+    for (const senal of ['axial', 'shear', 'moment', 'action', 'deformed']) {
+      const rgb = aRgb(valorEn(bloqueRaiz, `--fs-signal-${senal}`)!)!;
+      expect(contraste(rgb, papel), `${senal} no se separa del papel`).toBeGreaterThanOrEqual(3);
+      expect(contraste(rgb, carbon), `${senal} no se separa del carbón`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('el aviso se pinta con su tinta sobre papel y con su trazo sobre carbón', () => {
+    const papel = aRgb(resolver(valorEn(bloqueRaiz, '--sc-color-bg-canvas')!, bloqueRaiz))!;
+    const carbon = aRgb(resolver(valorEn(bloqueNoche, '--sc-color-bg-canvas')!, bloqueNoche))!;
+    const dia = aRgb(resolver(valorEn(bloqueRaiz, '--sc-color-technical-dimension')!, bloqueRaiz))!;
+    const noche = aRgb(resolver(valorEn(bloqueNoche, '--sc-color-technical-dimension')!, bloqueNoche))!;
+    expect(contraste(dia, papel), 'la cota no se lee sobre papel').toBeGreaterThanOrEqual(3);
+    expect(contraste(noche, carbon), 'la cota no se lee sobre carbón').toBeGreaterThanOrEqual(3);
   });
 
   it('las acciones internas mantienen su significado en los dos temas', () => {
     // Un momento flector no cambia de color al apagar la luz.
-    for (const rol of ['--sc-color-technical-axial', '--sc-color-technical-shear', '--sc-color-technical-moment', '--sc-color-technical-load']) {
+    for (const rol of ['--sc-color-technical-axial', '--sc-color-technical-shear', '--sc-color-technical-moment', '--sc-color-technical-load', '--sc-color-technical-deformed']) {
       expect(valorEn(bloqueNoche, rol), `${rol} no puede redefinirse en Noche`).toBeNull();
+    }
+  });
+
+  it('cada señal tiene una tinta legible declarada en los dos temas', () => {
+    for (const senal of ['axial', 'shear', 'moment', 'action', 'deformed', 'alert']) {
+      const rol = `--sc-color-signal-${senal}-ink`;
+      expect(valorEn(bloqueRaiz, rol), `${rol} debe declararse en Día`).toBeTruthy();
+      expect(valorEn(bloqueNoche, rol), `${rol} debe recalibrarse en Noche`).toBeTruthy();
     }
   });
 });

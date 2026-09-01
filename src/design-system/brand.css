@@ -1,0 +1,66 @@
+/*
+ * Marca y bloque de marca.
+ *
+ * Una sola geometría para los dos temas: la marca hereda la tinta con
+ * `currentColor` y sólo el registro y el glifo llevan color de colección. Nada
+ * aquí declara un valor: todo sale de la fundación.
+ */
+
+.fs-mark { display: block; flex: none; overflow: visible; }
+
+/* El punto de registro es la esquina desde la que se lee el conjunto. */
+.fs-mark__register { fill: var(--sc-color-signal-axial-ink); }
+
+/* Familia de herramientas: el marco lleva el color de la colección y el glifo
+   se queda en tinta, para que el color nunca sea el único identificador. */
+.fs-mark--plano .fs-mark__frame { fill: var(--fs-signal-action); }
+.fs-mark--plano .fs-mark__glyph { stroke: currentColor; }
+.fs-mark--plano .fs-mark__datum { stroke-width: 2; opacity: .34; }
+.fs-mark--plano .fs-mark__response { stroke-width: 2.6; }
+.fs-mark--plano .fs-mark__node { fill: currentColor; }
+
+.fs-wordmark-block {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--wordmark-size, 26px) * .38);
+  color: var(--sc-color-text-primary);
+}
+
+.fs-wordmark-block__copy { min-width: 0; display: grid; gap: 1px; }
+
+.fs-wordmark-block__copy strong {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: .5em;
+  overflow: hidden;
+  font-size: calc(var(--wordmark-size, 26px) * .66);
+  font-weight: var(--sc-font-weight-heavy);
+  letter-spacing: var(--sc-tracking-display);
+  line-height: var(--sc-line-height-tight);
+  white-space: nowrap;
+}
+
+/* La procedencia acompaña al nombre, no compite con él. */
+.fs-wordmark-block__copy strong em {
+  overflow: hidden;
+  color: var(--sc-color-text-muted);
+  font-size: .56em;
+  font-style: normal;
+  font-weight: var(--sc-font-weight-semibold);
+  letter-spacing: var(--sc-tracking-control);
+  text-overflow: ellipsis;
+}
+
+.fs-wordmark-block__copy small {
+  overflow: hidden;
+  color: var(--sc-color-text-muted);
+  font-family: var(--sc-font-mono);
+  font-size: var(--sc-font-size-label);
+  font-weight: var(--sc-font-weight-bold);
+  letter-spacing: var(--sc-tracking-eyebrow);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}

@@ -1,30 +1,30 @@
 /*
  * FusionStructure · Fundación visual
  * ---------------------------------------------------------------------------
- * Dirección: MINIMALISMO PURO. Tinta sobre papel.
+ * Dirección: MAKE COMPLEXITY LEGIBLE. Papel y carbón; el color es del dominio.
  *
  * Esta es la única capa que declara valores. No hay hoja de parches encima, no
- * hay `!important` de reconciliación y no hay una segunda verdad en
- * `src/minimal/`. Editar la identidad de FusionStructure es editar este
- * archivo.
+ * hay `!important` de reconciliación y no hay una segunda verdad. Editar la
+ * identidad de FusionStructure es editar este archivo.
  *
- * La fundación visual de FusionStructure es autónoma: una base acromática,
- * colores reservados al dominio, jerarquía por espacio y filetes, y una escala
- * tipográfica orientada a lectura técnica. El sistema visual puede evolucionar,
- * pero cualquier cambio debe hacerse aquí y acompañarse de pruebas.
+ * Implementa el brandbook de FusionStructure (`brandbook-site/`): su papel, su
+ * carbón, sus seis señales de dominio y su escala de movimiento. Donde el
+ * brandbook publica un valor que no aguanta la prueba de contraste sobre las
+ * cuatro superficies del producto, aquí vive el escalón que sí la aguanta y el
+ * valor publicado queda como la tinta del tema que lo necesita.
  *
  * LAS CUATRO REGLAS
  * ---------------------------------------------------------------------------
- *  1. LA INTERFAZ NO TIENE COLOR. Fondos, superficies, bordes, texto, acciones
- *     y estados de control son acromáticos. Ni un solo hue en el chrome. El
- *     acento de marca es la tinta misma: negro sobre blanco en Día, blanco
- *     sobre negro en Noche.
+ *  1. EL CHROME NO TIENE COLOR. Fondos, superficies, bordes, texto, acciones y
+ *     estados de control son neutros: papel en Día, carbón en Noche. La
+ *     temperatura del papel es mínima y constante —la desviación entre canales
+ *     nunca pasa de 12— y nunca se convierte en un tinte de marca. El acento es
+ *     la tinta misma: carbón sobre papel en Día, papel sobre carbón en Noche.
  *
- *  2. EL COLOR ES DEL DOMINIO. Sólo cinco hues entran en la aplicación —rojo,
- *     azul, verde, amarillo y rosa— y sólo para significar algo que el solver o
- *     el modelo dicen: una carga, una acción interna, una cota, un estado. Se
- *     usan como TRAZO fino, no como relleno de superficie. Un panel nunca se
- *     tiñe; una línea sí.
+ *  2. EL COLOR ES DEL DOMINIO. Seis señales entran en la aplicación —axial,
+ *     cortante, momento, acción, deformada y aviso— y sólo para significar algo
+ *     que el solver o el modelo dicen. Se usan como TRAZO, no como relleno de
+ *     superficie. Un panel nunca se tiñe; una línea sí.
  *
  *  3. LA PROFUNDIDAD ES EL FILETE. Un borde de 1px y el espacio separan las
  *     cosas. La escala de sombras existe en un solo escalón real, reservado a
@@ -37,14 +37,15 @@
  *
  * INVARIANZA POR TEMA
  * ---------------------------------------------------------------------------
- * Los cinco hues del dominio se declaran UNA sola vez en `:root` y no se
- * redefinen en Noche: un momento flector no cambia de significado al apagar la
- * luz. El bloque `[data-theme='dark']` sólo puede redefinir neutros —fondos,
- * superficies, filetes, tintas de texto— y las tintas de estado que se apoyan
- * sobre esas superficies, que sí tienen que recalibrarse para seguir legibles.
+ * Las seis señales se declaran UNA sola vez en `:root` y no se redefinen en
+ * Noche: un momento flector no cambia de significado al apagar la luz. El
+ * bloque `[data-theme='dark']` sólo puede redefinir neutros —fondos,
+ * superficies, filetes, tintas de texto— y las TINTAS de señal y de estado, que
+ * se apoyan sobre esas superficies y sí tienen que recalibrarse para seguir
+ * legibles.
  *
  * Capas de este archivo:
- *   1. Primitivas — la escala de grises y los cinco hues.
+ *   1. Primitivas — la rampa de papel y las seis señales.
  *   2. Roles semánticos de interfaz (Día).
  *   3. Roles técnicos del dominio (invariantes).
  *   4. Espaciado, tamaños y forma.
@@ -55,70 +56,108 @@
  *   9. Alias de compatibilidad para el CSS existente.
  *  10. Tema Noche.
  */
-
 :root {
   /* ------------------------------------------------------------------ */
   /* 1 · PRIMITIVAS                                                      */
   /* ------------------------------------------------------------------ */
 
-  /* Escala acromática. Sin temperatura: ni marfil ni grafito verdoso. Es la
-     única familia con la que se construye la interfaz entera. */
+  /* PAPEL Y TINTA. La rampa de Día nace del papel del brandbook (#F6F5F0) y
+     termina en su carbón (#171A1C). No es una escala gris: es una escala de
+     papel, con una temperatura mínima y constante —la desviación entre canales
+     nunca pasa de 10— para que el chrome siga siendo neutro a la vista y el
+     color siga siendo exclusivo del dominio. */
   --sc-white: #ffffff;
   --sc-black: #000000;
-  --fs-gray-0: #ffffff;
-  --fs-gray-25: #fafafa;
-  --fs-gray-50: #f5f5f5;
-  --fs-gray-100: #ededed;
-  --fs-gray-150: #eaeaea;
-  --fs-gray-200: #dcdcdc;
-  --fs-gray-300: #c4c4c4;
-  --fs-gray-400: #a8a8a8;
-  --fs-gray-500: #8f8f8f;
-  --fs-gray-600: #737373;
-  --fs-gray-700: #525252;
-  --fs-gray-800: #333333;
-  --fs-gray-900: #1a1a1a;
-  --fs-gray-950: #0a0a0a;
+  --fs-paper-0: #ffffff;
+  --fs-paper-25: #fdfdfb;
+  --fs-paper-50: #f7f6f1;
+  --fs-paper-100: #f0efe9;
+  --fs-paper-150: #e8e7e0;
+  --fs-paper-200: #dcdbd3;
+  --fs-paper-300: #c6c5bc;
+  --fs-paper-400: #a9a8a0;
+  --fs-paper-500: #8e8d86;
+  --fs-paper-600: #73726c;
+  --fs-paper-700: #545350;
+  --fs-paper-800: #353432;
+  --fs-paper-900: #1f2123;
+  --fs-paper-950: #171a1c;
 
-  /* LOS CINCO HUES. Todo el color de FusionStructure cabe aquí. Cada uno está
-     medido para leerse como TRAZO de 1,5-2px sobre las cuatro superficies del
-     producto (lienzo y panel × Día y Noche), que es como se usan: líneas y
-     glifos, nunca planos de fondo.
+  /* Alias históricos de la rampa. El producto entero los usa; conservarlos
+     evita una migración mecánica sin lectura en cada hoja de feature. */
+  --fs-gray-0: var(--fs-paper-0);
+  --fs-gray-25: var(--fs-paper-25);
+  --fs-gray-50: var(--fs-paper-50);
+  --fs-gray-100: var(--fs-paper-100);
+  --fs-gray-150: var(--fs-paper-150);
+  --fs-gray-200: var(--fs-paper-200);
+  --fs-gray-300: var(--fs-paper-300);
+  --fs-gray-400: var(--fs-paper-400);
+  --fs-gray-500: var(--fs-paper-500);
+  --fs-gray-600: var(--fs-paper-600);
+  --fs-gray-700: var(--fs-paper-700);
+  --fs-gray-800: var(--fs-paper-800);
+  --fs-gray-900: var(--fs-paper-900);
+  --fs-gray-950: var(--fs-paper-950);
 
-     Se eligieron a media saturación a propósito. Un rojo de señal y un azul de
-     sistema pelean con la tinta; estos cinco conviven con el negro sin subirle
-     la voz, que es la condición para que el minimalismo aguante. */
-  --fs-red: #e5484d;
-  --fs-blue: #3b82f6;
-  --fs-green: #22a06b;
-  --fs-yellow: #d4a017;
-  --fs-pink: #d9469b;
+  /* LAS SEIS SEÑALES. El brandbook define seis significados de dominio; ésta es
+     su implementación. El valor base es TRAZO: está medido para separarse del
+     papel y del carbón con el mismo grosor de línea, así que un momento flector
+     no cambia de color al apagar la luz.
 
-  /* Variantes de tinta de los cinco hues: el mismo significado escrito con
-     contraste de TEXTO (≥4,5:1) sobre la superficie del tema. No son colores
-     nuevos, son el mismo hue en el escalón que un texto necesita. */
-  --fs-red-ink: #c4292e;
-  --fs-blue-ink: #1d5fd1;
-  --fs-green-ink: #10714c;
-  --fs-yellow-ink: #8a6508;
-  --fs-pink-ink: #b02b77;
+     Los valores publicados en el brandbook (#63C5FF, #FF6F66, #55C990, #F3C553,
+     #9B87FF, #EF7AB9) se dibujaron sobre carbón: sobre papel se quedan por
+     debajo del mínimo gráfico de 3:1. Aquí viven como la TINTA de Noche, y el
+     trazo compartido baja un escalón para leerse en los dos temas. */
+  --fs-signal-axial: #2795e0;
+  --fs-signal-shear: #1ba268;
+  --fs-signal-moment: #de5ca4;
+  --fs-signal-action: #f0564c;
+  --fs-signal-deformed: #8a73f5;
+  --fs-signal-alert: #e8b22e;
+
+  /* Tinta de señal para TEXTO sobre papel (≥4,5:1). No son colores nuevos: son
+     la misma señal en el escalón que necesita una cifra o una etiqueta. */
+  --fs-signal-axial-ink: #1668b0;
+  --fs-signal-shear-ink: #0e7a4e;
+  --fs-signal-moment-ink: #a83b79;
+  --fs-signal-action-ink: #c13a32;
+  --fs-signal-deformed-ink: #5d45c4;
+  --fs-signal-alert-ink: #8a6208;
+
+  /* Alias de dominio por hue. El código existente nombra los colores por su
+     familia; el sistema los nombra por su significado. Ambos apuntan al mismo
+     valor para que no existan dos verdades. */
+  --fs-red: var(--fs-signal-action);
+  --fs-blue: var(--fs-signal-axial);
+  --fs-green: var(--fs-signal-shear);
+  --fs-yellow: var(--fs-signal-alert);
+  --fs-pink: var(--fs-signal-moment);
+  --fs-purple: var(--fs-signal-deformed);
+
+  --fs-red-ink: var(--fs-signal-action-ink);
+  --fs-blue-ink: var(--fs-signal-axial-ink);
+  --fs-green-ink: var(--fs-signal-shear-ink);
+  --fs-yellow-ink: var(--fs-signal-alert-ink);
+  --fs-pink-ink: var(--fs-signal-moment-ink);
+  --fs-purple-ink: var(--fs-signal-deformed-ink);
 
   /* ------------------------------------------------------------------ */
   /* 2 · ROLES SEMÁNTICOS DE INTERFAZ — TEMA DÍA                         */
   /* ------------------------------------------------------------------ */
   /* Cuatro planos y nada más: la aplicación, la superficie, el hueco y el
      pulsado. Todo lo demás son alias de estos cuatro. */
-  --sc-color-bg-app: var(--fs-gray-0);
-  --sc-color-bg-canvas: var(--fs-gray-0);
-  --sc-color-surface-1: var(--fs-gray-0);
-  --sc-color-surface-2: var(--fs-gray-25);
-  --sc-color-surface-3: var(--fs-gray-50);
-  --sc-color-surface-elevated: var(--fs-gray-0);
-  --sc-color-surface-floating: var(--fs-gray-0);
-  --sc-color-surface-inset: var(--fs-gray-25);
-  --sc-color-surface-pressed: var(--fs-gray-100);
-  --sc-color-surface-toolbar: var(--fs-gray-0);
-  --sc-color-surface-input: var(--fs-gray-0);
+  --sc-color-bg-app: var(--fs-paper-50);
+  --sc-color-bg-canvas: var(--fs-paper-25);
+  --sc-color-surface-1: var(--fs-paper-25);
+  --sc-color-surface-2: var(--fs-paper-50);
+  --sc-color-surface-3: var(--fs-paper-100);
+  --sc-color-surface-elevated: var(--fs-paper-0);
+  --sc-color-surface-floating: var(--fs-paper-0);
+  --sc-color-surface-inset: var(--fs-paper-50);
+  --sc-color-surface-pressed: var(--fs-paper-150);
+  --sc-color-surface-toolbar: var(--fs-paper-25);
+  --sc-color-surface-input: var(--fs-paper-0);
 
   /* Rellenos suaves: la escala de "casi nada" con la que se agrupa sin dibujar
      una tarjeta. Son grises, nunca tintes de marca. */
@@ -212,7 +251,7 @@
 
   /* Canario: el amarillo nunca es trazo suelto sobre papel (1,6:1). Cuando hace
      falta amarillo visible va a relleno pleno con su propia tinta encima. */
-  --sc-color-canario: #f2d24b;
+  --sc-color-canario: #e8b22e;
   --sc-color-canario-ink: var(--fs-yellow-ink);
 
   /* Aula es un acento de EXPERIENCIA —a quién le habla la app—, no un resultado
@@ -224,13 +263,13 @@
 
   /* Lienzo y documento. La rejilla es lo más tenue que dibuja la aplicación:
      tiene que estar sin que se vea. */
-  --sc-color-canvas-grid: #f0f0f0;
-  --sc-color-canvas-grid-strong: #e0e0e0;
+  --sc-color-canvas-grid: #edece6;
+  --sc-color-canvas-grid-strong: #dfded6;
   --sc-color-canvas-member: var(--fs-gray-950);
   --sc-color-canvas-node-fill: var(--fs-gray-0);
-  --sc-color-overlay-soft: rgb(10 10 10 / .16);
-  --sc-color-overlay-sheet: rgb(10 10 10 / .24);
-  --sc-color-overlay-strong: rgb(10 10 10 / .40);
+  --sc-color-overlay-soft: rgb(23 26 28 / .16);
+  --sc-color-overlay-sheet: rgb(23 26 28 / .26);
+  --sc-color-overlay-strong: rgb(23 26 28 / .42);
 
   /* Materiales de ilustración (el pórtico de la bienvenida). Los nombres son
      históricos; el significado ya es acromático. */
@@ -258,14 +297,24 @@
   --sc-color-load-moment: var(--fs-red);
   --sc-color-technical-load: var(--fs-red);
   --sc-color-technical-distributed: var(--fs-red);
-  --sc-color-technical-distributed-area: rgb(229 72 77 / .10);
+  --sc-color-technical-distributed-area: rgb(240 86 76 / .12);
 
   /* Acciones internas — AZUL / VERDE / ROSA. */
+  /* Tinta de señal: el escalón que necesita una cifra, una etiqueta o una
+     leyenda. El trazo (arriba) es invariante; la tinta se recalibra en Noche
+     porque cambia el papel debajo, no el significado encima. */
+  --sc-color-signal-axial-ink: var(--fs-signal-axial-ink);
+  --sc-color-signal-shear-ink: var(--fs-signal-shear-ink);
+  --sc-color-signal-moment-ink: var(--fs-signal-moment-ink);
+  --sc-color-signal-action-ink: var(--fs-signal-action-ink);
+  --sc-color-signal-deformed-ink: var(--fs-signal-deformed-ink);
+  --sc-color-signal-alert-ink: var(--fs-signal-alert-ink);
+
   --sc-color-technical-axial: var(--fs-blue);
   --sc-color-technical-shear: var(--fs-green);
-  --sc-color-technical-shear-area: rgb(34 160 107 / .10);
+  --sc-color-technical-shear-area: rgb(31 169 111 / .12);
   --sc-color-technical-moment: var(--fs-pink);
-  --sc-color-technical-deformed: var(--fs-blue);
+  --sc-color-technical-deformed: var(--fs-purple);
   --sc-color-technical-reaction: var(--fs-green);
 
   /* Referencia geométrica — AMARILLO y tinta. */
@@ -276,8 +325,8 @@
      hay, no si es aceptable—, así que no puede ser un semáforo. Se recorre en
      valor sobre un único hue azul, y el punto de referencia (η alcanza el Fy
      declarado) es el único escalón que cambia de familia. */
-  --sc-color-demand-base: #9dc0f2;
-  --sc-color-demand-peak: #1d5fd1;
+  --sc-color-demand-base: #a8d5f4;
+  --sc-color-demand-peak: #1668b0;
   --sc-color-demand-reference: var(--fs-pink);
   --sc-color-demand-reference-peak: var(--fs-pink-ink);
   --sc-color-demand-unevaluated: var(--fs-gray-400);
@@ -300,10 +349,10 @@
   --sc-color-shear-negative: var(--fs-green);
   --sc-color-moment-positive: var(--fs-pink);
   --sc-color-moment-negative: var(--fs-pink);
-  --sc-color-deformation: var(--fs-blue);
+  --sc-color-deformation: var(--fs-purple);
   /* Influencia: área rosa muy diluida con canto rosa. El consumidor mantiene
      `stroke-dasharray`; el patrón acompaña al contraste, no lo sustituye. */
-  --sc-color-influence-area: rgb(217 70 155 / .12);
+  --sc-color-influence-area: rgb(222 92 164 / .13);
   --sc-color-influence-line: var(--fs-pink);
   --sc-color-envelope: var(--fs-gray-500);
   --sc-color-critical-point: var(--fs-yellow-ink);
@@ -524,19 +573,30 @@
   /* 8 · MOTION Y APILAMIENTO                                            */
   /* ------------------------------------------------------------------ */
   /* Rápido y corto. Sin muelles: un sistema sin volumen no rebota. */
-  --sc-motion-instant: 50ms;
-  --sc-motion-press: 60ms;
-  --sc-motion-fast: 100ms;
-  --sc-motion-control: 120ms;
-  --sc-motion-standard: 150ms;
-  --sc-motion-slow: 200ms;
-  --sc-motion-reveal: 240ms;
-  --sc-motion-loading: 700ms;
+  /* LA ESCALA DEL BRANDBOOK. Cuatro duraciones con un trabajo cada una:
+     Rápido responde al dedo, Puente cambia de plano, Revelar trae contenido
+     contextual y Pulso acompaña una espera. Nada dura más que Revelar salvo lo
+     que de verdad está procesando. */
+  --sc-motion-quick: 120ms;
+  --sc-motion-bridge: 180ms;
+  --sc-motion-reveal: 260ms;
+  --sc-motion-pulse: 680ms;
+
+  --sc-motion-instant: 60ms;
+  --sc-motion-press: 80ms;
+  --sc-motion-fast: var(--sc-motion-quick);
+  --sc-motion-control: var(--sc-motion-quick);
+  --sc-motion-standard: var(--sc-motion-bridge);
+  --sc-motion-slow: 220ms;
+  --sc-motion-loading: var(--sc-motion-pulse);
   --sc-motion-morph-duration: 200ms;
   --sc-motion-distance-factor: 0.5;
   --sc-motion-dock-scale: 1;
 
   --sc-ease-standard: cubic-bezier(.2, 0, 0, 1);
+  /* Curva de revelado: sale rápido y frena largo, para que un panel que aparece
+     se lea como una consecuencia y no como un salto. */
+  --sc-ease-reveal: cubic-bezier(.16, .84, .24, 1);
   --sc-ease-enter: cubic-bezier(0, 0, .2, 1);
   --sc-ease-exit: cubic-bezier(.4, 0, 1, 1);
   --sc-ease-press: cubic-bezier(.2, 0, 0, 1);
@@ -617,6 +677,15 @@
   --dimension: var(--sc-color-technical-dimension);
   --axis: var(--sc-color-technical-axis);
 
+  /* Tinta de señal, en alias corto: lo que usa una leyenda, una cifra con
+     unidad o el nombre de un diagrama. */
+  --axial-ink: var(--sc-color-signal-axial-ink);
+  --shear-ink: var(--sc-color-signal-shear-ink);
+  --moment-ink: var(--sc-color-signal-moment-ink);
+  --force-ink: var(--sc-color-signal-action-ink);
+  --deformed-ink: var(--sc-color-signal-deformed-ink);
+  --alert-ink: var(--sc-color-signal-alert-ink);
+
   --success: var(--sc-color-state-success);
   --success-solid: var(--sc-color-success-solid);
   --success-foreground: var(--sc-color-state-success-foreground);
@@ -655,101 +724,114 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --sc-color-bg-app: #0b0b0b;
-  --sc-color-bg-canvas: #0b0b0b;
-  --sc-color-surface-1: #121212;
-  --sc-color-surface-2: #171717;
-  --sc-color-surface-3: #1e1e1e;
-  --sc-color-surface-elevated: #171717;
-  --sc-color-surface-floating: #1a1a1a;
-  --sc-color-surface-inset: #171717;
-  --sc-color-surface-pressed: #262626;
-  --sc-color-surface-toolbar: #121212;
-  --sc-color-surface-input: #171717;
+  /* CARBÓN. La rampa nocturna del brandbook: papel #171A1C, panel #252A2E,
+     elevado #30363B. Como en Día, la desviación entre canales se mantiene por
+     debajo de 10 para que el chrome no tenga hue propio. */
+  --sc-color-bg-app: #141719;
+  --sc-color-bg-canvas: #171a1c;
+  --sc-color-surface-1: #1c2023;
+  --sc-color-surface-2: #22262a;
+  --sc-color-surface-3: #292e31;
+  --sc-color-surface-elevated: #22262a;
+  --sc-color-surface-floating: #262b2e;
+  --sc-color-surface-inset: #191d1f;
+  --sc-color-surface-pressed: #323739;
+  --sc-color-surface-toolbar: #1c2023;
+  --sc-color-surface-input: #191d1f;
 
-  --sc-color-fill-primary: #262626;
-  --sc-color-fill-secondary: #1e1e1e;
-  --sc-color-fill-tertiary: #171717;
-  --sc-color-fill-quaternary: #171717;
+  --sc-color-fill-primary: #323739;
+  --sc-color-fill-secondary: #292e31;
+  --sc-color-fill-tertiary: #22262a;
+  --sc-color-fill-quaternary: #22262a;
 
-  --sc-color-text-primary: #f7f7f7;
-  --sc-color-text-secondary: #a6a6a6;
-  --sc-color-text-muted: #8c8c8c;
-  --sc-color-text-tertiary: #8c8c8c;
-  --sc-color-text-subtle: #737373;
-  --sc-color-text-technical: #cccccc;
-  --sc-color-text-unit: #8c8c8c;
-  --sc-color-text-disabled: #5a5a5a;
-  --sc-color-text-disabled-content: #a6a6a6;
-  --sc-color-text-inverse: #0b0b0b;
-  --sc-color-text-on-action: #0b0b0b;
-  --sc-color-text-link: #f7f7f7;
+  --sc-color-text-primary: #f4f4f1;
+  --sc-color-text-secondary: #a7a9a6;
+  --sc-color-text-muted: #8d8f8c;
+  --sc-color-text-tertiary: #8d8f8c;
+  --sc-color-text-subtle: #74766f;
+  --sc-color-text-technical: #cdcec9;
+  --sc-color-text-unit: #8d8f8c;
+  --sc-color-text-disabled: #5b5e5c;
+  --sc-color-text-disabled-content: #a7a9a6;
+  --sc-color-text-inverse: #141719;
+  --sc-color-text-on-action: #141719;
+  --sc-color-text-link: #f4f4f1;
 
-  --sc-color-border-soft: #242424;
-  --sc-color-border: #303030;
-  --sc-color-border-strong: #545454;
-  --sc-color-divider: #242424;
-  --sc-color-border-canvas-chrome: #545454;
+  --sc-color-border-soft: #262b2e;
+  --sc-color-border: #333a3d;
+  --sc-color-border-strong: #5f6669;
+  --sc-color-divider: #262b2e;
+  --sc-color-border-canvas-chrome: #5f6669;
 
-  /* La tinta se invierte entera: la acción primaria es papel sobre tinta. */
-  --sc-color-action-primary: #f7f7f7;
+  /* La tinta se invierte entera: la acción primaria es papel sobre carbón. */
+  --sc-color-action-primary: #f4f4f1;
   --sc-color-action-hover: #ffffff;
-  --sc-color-action-pressed: #d4d4d4;
-  --sc-color-action-foreground: #0b0b0b;
-  --sc-color-action-edge: #f7f7f7;
-  --sc-color-action-ink: #f7f7f7;
-  --sc-color-action-ink-on-soft: #f7f7f7;
-  --sc-color-action-subtle: #1e1e1e;
-  --sc-color-brand: #f7f7f7;
-  --sc-color-brand-secondary: #a6a6a6;
-  --sc-color-accent-blue-soft: #1e1e1e;
-  --sc-color-accent-violet-soft: #1e1e1e;
+  --sc-color-action-pressed: #d3d4d0;
+  --sc-color-action-foreground: #141719;
+  --sc-color-action-edge: #f4f4f1;
+  --sc-color-action-ink: #f4f4f1;
+  --sc-color-action-ink-on-soft: #f4f4f1;
+  --sc-color-action-subtle: #22262a;
+  --sc-color-brand: #f4f4f1;
+  --sc-color-brand-secondary: #a7a9a6;
+  --sc-color-accent-blue-soft: #22262a;
+  --sc-color-accent-violet-soft: #22262a;
 
-  --sc-color-focus: #f7f7f7;
-  --sc-color-selection: #262626;
-  --sc-color-selection-stroke: #f7f7f7;
-  --sc-color-selection-outline: #f7f7f7;
+  --sc-color-focus: #f4f4f1;
+  --sc-color-selection: #323739;
+  --sc-color-selection-stroke: #f4f4f1;
+  --sc-color-selection-outline: #f4f4f1;
 
-  /* Las tintas de estado se recalibran porque su fondo cambia; el hue no. */
-  --sc-color-state-success-foreground: #4ade9b;
-  --sc-color-state-warning-foreground: #e8c05a;
-  --sc-color-state-error-foreground: #f87171;
-  --sc-color-state-critical: #f87171;
-  --sc-color-state-loading: #8c8c8c;
-  --sc-color-state-pending: #8c8c8c;
+  /* TINTA DE SEÑAL EN NOCHE. Aquí es donde viven los valores publicados del
+     brandbook: sobre carbón son exactamente el escalón que un texto necesita.
+     El TRAZO de la señal no se toca — un cortante es el mismo verde con la luz
+     encendida o apagada—; lo que se recalibra es la tinta que lo nombra. */
+  --sc-color-signal-axial-ink: #63c5ff;
+  --sc-color-signal-shear-ink: #55c990;
+  --sc-color-signal-moment-ink: #ef7ab9;
+  --sc-color-signal-action-ink: #ff6f66;
+  --sc-color-signal-deformed-ink: #9b87ff;
+  --sc-color-signal-alert-ink: #f3c553;
 
-  --sc-color-canario-ink: #0b0b0b;
+  --sc-color-state-success-foreground: #55c990;
+  --sc-color-state-warning-foreground: #f3c553;
+  --sc-color-state-error-foreground: #ff6f66;
+  --sc-color-state-critical: #ff6f66;
+  --sc-color-state-loading: #8d8f8c;
+  --sc-color-state-pending: #8d8f8c;
 
-  --sc-color-canvas-grid: #1a1a1a;
-  --sc-color-canvas-grid-strong: #262626;
-  --sc-color-canvas-member: #f7f7f7;
-  --sc-color-canvas-node-fill: #0b0b0b;
-  --sc-color-overlay-soft: rgb(0 0 0 / .40);
-  --sc-color-overlay-sheet: rgb(0 0 0 / .52);
-  --sc-color-overlay-strong: rgb(0 0 0 / .66);
+  --sc-color-canario-ink: #141719;
 
-  --sc-color-illustration-ivory: #1e1e1e;
-  --sc-color-illustration-ivory-deep: #171717;
-  --sc-color-illustration-lime: #d4d4d4;
-  --sc-color-illustration-lime-deep: #f7f7f7;
+  --sc-color-canvas-grid: #212528;
+  --sc-color-canvas-grid-strong: #2d3336;
+  --sc-color-canvas-member: #f4f4f1;
+  --sc-color-canvas-node-fill: #171a1c;
+  --sc-color-overlay-soft: rgb(8 10 11 / .46);
+  --sc-color-overlay-sheet: rgb(8 10 11 / .58);
+  --sc-color-overlay-strong: rgb(8 10 11 / .70);
+
+  --sc-color-illustration-ivory: #22262a;
+  --sc-color-illustration-ivory-deep: #1c2023;
+  --sc-color-illustration-lime: #d3d4d0;
+  --sc-color-illustration-lime-deep: #f4f4f1;
 
   /* La estructura en reposo sigue siendo tinta: ahora la tinta es clara. */
-  --sc-color-structure-spring: #8c8c8c;
-  --sc-color-structure-hinge: #8c8c8c;
-  --sc-color-structure-release: #8c8c8c;
-  --sc-color-technical-axis: #545454;
-  --sc-color-technical-dimension: #e8c05a;
-  --sc-color-critical-point: #e8c05a;
-  --sc-color-stale-result: #e8c05a;
-  --sc-color-snap-target: #f7f7f7;
-  --sc-color-hover-target: #f7f7f7;
-  --sc-color-envelope: #8c8c8c;
-  --sc-color-demand-base: #1d5fd1;
-  --sc-color-demand-peak: #9dc0f2;
-  --sc-color-demand-unevaluated: #545454;
+  --sc-color-structure-spring: #8d8f8c;
+  --sc-color-structure-hinge: #8d8f8c;
+  --sc-color-structure-release: #8d8f8c;
+  --sc-color-technical-axis: #5f6669;
+  --sc-color-technical-dimension: #f3c553;
+  --sc-color-critical-point: #f3c553;
+  --sc-color-stale-result: #f3c553;
+  --sc-color-snap-target: #f4f4f1;
+  --sc-color-hover-target: #f4f4f1;
+  --sc-color-envelope: #8d8f8c;
+  --sc-color-demand-base: #1668b0;
+  --sc-color-demand-peak: #a8d5f4;
+  --sc-color-demand-unevaluated: #5f6669;
 
-  --sc-color-tool-dimension: #e8c05a;
-  --sc-color-tool-cut: #8c8c8c;
+  --sc-color-tool-dimension: #f3c553;
+  --sc-color-tool-cut: #8d8f8c;
 
   /* La sombra de contacto necesita más peso sobre un plano oscuro. */
   --sc-shadow-lg: 0 1px 2px rgb(0 0 0 / .5), 0 8px 24px rgb(0 0 0 / .6);
