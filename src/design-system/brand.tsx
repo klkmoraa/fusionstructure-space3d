@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import './brand.css';
 
 /**
@@ -52,16 +51,16 @@ export const FusionMark = ({ size = 24, label, className }: MarkProps) => (
 );
 
 /**
- * Marca de Plano, el módulo de análisis estructural en dos dimensiones.
+ * Marca de FStructure, el solver 2D.
  *
  * El marco de familia queda en el color de la colección; dentro, el glifo dice
  * lo que hace el módulo con una sola figura: una barra recta —la geometría que
  * entras— y su deformada —la respuesta que devuelve—. Es la frase del brandbook
  * dibujada: *make complexity legible*.
  */
-export const PlanoMark = ({ size = 24, label, className }: MarkProps) => (
+export const Solver2DMark = ({ size = 24, label, className }: MarkProps) => (
   <svg
-    className={`fs-mark fs-mark--plano${className ? ` ${className}` : ''}`}
+    className={`fs-mark fs-mark--solver2d${className ? ` ${className}` : ''}`}
     width={size}
     height={size}
     viewBox="0 0 48 48"
@@ -78,31 +77,4 @@ export const PlanoMark = ({ size = 24, label, className }: MarkProps) => (
     <circle className="fs-mark__node" cx="13" cy="19" r="2.1" />
     <circle className="fs-mark__node" cx="35" cy="19" r="2.1" />
   </svg>
-);
-
-export interface WordmarkProps {
-  /** `full` incluye el nombre del producto; `module` sólo el del módulo. */
-  variant?: 'full' | 'module';
-  /** Línea corta bajo el nombre: qué es el módulo, no qué promete. */
-  descriptor?: string;
-  size?: number;
-  className?: string;
-}
-
-/**
- * Bloque de marca de Plano. El nombre del módulo manda y FusionStructure queda
- * como procedencia: dentro del módulo, quien trabaja necesita saber en qué
- * herramienta está antes que de qué plataforma viene.
- */
-export const PlanoWordmark = ({ variant = 'full', descriptor, size = 26, className }: WordmarkProps) => (
-  <span className={`fs-wordmark-block${className ? ` ${className}` : ''}`} style={{ '--wordmark-size': `${size}px` } as CSSProperties}>
-    <PlanoMark size={size} />
-    <span className="fs-wordmark-block__copy">
-      <strong>
-        Plano
-        {variant === 'full' ? <em>FusionStructure</em> : null}
-      </strong>
-      {descriptor ? <small>{descriptor}</small> : null}
-    </span>
-  </span>
 );
