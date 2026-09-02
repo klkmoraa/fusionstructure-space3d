@@ -549,7 +549,13 @@
      `designSystem.test.ts` sigue montando guardia sobre todo eso. */
   --sc-shadow-raised: 3px 4px 10px rgb(20 23 26 / .08), -2px -2px 7px rgb(255 255 255 / .6);
   --sc-shadow-lifted: 6px 8px 18px rgb(20 23 26 / .1), -3px -3px 10px rgb(255 255 255 / .65);
-  --sc-shadow-xs: 2px 2px 6px rgb(20 23 26 / .06), -1px -1px 4px rgb(255 255 255 / .5);
+  /* El escalón más bajo es el que sostiene la tecla del riel contra su bandeja,
+     y en Día esas dos superficies se llevan 1,03:1 de contraste: la sombra es
+     LO ÚNICO que las separa. A .06 no separaba nada —en Noche la misma capa va
+     a .34, casi seis veces más—, y en un teléfono la banda de herramientas se
+     leía como un bloque plano. Sube al escalón en que la tecla se despega sin
+     que el riel entero empiece a flotar. */
+  --sc-shadow-xs: 2px 2px 6px rgb(20 23 26 / .13), -1px -1px 4px rgb(255 255 255 / .7);
   --sc-shadow-sm: var(--sc-shadow-raised);
   --sc-shadow-md: var(--sc-shadow-lifted);
   /* Una cavidad invierte la misma luz: se hunde por arriba-izquierda. */

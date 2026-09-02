@@ -184,7 +184,10 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   const { canvas } = options;
   let model = options.model;
   let layers = options.layers ?? SPACE3D_DEFAULT_LAYERS;
-  const palette = readPalette();
+  // La paleta sale de los tokens del documento, así que depende del tema. Es
+  // `let` y no `const` porque el tema puede cambiar con la escena montada: ver
+  // el observador del final.
+  let palette = readPalette();
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(45, 1, 0.1, 1_000);
@@ -455,6 +458,23 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   setView(options.initialView ?? 'isometric');
   resize();
 
+  /* La escena leía los tokens UNA vez, al crearse, y hasta ahora eso no se
+     notaba porque la superficie 3D forzaba el tema claro al montarse. Retirada
+     esa imposición, cambiar de tema con la escena abierta dejaba un pórtico
+     pintado con la tinta del tema anterior. Se vuelve a leer y se reconstruye:
+     `buildStatic` y `buildModel` ya son las dos únicas fuentes de geometría. */
+  const onThemeChange = () => {
+    if (disposed) return;
+    palette = readPalette();
+    clearGroup('grid');
+    clearGroup('world-axes');
+    buildStatic();
+    buildModel();
+    requestRender();
+  };
+  const themeObserver = typeof MutationObserver === 'undefined' ? null : new MutationObserver(onThemeChange);
+  themeObserver?.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
   return {
     scene,
     camera,
@@ -489,6 +509,7 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
       if (frame !== 0) cancelAnimationFrame(frame);
       frame = 0;
       controls.removeEventListener('change', onControlsChange);
+      themeObserver?.disconnect();
       controls.dispose();
       disposeObject(scene);
       renderer.dispose();

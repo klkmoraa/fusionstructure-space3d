@@ -192,7 +192,6 @@ const WorkspaceBody = ({
    * confirma antes de actuar, salvo que no haya nada que perder.
    */
   const [pendingReplace, setPendingReplace] = useState<'example' | 'blank' | null>(null);
-  const theme = 'light' as const;
   const [activeView, setActiveView] = useState<Space3DViewPreset>('isometric');
   const [modelNavFocus, setModelNavFocus] = useState<Space3DModelFocus>('node');
   const [propertiesOpen, setPropertiesOpen] = useState(false);
@@ -221,11 +220,6 @@ const WorkspaceBody = ({
   }, [analysis, analysisState, analysisTargetId, automatic, project, scaleFactor, selectedEntity]);
 
   const submit = useCallback((command: Space3DCommand) => execute(command).ok, [execute]);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    try { window.localStorage?.setItem('FusionStructure.theme', theme); } catch { /* almacenamiento no disponible */ }
-  }, [theme]);
 
   // El resultado listo no trae marca de tiempo propia (el dominio no la
   // modela): se anota aquí, en la superficie, sólo para mostrarla junto al
