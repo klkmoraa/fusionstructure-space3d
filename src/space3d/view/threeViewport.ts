@@ -18,9 +18,9 @@
 // visor nunca toca, y una importación de espacio de nombres completo le
 // impide al bundler descartar lo que no se usa.
 import {
-  ArrowHelper, BoxGeometry, BufferGeometry, CanvasTexture, Color, Float32BufferAttribute,
+  ArrowHelper, BoxGeometry, BufferGeometry, CanvasTexture, Color, ConeGeometry, CylinderGeometry, Float32BufferAttribute,
   GridHelper, Group, LineBasicMaterial, LineDashedMaterial, LineSegments, MathUtils, Mesh,
-  MeshBasicMaterial, PerspectiveCamera, Points, PointsMaterial, Raycaster, Scene, Sprite,
+  MeshBasicMaterial, PerspectiveCamera, Points, PointsMaterial, Raycaster, Scene, SphereGeometry, Sprite,
   SpriteMaterial, Vector2, Vector3, WebGLRenderer,
   type Camera, type Material, type Object3D,
 } from 'three';
@@ -31,7 +31,7 @@ import type { Space3DSelection } from '../store/Space3DProjectContext';
 
 
 export const SPACE3D_SCENE_LAYERS = Object.freeze([
-  'grid', 'world-axes', 'members', 'nodes', 'supports', 'loads', 'local-axes', 'deformed', 'labels',
+  'grid', 'world-axes', 'members', 'nodes', 'supports', 'loads', 'reactions', 'local-axes', 'deformed', 'labels',
 ] as const);
 export type Space3DSceneLayer = (typeof SPACE3D_SCENE_LAYERS)[number];
 
@@ -115,6 +115,10 @@ const TOKEN_COLORS = {
      introducir. La escena espacial no dibuja diagramas, así que el rol del
      momento flector no tiene aquí ningún consumidor y no se declara. */
   loadMoment: ['--sc-color-load-moment-applied', '#57876b'],
+  axial: ['--sc-color-technical-axial', '#276b76'],
+  shear: ['--sc-color-technical-shear', '#a66b24'],
+  moment: ['--sc-color-technical-moment', '#b34d55'],
+  reaction: ['--sc-color-technical-reaction', '#3a72e3'],
   deformed: ['--sc-color-technical-deformed', '#8b5cf6'],
   grid: ['--sc-color-canvas-grid', '#e8e1d7'],
   gridStrong: ['--sc-color-canvas-grid-strong', '#d9d0c4'],
@@ -129,7 +133,9 @@ type ColorRole = keyof typeof TOKEN_COLORS;
 const readPalette = (): Record<ColorRole, Color> => {
   let computed: CSSStyleDeclaration | null = null;
   try {
-    computed = typeof document === 'undefined' ? null : getComputedStyle(document.documentElement);
+    computed = typeof document === 'undefined'
+      ? null
+      : getComputedStyle(document.querySelector('.space3d-screen') ?? document.documentElement);
   } catch {
     computed = null;
   }
@@ -218,6 +224,7 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   let memberIds: string[] = [];
   let nodePoints: Points | null = null;
   let memberLines: LineSegments | null = null;
+  let activeView: Space3DViewPreset = options.initialView ?? 'isometric';
 
   let disposed = false;
   let frame = 0;
@@ -244,12 +251,12 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
     // Rejilla en el plano de suelo XZ. Three la orienta ya en ese plano, que es
     // el correcto con Y vertical: no hay que rotarla como en un visor planar.
     const gridGroup = groups.get('grid')!;
-    const size = Math.max(model.bounds.span * 3, 12);
-    const divisions = 24;
+    const size = Math.max(model.bounds.span * 2, 8);
+    const divisions = 20;
     const grid = new GridHelper(size, divisions, palette.gridStrong, palette.grid);
     grid.position.set(model.bounds.center[0], model.bounds.min[1], model.bounds.center[2]);
     (grid.material as Material).transparent = true;
-    (grid.material as Material).opacity = 0.75;
+    (grid.material as Material).opacity = 0.28;
     gridGroup.add(grid);
 
     const axesGroup = groups.get('world-axes')!;
@@ -271,7 +278,7 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   };
 
   const buildModel = () => {
-    for (const name of ['members', 'nodes', 'supports', 'loads', 'local-axes', 'deformed', 'labels'] as const) clearGroup(name);
+    for (const name of ['members', 'nodes', 'supports', 'loads', 'reactions', 'local-axes', 'deformed', 'labels'] as const) clearGroup(name);
 
     const span = model.bounds.span;
 
@@ -283,9 +290,38 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
       colors.push(color.r, color.g, color.b, color.r, color.g, color.b);
     }
     memberGeometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
-    memberLines = new LineSegments(memberGeometry, new LineBasicMaterial({ vertexColors: true }));
+    memberLines = new LineSegments(memberGeometry, new LineBasicMaterial({ transparent: true, opacity: 0 }));
     memberLines.name = 'member-lines';
     groups.get('members')!.add(memberLines);
+
+    // El trazo analítico gana un espesor de pantalla legible, pero no pretende
+    // representar la sección física: el radio depende del encuadre, no de A/I/J.
+    const memberRadius = Math.max(span * 0.012, 0.035);
+    for (const member of model.members) {
+      const start = new Vector3(...member.start);
+      const end = new Vector3(...member.end);
+      const direction = end.clone().sub(start);
+      const resultColor = member.result?.mode === 'axial' ? palette.axial
+        : member.result?.mode === 'shear' ? palette.shear
+          : member.result?.mode === 'moment' ? palette.moment : null;
+      const color = member.selected ? palette.memberSelected : resultColor ?? palette.member;
+      const radius = memberRadius * (member.result ? 0.9 + 0.55 * member.result.relative : 1);
+      const geometry = new CylinderGeometry(radius, radius, direction.length(), 8, 1);
+      const mesh = new Mesh(geometry, new MeshBasicMaterial({ color }));
+      mesh.position.copy(start).add(end).multiplyScalar(0.5);
+      mesh.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), direction.normalize());
+      mesh.name = `member-${member.id}`;
+      groups.get('members')!.add(mesh);
+      if (member.selected) {
+        const halo = new Mesh(
+          new CylinderGeometry(radius * 2.25, radius * 2.25, member.length, 8, 1),
+          new MeshBasicMaterial({ color: palette.memberSelected, transparent: true, opacity: 0.16, depthWrite: false }),
+        );
+        halo.position.copy(mesh.position);
+        halo.quaternion.copy(mesh.quaternion);
+        groups.get('members')!.add(halo);
+      }
+    }
 
     nodeIds = model.nodes.map((node) => node.id);
     const nodeGeometry = lineGeometry([]);
@@ -300,16 +336,28 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
     nodePoints.name = 'node-points';
     groups.get('nodes')!.add(nodePoints);
 
+    const nodeRadius = Math.max(span * 0.012, 0.04);
+    for (const node of model.nodes) {
+      const sphere = new Mesh(
+        new SphereGeometry(node.selected ? nodeRadius * 1.45 : nodeRadius, 12, 8),
+        new MeshBasicMaterial({ color: node.selected ? palette.nodeSelected : palette.node }),
+      );
+      sphere.position.set(...node.position);
+      groups.get('nodes')!.add(sphere);
+    }
+
     // Apoyo: un prisma bajo el nudo, orientado al suelo. Un empotramiento se
     // dibuja lleno; un apoyo parcial, en alambre — la forma distingue el tipo
     // sin depender del color.
     const supportsGroup = groups.get('supports')!;
     const supportSize = Math.max(span * 0.035, 0.08);
     for (const support of model.supports) {
-      const geometry = new BoxGeometry(supportSize * 2, supportSize, supportSize * 2);
+      const geometry = support.fullyFixed
+        ? new BoxGeometry(supportSize * 2, supportSize, supportSize * 2)
+        : new ConeGeometry(supportSize * 1.25, supportSize * 1.6, 4);
       const material = new MeshBasicMaterial({
         color: palette.support,
-        wireframe: !support.fullyFixed,
+        wireframe: false,
         transparent: true,
         opacity: support.fullyFixed ? 0.55 : 0.9,
       });
@@ -332,6 +380,14 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
         const second = new Vector3(...load.origin).addScaledVector(direction, -length * 0.72);
         loadsGroup.add(new ArrowHelper(direction, second, length * 0.72, color, length * 0.26, length * 0.14));
       }
+    }
+
+    const reactionsGroup = groups.get('reactions')!;
+    const reactionLength = Math.max(span * 0.2, 0.35);
+    for (const reaction of model.reactions) {
+      const direction = new Vector3(...reaction.direction);
+      const length = reactionLength * (0.5 + 0.5 * reaction.relative);
+      reactionsGroup.add(new ArrowHelper(direction, new Vector3(...reaction.origin), length, palette.reaction, length * 0.24, length * 0.13));
     }
 
     const axesGroup = groups.get('local-axes')!;
@@ -372,6 +428,23 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
       label.position.set(node.position[0], node.position[1] + labelSize * 0.9, node.position[2]);
       labelsGroup.add(label);
     }
+    for (const member of model.members) {
+      const label = makeLabel(member.id, palette.label, labelSize * 0.9);
+      if (!label) break;
+      label.position.set(member.midpoint[0], member.midpoint[1] + labelSize * 0.75, member.midpoint[2]);
+      labelsGroup.add(label);
+    }
+    for (const load of model.loads) {
+      const value = `${load.magnitude.toPrecision(3)} ${load.kind === 'force' ? 'kN' : 'kN·m'}`;
+      const label = makeLabel(value, load.kind === 'force' ? palette.load : palette.loadMoment, labelSize * 1.05);
+      if (!label) break;
+      label.position.set(
+        load.origin[0] - load.direction[0] * loadLength * 1.18,
+        load.origin[1] - load.direction[1] * loadLength * 1.18,
+        load.origin[2] - load.direction[2] * loadLength * 1.18,
+      );
+      labelsGroup.add(label);
+    }
 
     applyLayers();
   };
@@ -379,6 +452,7 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   const applyLayers = () => {
     groups.get('grid')!.visible = layers.grid;
     groups.get('loads')!.visible = layers.loads;
+    groups.get('reactions')!.visible = model.reactions.length > 0;
     groups.get('supports')!.visible = layers.supports;
     groups.get('labels')!.visible = layers.labels;
     groups.get('local-axes')!.visible = model.localAxes !== null;
@@ -386,8 +460,16 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   };
 
   const setView = (preset: Space3DViewPreset) => {
+    activeView = preset;
     const placement = computeSpace3DCameraPlacement(model.bounds, preset);
-    camera.position.set(...placement.position);
+    // En retrato la FOV vertical no protege el ancho. Alejar la cámara según
+    // el aspecto mantiene el modelo completo visible sin cambiar su geometría.
+    const horizontalFit = camera.aspect < 1 ? 1 / Math.max(camera.aspect, 0.35) : 1;
+    camera.position.set(
+      placement.target[0] + (placement.position[0] - placement.target[0]) * horizontalFit,
+      placement.target[1] + (placement.position[1] - placement.target[1]) * horizontalFit,
+      placement.target[2] + (placement.position[2] - placement.target[2]) * horizontalFit,
+    );
     camera.up.set(...placement.up);
     camera.near = placement.near;
     camera.far = placement.far;
@@ -406,7 +488,7 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height, false);
-    render();
+    setView(activeView);
   };
 
   const zoomBy = (factor: number) => {
@@ -462,7 +544,6 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
 
   buildStatic();
   buildModel();
-  setView(options.initialView ?? 'isometric');
   resize();
 
   /* La escena leía los tokens UNA vez, al crearse, y hasta ahora eso no se

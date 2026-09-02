@@ -12,7 +12,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ChevronDown, ChevronLeft, CircleStop, Download, Grid3x3, Home, Layers, Minus,
-  PenLine, Play, Plus, SlidersHorizontal, Sparkles, Spline, Tag, Upload, Weight,
+  PenLine, Play, Plus, Redo2, RotateCcw, SlidersHorizontal, Sparkles, Spline, Tag, Trash2, Undo2, Upload, Weight,
 } from 'lucide-react';
 import { Space3DProjectProvider, useSpace3DProject, type Space3DSelection } from '../../space3d/store/Space3DProjectContext';
 import {
@@ -24,7 +24,7 @@ import {
 import { loadSpace3DProject } from '../../space3d/data/storage';
 import { Dialog } from '../../design-system/components/overlays';
 import { Space3DCanvas, type Space3DViewportFactory } from '../../space3d/view/Space3DCanvas';
-import { buildSpace3DSceneModel } from '../../space3d/view/sceneModel';
+import { buildSpace3DSceneModel, type Space3DResultMode } from '../../space3d/view/sceneModel';
 import { SPACE3D_DEFAULT_LAYERS, type Space3DLayerVisibility } from '../../space3d/view/threeViewport';
 import { SPACE3D_VIEW_PRESETS, type Space3DViewPreset } from '../../space3d/view/cameraModel';
 import { Space3DEntityEditor, type Space3DEditorTarget } from './Space3DEntityEditor';
@@ -38,6 +38,7 @@ import type { Space3DProjectV1, Space3DRestraints } from '../../space3d/model/ty
 import type { ProjectModel } from '../../types';
 import type { Space3DStorageLike } from '../../space3d/data/storage';
 import type { Space3DWorkerClient } from '../../space3d/runtime/workerClient';
+import { getSpace3DMoreCommands } from './space3dWorkspaceModel';
 import './space3d.css';
 
 const VIEW_LABEL_KEYS: Record<Space3DViewPreset, TranslationKey> = {
@@ -197,6 +198,9 @@ const WorkspaceBody = ({
   const [propertiesOpen, setPropertiesOpen] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false);
+  const [resultMode, setResultMode] = useState<Space3DResultMode>('model');
   const [lastAnalyzedAt, setLastAnalyzedAt] = useState<number | null>(null);
   const hasContent = project.nodes.length > 0;
   // Doce clics en cada sentido: suficiente margen para explorar sin llegar a
@@ -204,8 +208,8 @@ const WorkspaceBody = ({
   const effectiveScaleFactor = scaleFactor ?? 1;
 
   const automatic = useMemo(() => buildSpace3DSceneModel({
-    project, analysis, analysisState, selection: selectedEntity, targetId: analysisTargetId,
-  }), [analysis, analysisState, analysisTargetId, project, selectedEntity]);
+    project, analysis, analysisState, selection: selectedEntity, targetId: analysisTargetId, resultMode,
+  }), [analysis, analysisState, analysisTargetId, project, resultMode, selectedEntity]);
 
   const scene = useMemo(() => {
     if (scaleFactor === null || automatic.deformed === null) return automatic;
@@ -215,9 +219,10 @@ const WorkspaceBody = ({
       analysisState,
       selection: selectedEntity,
       targetId: analysisTargetId,
+      resultMode,
       deformationScale: automatic.deformed.scale * scaleFactor,
     });
-  }, [analysis, analysisState, analysisTargetId, automatic, project, scaleFactor, selectedEntity]);
+  }, [analysis, analysisState, analysisTargetId, automatic, project, resultMode, scaleFactor, selectedEntity]);
 
   const submit = useCallback((command: Space3DCommand) => execute(command).ok, [execute]);
 
@@ -236,7 +241,7 @@ const WorkspaceBody = ({
       // En móvil, la bandeja inferior puede estar contraída: sin esto, el
       // editor se abre fuera de la vista y parece que el toque no hizo nada.
       setSheetExpanded(true);
-    }
+    } else setSheetExpanded(false);
   }, [select]);
 
   const openNew = (kind: Space3DEditorTarget['kind']) => {
@@ -258,9 +263,9 @@ const WorkspaceBody = ({
     selectEntity({ kind: 'node', id: selectedNodeId });
   };
 
-  const activeTool: Space3DActiveTool = !editorTarget
-    ? 'select'
-    : editorTarget.id === null ? editorTarget.kind : 'select';
+  const activeTool: Space3DActiveTool = rail === 'results'
+    ? 'results'
+    : !editorTarget ? 'select' : editorTarget.id === null ? editorTarget.kind : 'select';
 
   const cycleView = () => setActiveView((current) => {
     const index = SPACE3D_VIEW_PRESETS.indexOf(current);
@@ -381,10 +386,17 @@ const WorkspaceBody = ({
       <div className="space3d-identity">
         <strong className="space3d-wordmark">FS</strong>
       </div>
-      <div className="space3d-project-picker">
-        <ChevronDown size={14} aria-hidden="true" className="space3d-project-picker-caret" />
-        <span className="space3d-project-picker-label">{t('space3d.projectSelector')}</span>
-        {targetSelect}
+      <div className="space3d-project-switcher">
+        <button type="button" className="space3d-project-picker" aria-expanded={projectMenuOpen} onClick={() => setProjectMenuOpen((current) => !current)}>
+          <span className="space3d-project-picker-copy"><strong>{project.name}</strong><small>Solver 3D · Experimental</small></span>
+          <ChevronDown size={14} aria-hidden="true" />
+        </button>
+        {projectMenuOpen ? <div className="space3d-popover space3d-project-menu" role="menu">
+          <button type="button" role="menuitem" onClick={() => { requestReplace('example'); setProjectMenuOpen(false); }}><Sparkles size={15} />{t('space3d.loadExample')}</button>
+          <button type="button" role="menuitem" onClick={() => { requestReplace('blank'); setProjectMenuOpen(false); }}><RotateCcw size={15} />{t('space3d.resetBlank')}</button>
+          <button type="button" role="menuitem" onClick={() => { setTransfer('import'); setProjectMenuOpen(false); }}><Upload size={15} />{t('space3d.import')}</button>
+          <button type="button" role="menuitem" onClick={() => { setTransfer('export'); setProjectMenuOpen(false); }}><Download size={15} />{t('space3d.export')}</button>
+        </div> : null}
       </div>
       <nav className="space3d-destinations" aria-label={t('space3d.title')}>
         {onOpenHome ? <button type="button" className="space3d-button" onClick={onOpenHome} aria-label={t('space3d.home')} title={t('space3d.home')}>
@@ -409,19 +421,11 @@ const WorkspaceBody = ({
         <SlidersHorizontal size={16} aria-hidden="true" />
         <span>{t('space3d.controls')}</span>
       </button>
-      <div className="space3d-tray" role="group" aria-label={t('space3d.toolbarProject')}>
-        <button type="button" className="space3d-tool" onClick={() => requestReplace('example')}>
-          <Sparkles size={16} aria-hidden="true" />{t('space3d.loadExample')}
-        </button>
-        <button type="button" className="space3d-tool" onClick={() => requestReplace('blank')}>
-          {t('space3d.resetBlank')}
-        </button>
-        <button type="button" className="space3d-tool" onClick={() => setTransfer('import')}>
-          <Upload size={16} aria-hidden="true" />{t('space3d.import')}
-        </button>
-        <button type="button" className="space3d-tool" onClick={() => setTransfer('export')}>
-          <Download size={16} aria-hidden="true" />{t('space3d.export')}
-        </button>
+      <div className="space3d-tray space3d-tray--history" role="group" aria-label={t('space3d.toolbarProject')}>
+        <button type="button" className="space3d-tool" onClick={undo} disabled={!canUndo} title={t('space3d.undo')}><Undo2 size={16} /><span className="space3d-visually-hidden">{t('space3d.undo')}</span></button>
+        <button type="button" className="space3d-tool" onClick={redo} disabled={!canRedo} title={t('space3d.redo')}><Redo2 size={16} /><span className="space3d-visually-hidden">{t('space3d.redo')}</span></button>
+        <button type="button" className="space3d-tool space3d-tool--danger" onClick={() => { if (editorTarget) remove(editorTarget); }} disabled={!canDeleteSelection} title={t('space3d.deleteSelected')}><Trash2 size={16} /><span className="space3d-visually-hidden">{t('space3d.deleteSelected')}</span></button>
+        <button type="button" className="space3d-tool" onClick={cycleView} title={t('space3d.toolbarView')}>{viewLabels[activeView]}</button>
       </div>
 
       <div className="space3d-tray space3d-tray--layers" role="group" aria-label={t('space3d.layers')}>
@@ -440,6 +444,7 @@ const WorkspaceBody = ({
       </div>
 
       <div className="space3d-tray space3d-tray--run" role="group" aria-label={t('space3d.analyze')}>
+        {targetSelect}
         <button type="button" className="space3d-button space3d-button--primary" onClick={() => { void analyze(); }}
           disabled={running || pendingNotes.length > 0}
           title={pendingNotes.length > 0 ? t('space3d.bridgeBlocked', { count: pendingNotes.length }) : undefined}
@@ -521,19 +526,26 @@ const WorkspaceBody = ({
         canNewMember={canNewMember}
         canNewLoad={canNewLoad}
         canEditSupport={canEditSupport}
-        onCycleView={cycleView}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        canDelete={canDeleteSelection}
-        onUndo={undo}
-        onRedo={redo}
-        onDelete={() => { if (editorTarget) remove(editorTarget); }}
+        canShowResults={analysisState === 'ready'}
+        onShowResults={() => {
+          setResultMode('deformed');
+          setSheetExpanded((current) => rail === 'results' ? !current : true);
+          setRail('results');
+        }}
+        onMore={() => setMoreOpen((current) => !current)}
+        moreOpen={moreOpen}
       />
+
+      {moreOpen ? <div className="space3d-popover space3d-more-menu" role="menu" aria-label="Más">
+        {getSpace3DMoreCommands().map((command) => <button type="button" role="menuitem" key={command.id} disabled={!command.enabled}>
+          <span>{command.label}</span><small>{command.status}</small>
+        </button>)}
+      </div> : null}
 
       <section className="space3d-stage" aria-label={t('space3d.canvasLabel')}>
         <Space3DCanvas
           model={scene}
-          layers={layers}
+          layers={{ ...layers, deformed: layers.deformed && resultMode === 'deformed' }}
           onSelect={selectEntity}
           createViewport={createViewport}
           viewLabels={viewLabels}
@@ -556,7 +568,7 @@ const WorkspaceBody = ({
             loads: t('space3d.loads'),
           }}
         />
-        {scene.deformed ? <div className="space3d-scale" role="group" aria-label={t('space3d.layerDeformed')}>
+        {scene.deformed && resultMode === 'deformed' ? <div className="space3d-scale" role="group" aria-label={t('space3d.layerDeformed')}>
           <span role="status" aria-live="polite">
             {t('space3d.deformationScale', { scale: formatNumber(scene.deformed.scale, 'table', { significantDigits: 4 }) })}
             <span data-testid="space3d-deformation-scale" className="space3d-visually-hidden">{scene.deformed.scale}</span>
@@ -574,6 +586,21 @@ const WorkspaceBody = ({
           <button type="button" className="space3d-tool" disabled={scaleFactor === null}
             onClick={() => setScaleFactor(null)}>{t('space3d.scaleAuto')}</button>
         </div> : null}
+        <nav className="space3d-result-bar" aria-label={t('space3d.tabResults')}>
+          {([
+            ['model', 'Modelo'], ['deformed', 'Deformada'], ['axial', 'N'], ['shear', 'V'], ['moment', 'M'], ['reactions', 'R'],
+          ] as const).map(([mode, label]) => <button
+            key={mode}
+            type="button"
+            aria-pressed={resultMode === mode}
+            disabled={mode !== 'model' && analysisState !== 'ready'}
+            title={mode === 'model' ? 'Modelo' : analysisState === 'ready' ? label : 'Analiza para habilitar'}
+            onClick={() => {
+              setResultMode(mode);
+              setRail(mode === 'model' ? 'model' : 'results');
+            }}
+          >{label}</button>)}
+        </nav>
         <p className="space3d-help">{t('space3d.interactionHelp')}</p>
       </section>
 
