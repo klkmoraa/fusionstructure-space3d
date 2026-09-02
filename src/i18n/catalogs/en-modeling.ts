@@ -142,6 +142,7 @@ export const enModeling = {
   'canvas.layersDescription': 'Control what information is visible in the editor',
   'canvas.layersClose': 'Close layers',
   'canvas.layersReset': 'Reset layers',
+  'canvas.evidenceYield': 'Yield',
   'canvas.evidenceLayers': 'Evidence',
   'canvas.evidenceStack': 'Simultaneous N, V, and M diagrams',
   'canvas.evidenceStackStructure': 'complete structure',

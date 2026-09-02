@@ -255,25 +255,48 @@ describe('color · la interfaz es acromática y el dominio es el único que tiñ
     }
   });
 
-  it('una carga aplicada no se confunde con la señal de resultado de su mismo tono', () => {
-    // El usuario eligió las cargas por hue —puntual azul, distribuida roja,
-    // momento verde—, que son los tres hues que ya usan axial, momento y
-    // cortante. Lo que las separa es el CROMA: una carga es un apunte apagado,
-    // un resultado es una línea viva. Si esa distancia se pierde, el diagrama
-    // de momento y la flecha de carga pasan a ser el mismo color, que es
-    // exactamente lo que esta migración tenía que evitar.
-    const croma = (rgb: [number, number, number]) => Math.max(...rgb) - Math.min(...rgb);
-    const pares: readonly (readonly [string, string])[] = [
-      ['point', 'axial'],
-      ['distributed', 'moment'],
-      ['moment', 'shear'],
-    ];
+  it('una carga aplicada no se confunde con ninguna señal de resultado', () => {
+    // Esta guarda cambió de criterio cuando las cargas pasaron de apagadas a
+    // vivas. Antes medía CROMA y exigía que la carga estuviera menos saturada
+    // que la señal de su mismo hue; ése era el único separador, y su precio
+    // era que el dato que el usuario dibuja —su propia entrada— fuera lo más
+    // apagado del lienzo, con la flecha de una distribuida leyéndose como una
+    // mancha sucia sobre el papel.
+    //
+    // Lo que separa ahora a una carga de una señal es la DISTANCIA de color, y
+    // se mide contra las SEIS señales, no sólo contra la de su tono: una carga
+    // viva que se acercara a `deformed` o a `yield` sería igual de confusa que
+    // una que se acercara a `axial`. El umbral es 55 sobre la diagonal RGB,
+    // que es la separación que ya tenía la familia apagada (56 en su par más
+    // ajustado), de modo que la migración a vivo no pudo empeorarla.
+    const SEPARACION_MINIMA = 55;
+    const distancia = (a: [number, number, number], b: [number, number, number]) =>
+      Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
     for (const [tema, bloque] of [['día', bloqueRaiz], ['noche', bloqueNoche]] as const) {
-      for (const [carga, senal] of pares) {
+      for (const carga of CARGAS) {
         const cargaRgb = aRgb(valorEn(bloque, `--fs-load-${carga}`)!)!;
-        const senalRgb = aRgb(valorEn(bloque, `--fs-signal-${senal}`)!)!;
-        expect(croma(cargaRgb), `en ${tema} la carga ${carga} está tan cromada como ${senal}`)
-          .toBeLessThan(croma(senalRgb));
+        for (const senal of SENALES) {
+          const senalRgb = aRgb(valorEn(bloque, `--fs-signal-${senal}`)!)!;
+          expect(distancia(cargaRgb, senalRgb), `en ${tema} la carga ${carga} se confunde con la señal ${senal}`)
+            .toBeGreaterThanOrEqual(SEPARACION_MINIMA);
+        }
+      }
+    }
+  });
+
+  it('una carga aplicada se lee viva y no como un apunte apagado', () => {
+    // La contrapartida de la prueba anterior: sin un suelo de croma, la
+    // familia podría deslizarse de vuelta al pastel —que es de donde viene— y
+    // seguir pasando la separación, porque apagarse también aleja. El suelo es
+    // 140, por debajo del croma de las tres cargas actuales (155-216) y muy por
+    // encima del de la familia apagada que se retiró (35-74).
+    const croma = (rgb: [number, number, number]) => Math.max(...rgb) - Math.min(...rgb);
+    const CROMA_MINIMO = 140;
+    for (const [tema, bloque] of [['día', bloqueRaiz], ['noche', bloqueNoche]] as const) {
+      for (const carga of CARGAS) {
+        const rgb = aRgb(valorEn(bloque, `--fs-load-${carga}`)!)!;
+        expect(croma(rgb), `en ${tema} la carga ${carga} volvió a ser un pastel`)
+          .toBeGreaterThanOrEqual(CROMA_MINIMO);
       }
     }
   });

@@ -106,15 +106,15 @@ const TOKEN_COLORS = {
   node: ['--sc-color-text-primary', '#23312c'],
   nodeSelected: ['--sc-color-selection-stroke', '#6a5df2'],
   support: ['--sc-color-technical-reaction', '#3a72e3'],
-  load: ['--sc-color-technical-load', '#5a7f96'],
+  load: ['--sc-color-technical-load', '#1a4fe0'],
   /* El momento APLICADO es una carga, no una respuesta, y desde la adopción del
-     brandbook tiene su propio verde apagado. Este rol apuntaba a
+     brandbook tiene su propio verde. Este rol apuntaba a
      `--sc-color-technical-moment`, que ahora es el rojo del momento flector: sin
      separarlos, en el 3D una carga de momento se pintaba con el color del
      resultado y se deshacía la distinción que la migración acababa de
      introducir. La escena espacial no dibuja diagramas, así que el rol del
      momento flector no tiene aquí ningún consumidor y no se declara. */
-  loadMoment: ['--sc-color-load-moment-applied', '#57876b'],
+  loadMoment: ['--sc-color-load-moment-applied', '#009b7a'],
   axial: ['--sc-color-technical-axial', '#276b76'],
   shear: ['--sc-color-technical-shear', '#a66b24'],
   moment: ['--sc-color-technical-moment', '#b34d55'],

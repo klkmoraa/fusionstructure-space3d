@@ -142,6 +142,7 @@ export const esModeling = {
   'canvas.layersDescription': 'Controla qué información ves en el editor',
   'canvas.layersClose': 'Cerrar capas',
   'canvas.layersReset': 'Restablecer capas',
+  'canvas.evidenceYield': 'Fluencia',
   'canvas.evidenceLayers': 'Evidencia',
   'canvas.evidenceStack': 'Diagramas N, V y M simultáneos',
   'canvas.evidenceStackStructure': 'estructura completa',
