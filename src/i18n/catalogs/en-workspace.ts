@@ -347,7 +347,6 @@ export const enWorkspace = {
   'space3d.experimentalNotice': 'Experimental view. Review the model and results before making decisions.',
   'space3d.controls': '3D controls',
   'space3d.closeControls': 'Close 3D controls',
-  'space3d.toolbarView': 'View',
   'space3d.toolbarProject': 'Project',
   'space3d.newNode': 'New node',
   'space3d.newMember': 'New member',

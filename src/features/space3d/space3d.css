@@ -1769,7 +1769,10 @@
 }
 
 @media (max-width: 599px) {
-  .space3d-screen[data-space3d-layout='canvas-command-dock'] { grid-template-rows: 50px 44px minmax(0, 1fr) 26px; }
+  /* La fila del toolbar se mide por su contenido. Fijarla en 44px con una
+     bandeja de ejecución de 52px hacía que LC1 y «Analizar» sobresalieran de su
+     propia banda y flotaran sobre el lienzo. */
+  .space3d-screen[data-space3d-layout='canvas-command-dock'] { grid-template-rows: 50px auto minmax(0, 1fr) 26px; }
   .space3d-console { min-block-size: 50px; padding: 0 8px; }
   .space3d-wordmark { inline-size: 28px; block-size: 28px; }
   .space3d-project-picker { min-inline-size: 0; max-inline-size: 210px; min-block-size: 44px; }
@@ -1777,12 +1780,16 @@
   .space3d-destinations { display: flex; }
   .space3d-destinations .space3d-button-label { display: none; }
   .space3d-destinations .space3d-button { min-inline-size: 44px; min-block-size: 44px; }
-  .space3d-toolbar { display: flex; min-block-size: 44px; padding: 4px 8px; }
-  .space3d-mobile-controls,
-  .space3d-tray--layers { display: none; }
-  .space3d-tray--history { display: flex; }
-  .space3d-tray--history .space3d-tool:nth-child(3),
-  .space3d-tray--history .space3d-tool:nth-child(4) { display: none; }
+  /* El toolbar de teléfono es el CAJÓN que declara el bloque de arriba: un
+     botón «Controles» que despliega las bandejas. Este bloque llegó después
+     con un segundo diseño —bandejas en línea, sin cajón— y las dos mitades se
+     anularon: ocultaba el botón que abre el cajón, mientras la regla
+     `.space3d-toolbar > .space3d-tray:not(--run)` seguía ocultando las
+     bandejas por especificidad. El resultado medido en un teléfono era que NO
+     HABÍA forma de llegar a deshacer, rehacer, borrar, capas, rejilla ni
+     etiquetas: sólo quedaba la bandeja de ejecución. Se conserva el cajón, que
+     es el único de los dos diseños que no amputa la mitad del visor. */
+  .space3d-toolbar { min-block-size: 44px; padding: 4px 8px; }
   .space3d-tray--run { display: flex; inline-size: auto; }
   .space3d-target select { max-inline-size: 86px; }
   .space3d-button--primary { min-inline-size: 44px; min-block-size: 44px; padding-inline: 10px; font-size: 0; }
@@ -1806,17 +1813,26 @@
   .space3d-rail-button { min-inline-size: 44px; min-block-size: 50px; }
   .space3d-rail-button[aria-pressed='true'],
   .space3d-rail-button[aria-expanded='true'] { box-shadow: inset 0 3px 0 #101513; }
+  /* La hoja se apoya sobre el dock inferior, así que esconderla es bajarla su
+     propia altura MÁS ese apoyo. Con `translateY(105%)` a secas se bajaba sólo
+     el 105% de sí misma: una hoja de 97px apoyada 88px por encima del borde se
+     quedaba con 83px a la vista, y en un teléfono eso es una tira redondeada
+     asomando bajo el riel de herramientas que no se puede tocar ni cerrar.
+     El apoyo deja de estar escrito a mano en dos sitios y pasa a ser un token,
+     que es lo que evita que las dos cifras vuelvan a separarse. */
   .space3d-sheet {
+    --space3d-dock-h: 88px;
+
     position: fixed;
     z-index: 50;
-    inset: auto 0 88px;
+    inset: auto 0 var(--space3d-dock-h);
     inline-size: 100%;
     max-block-size: min(68vh, 560px);
     border: 1px solid var(--sc-color-border-soft);
     border-block-end: 0;
     border-radius: var(--sc-radius-sheet) var(--sc-radius-sheet) 0 0;
     box-shadow: 0 -18px 40px rgb(20 30 26 / 14%);
-    transform: translateY(105%);
+    transform: translateY(calc(100% + var(--space3d-dock-h)));
   }
   .space3d-sheet[data-expanded] { transform: translateY(0); }
   .space3d-result-bar { inset-block-end: 10px; max-inline-size: calc(100% - 18px); overflow-x: auto; }

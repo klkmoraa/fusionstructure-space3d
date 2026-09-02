@@ -267,10 +267,10 @@ const WorkspaceBody = ({
     ? 'results'
     : !editorTarget ? 'select' : editorTarget.id === null ? editorTarget.kind : 'select';
 
-  const cycleView = () => setActiveView((current) => {
-    const index = SPACE3D_VIEW_PRESETS.indexOf(current);
-    return SPACE3D_VIEW_PRESETS[(index + 1) % SPACE3D_VIEW_PRESETS.length];
-  });
+  // La vista se elige en el selector del propio lienzo, que nombra las cuatro.
+  // Aquí vivía un segundo control —un botón que CICLABA la vista y mostraba su
+  // nombre— a diez píxeles del selector y con la misma etiqueta: dos mandos
+  // para el mismo estado, uno de ellos sin decir a dónde lleva.
 
   const focusModelSection = (focus: Space3DModelFocus) => {
     setModelNavFocus(focus);
@@ -425,7 +425,6 @@ const WorkspaceBody = ({
         <button type="button" className="space3d-tool" onClick={undo} disabled={!canUndo} title={t('space3d.undo')}><Undo2 size={16} /><span className="space3d-visually-hidden">{t('space3d.undo')}</span></button>
         <button type="button" className="space3d-tool" onClick={redo} disabled={!canRedo} title={t('space3d.redo')}><Redo2 size={16} /><span className="space3d-visually-hidden">{t('space3d.redo')}</span></button>
         <button type="button" className="space3d-tool space3d-tool--danger" onClick={() => { if (editorTarget) remove(editorTarget); }} disabled={!canDeleteSelection} title={t('space3d.deleteSelected')}><Trash2 size={16} /><span className="space3d-visually-hidden">{t('space3d.deleteSelected')}</span></button>
-        <button type="button" className="space3d-tool" onClick={cycleView} title={t('space3d.toolbarView')}>{viewLabels[activeView]}</button>
       </div>
 
       <div className="space3d-tray space3d-tray--layers" role="group" aria-label={t('space3d.layers')}>

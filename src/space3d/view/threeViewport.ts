@@ -168,6 +168,34 @@ const lineGeometry = (values: readonly number[]): BufferGeometry => {
  */
 let labelsSupported: boolean | null = null;
 
+const LABEL_FONT_PX = 44;
+const LABEL_FONT = `600 ${LABEL_FONT_PX}px "IBM Plex Mono", ui-monospace, monospace`;
+/** Aire a los lados del texto, para que la tinta no toque el borde de la textura. */
+const LABEL_PADDING_PX = 16;
+/** Tope de textura: una etiqueta larguísima se estrecha antes que devorar VRAM. */
+const LABEL_MAX_WIDTH_PX = 768;
+
+/**
+ * Tamaño de la textura de una etiqueta y la relación que debe tener su sprite.
+ *
+ * Aquí vivía el fallo: el canvas medía 128x64 fijos con una fuente de 44px y el
+ * sprite se escalaba siempre 2:1. «N4» cabía; «2.70 kN» mide unos 180px, así
+ * que el navegador lo recortaba a la caja y en pantalla se leía «2.7 k» —una
+ * unidad amputada en un visor de cálculo, que es de las peores cosas que puede
+ * decir una interfaz—. Y aunque el ancho hubiera bastado, un sprite 2:1 fijo
+ * habría deformado cualquier texto de otra proporción.
+ *
+ * Es una función pura sobre la anchura MEDIDA del texto para poder probarla sin
+ * un contexto 2D: lo que se verifica es que la caja nunca es más estrecha que
+ * la tinta y que el sprite hereda la relación real de la textura.
+ */
+export const labelTextureMetrics = (measuredWidth: number): { width: number; height: number; aspect: number } => {
+  const ink = Number.isFinite(measuredWidth) && measuredWidth > 0 ? measuredWidth : LABEL_FONT_PX;
+  const height = Math.round(LABEL_FONT_PX * 1.5);
+  const width = Math.min(LABEL_MAX_WIDTH_PX, Math.max(height, Math.ceil(ink + LABEL_PADDING_PX * 2)));
+  return { width, height, aspect: width / height };
+};
+
 const makeLabel = (text: string, color: Color, size: number): Sprite | null => {
   if (typeof document === 'undefined' || labelsSupported === false) return null;
   const canvas = document.createElement('canvas');
@@ -176,20 +204,28 @@ const makeLabel = (text: string, color: Color, size: number): Sprite | null => {
   // sesión, y volver a preguntarlo por cada nudo sólo genera ruido.
   labelsSupported = context !== null;
   if (!context) return null;
-  const scale = 128;
-  canvas.width = scale;
-  canvas.height = scale / 2;
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  context.font = '600 44px "IBM Plex Mono", ui-monospace, monospace';
+
+  // La fuente se declara dos veces a propósito: la primera para medir, y otra
+  // vez tras asignar `canvas.width`, porque redimensionar un canvas restablece
+  // todo su estado de dibujo —incluida la fuente— y medir con una y pintar con
+  // otra devolvería el mismo recorte que se venía arreglando.
+  context.font = LABEL_FONT;
+  const { width, height } = labelTextureMetrics(context.measureText(text).width);
+  canvas.width = width;
+  canvas.height = height;
+  context.clearRect(0, 0, width, height);
+  context.font = LABEL_FONT;
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.fillStyle = `#${color.getHexString()}`;
-  context.fillText(text, canvas.width / 2, canvas.height / 2);
+  context.fillText(text, width / 2, height / 2);
 
   const texture = new CanvasTexture(canvas);
   texture.needsUpdate = true;
   const sprite = new Sprite(new SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
-  sprite.scale.set(size * 2, size, 1);
+  // `size` sigue siendo la ALTURA en unidades de mundo; el ancho lo dicta la
+  // textura, así que el texto no se estira ni se aplasta.
+  sprite.scale.set(size * (width / height), size, 1);
   return sprite;
 };
 
