@@ -41,21 +41,24 @@
   box-shadow: none;
 }
 
-/* inset · una cavidad de interacción. Ya no se hunde con sombra interior:
-   ahora es un plano un escalón por debajo de la superficie. */
+/* inset · una cavidad de interacción: un plano por debajo de la superficie, y
+   la misma luz del sistema invertida —se hunde por arriba-izquierda—. Es lo
+   que hace que una tecla apoyada dentro de la bandeja se lea DENTRO y no
+   simplemente encima de un gris distinto. */
 .sc-surface[data-level='inset'],
 [data-level='inset'],
 .welcome-filter-tabs,
 .toolbar {
   background: var(--sc-color-surface-inset);
   border: 1px solid var(--sc-color-border-soft);
-  box-shadow: none;
+  box-shadow: var(--sc-shadow-inset);
 }
 
 .toolbar { border-width: var(--toolbar-border-width, 1px); }
 
-/* raised · la superficie normal: paneles, barras, tarjetas. En este sistema
-   «elevado» significa «tiene filete propio», no «proyecta sombra». */
+/* raised · la superficie normal: paneles, barras, tarjetas. «Elevado» vuelve a
+   significar una distancia real —un escalón de contacto—, además del filete
+   propio. Sigue siendo UN escalón: lo que tapa contenido está en `floating`. */
 .sc-surface[data-level='raised'],
 [data-level='raised'],
 .topbar,
@@ -64,7 +67,7 @@
 .results-panel {
   background: var(--sc-color-surface-1);
   border: var(--sc-surface-edge);
-  box-shadow: none;
+  box-shadow: var(--sc-shadow-raised);
 }
 
 /* Las barras a sangre completa sólo llevan el canto que de verdad separa. */
