@@ -103,47 +103,108 @@
   --fs-gray-900: var(--fs-paper-900);
   --fs-gray-950: var(--fs-paper-950);
 
-  /* LAS SEIS SEÑALES. El brandbook define seis significados de dominio; ésta es
-     su implementación. El valor base es TRAZO: está medido para separarse del
-     papel y del carbón con el mismo grosor de línea, así que un momento flector
-     no cambia de color al apagar la luz.
+  /* LAS SEIS SEÑALES DEL BRANDBOOK, con su par Día/Noche.
+     ---------------------------------------------------------------------
+     Hasta ahora la señal era un TRAZO invariante por tema más una TINTA que sí
+     se recalibraba: un cortante era el mismo verde con la luz encendida o
+     apagada. Era una regla defendible y era la nuestra, no la del brandbook,
+     que publica doce valores —seis por tema— porque un mismo hex no puede
+     estar medido a la vez contra papel y contra carbón.
 
-     Los valores publicados en el brandbook (#63C5FF, #FF6F66, #55C990, #F3C553,
-     #9B87FF, #EF7AB9) se dibujaron sobre carbón: sobre papel se quedan por
-     debajo del mínimo gráfico de 3:1. Aquí viven como la TINTA de Noche, y el
-     trazo compartido baja un escalón para leerse en los dos temas. */
-  --fs-signal-axial: #2795e0;
-  --fs-signal-shear: #1ba268;
-  --fs-signal-moment: #de5ca4;
-  --fs-signal-action: #f0564c;
-  --fs-signal-deformed: #8a73f5;
-  --fs-signal-alert: #e8b22e;
+     Se adopta la del brandbook. El valor se recalibra en Noche y con eso
+     desaparece la distinción trazo/tinta: el valor de Día ya está en escalón
+     de tinta sobre papel (≥5:1 medido sobre `--fs-paper-25`) y el de Noche
+     sobre carbón, así que la misma variable sirve para la línea del diagrama y
+     para la cifra que la nombra. `-ink` sigue existiendo como alias para los
+     dos centenares de roles que ya lo nombran.
 
-  /* Tinta de señal para TEXTO sobre papel (≥4,5:1). No son colores nuevos: son
-     la misma señal en el escalón que necesita una cifra o una etiqueta. */
-  --fs-signal-axial-ink: #1668b0;
-  --fs-signal-shear-ink: #0e7a4e;
-  --fs-signal-moment-ink: #a83b79;
-  --fs-signal-action-ink: #c13a32;
-  --fs-signal-deformed-ink: #5d45c4;
-  --fs-signal-alert-ink: #8a6208;
+     Lo que cambia de significado, y no sólo de valor:
+       · `moment` pasa de rosa a ROJO — es el rojo del brandbook;
+       · el rosa que era `moment` es ahora `yield`, una señal nueva: fluencia;
+       · `alert` se llama `attention`, que es como lo publica el brandbook.
+     `action` deja de ser una señal de dominio y queda como el rol de acción
+     destructiva del chrome, apuntando al mismo rojo. Las CARGAS, que eran su
+     otro uso, ya no viven aquí: son su propia familia, más abajo. */
+  --fs-signal-axial: #1b75b0;
+  --fs-signal-moment: #b8412f;
+  --fs-signal-shear: #277654;
+  --fs-signal-deformed: #6a57c8;
+  --fs-signal-yield: #b44a7e;
+  --fs-signal-attention: #8a6110;
+
+  /* Con el par Día/Noche, la tinta ES la señal. Se conservan los nombres para
+     no reescribir los roles que los consumen. */
+  --fs-signal-axial-ink: var(--fs-signal-axial);
+  --fs-signal-shear-ink: var(--fs-signal-shear);
+  --fs-signal-moment-ink: var(--fs-signal-moment);
+  --fs-signal-deformed-ink: var(--fs-signal-deformed);
+  --fs-signal-yield-ink: var(--fs-signal-yield);
+  --fs-signal-attention-ink: var(--fs-signal-attention);
+
+  /* Alias de migración. `alert` era el nombre viejo de `attention`; `action` es
+     el rol destructivo del chrome, que comparte el rojo del momento porque
+     nunca comparten campo visual: uno es cromo, el otro es lienzo. */
+  --fs-signal-alert: var(--fs-signal-attention);
+  --fs-signal-alert-ink: var(--fs-signal-attention);
+  --fs-signal-action: var(--fs-signal-moment);
+  --fs-signal-action-ink: var(--fs-signal-moment);
+
+  /* LA SÉPTIMA FAMILIA · LAS CARGAS, EN PASTEL.
+     ---------------------------------------------------------------------
+     El brandbook no publica ninguna señal para una carga aplicada: sus seis
+     significados son todos respuesta de la estructura. Antes las tres cargas
+     compartían el rojo de `action`, y con el rojo pasando a `moment` habrían
+     quedado del mismo color que el diagrama de momento.
+
+     Así que las cargas son una familia propia y se distinguen por CROMA, no
+     por hue: puntual azul, distribuida roja, momento verde, las tres con
+     bastante menos saturación que la señal de resultado del mismo tono. Lo que
+     se aplica a la estructura se lee como un apunte; lo que la estructura
+     responde se lee como una línea viva.
+
+     El pastel de verdad vive en Noche, donde el fondo es carbón. En Día el
+     mismo tono apagado se oscurece hasta pasar el mínimo gráfico de 3:1 sobre
+     papel: un pastel literal sobre `#fdfdfb` queda en 1,6:1 y desaparece, que
+     es justo lo que había que arreglar. */
+  --fs-load-point: #5a7f96;
+  --fs-load-distributed: #a0655c;
+  --fs-load-moment: #57876b;
 
   /* Alias de dominio por hue. El código existente nombra los colores por su
      familia; el sistema los nombra por su significado. Ambos apuntan al mismo
      valor para que no existan dos verdades. */
-  --fs-red: var(--fs-signal-action);
+  --fs-red: var(--fs-signal-moment);
   --fs-blue: var(--fs-signal-axial);
   --fs-green: var(--fs-signal-shear);
-  --fs-yellow: var(--fs-signal-alert);
-  --fs-pink: var(--fs-signal-moment);
+  --fs-yellow: var(--fs-signal-attention);
+  --fs-pink: var(--fs-signal-yield);
   --fs-purple: var(--fs-signal-deformed);
 
-  --fs-red-ink: var(--fs-signal-action-ink);
-  --fs-blue-ink: var(--fs-signal-axial-ink);
-  --fs-green-ink: var(--fs-signal-shear-ink);
-  --fs-yellow-ink: var(--fs-signal-alert-ink);
-  --fs-pink-ink: var(--fs-signal-moment-ink);
-  --fs-purple-ink: var(--fs-signal-deformed-ink);
+  --fs-red-ink: var(--fs-signal-moment);
+  --fs-blue-ink: var(--fs-signal-axial);
+  --fs-green-ink: var(--fs-signal-shear);
+  --fs-yellow-ink: var(--fs-signal-attention);
+  --fs-pink-ink: var(--fs-signal-yield);
+  --fs-purple-ink: var(--fs-signal-deformed);
+
+  /* LAS SIETE FAMILIAS DE HERRAMIENTA y LOS CUATRO ESTADOS DE MADUREZ.
+     ---------------------------------------------------------------------
+     Dos escalas que el brandbook publica y que el producto no tenía. La
+     familia dice a qué parte del sistema pertenece una herramienta; el estado
+     dice cuánto se puede confiar en ella, que en un producto experimental es
+     información de primer orden y no una etiqueta decorativa. */
+  --fs-family-nucleo: #3f4a50;
+  --fs-family-analisis: var(--fs-signal-axial);
+  --fs-family-modelo: var(--fs-signal-moment);
+  --fs-family-civil: var(--fs-signal-shear);
+  --fs-family-proyecto: var(--fs-signal-attention);
+  --fs-family-interop: var(--fs-signal-deformed);
+  --fs-family-aprendizaje: var(--fs-signal-yield);
+
+  --fs-status-disponible: var(--fs-signal-shear);
+  --fs-status-experimental: var(--fs-signal-attention);
+  --fs-status-planeado: #5c6a6f;
+  --fs-status-no-comprometido: #737d76;
 
   /* ------------------------------------------------------------------ */
   /* 2 · ROLES SEMÁNTICOS DE INTERFAZ — TEMA DÍA                         */
@@ -252,10 +313,12 @@
   --sc-color-error-on-solid: var(--fs-gray-0);
   --sc-color-on-signal: var(--fs-gray-0);
 
-  /* Canario: el amarillo nunca es trazo suelto sobre papel (1,6:1). Cuando hace
-     falta amarillo visible va a relleno pleno con su propia tinta encima. */
-  --sc-color-canario: #e8b22e;
-  --sc-color-canario-ink: var(--fs-yellow-ink);
+  /* Canario: el amarillo de relleno pleno, con su tinta encima. Deja de
+     declarar un hex propio —era el trazo amarillo del sistema anterior— y toma
+     el valor de Noche de `attention`, que es el amarillo del brandbook y el
+     único escalón en el que un amarillo es visible como superficie. */
+  --sc-color-canario: #f3c553;
+  --sc-color-canario-ink: var(--fs-signal-attention);
 
   /* Aula es un acento de EXPERIENCIA —a quién le habla la app—, no un resultado
      del solver. Se queda con el rosa para no compartir hue con ninguna acción
@@ -286,21 +349,30 @@
   /* ------------------------------------------------------------------ */
   /* Aquí vive TODO el color de la aplicación. La asignación es mnemotécnica y
      no se negocia por pantalla:
-       ROJO     · lo que se aplica a la estructura (cargas)
        AZUL     · N, axial, y la deformada (desplazamiento)
        VERDE    · V, cortante, y las reacciones (la respuesta del apoyo)
-       AMARILLO · cotas y geometría de referencia
-       ROSA     · M, momento flector
-     Un mismo HEX por significado, en Día y en Noche. */
+       ROJO     · M, momento flector
+       ROSA     · fluencia
+       VIOLETA  · deformada
+       AMARILLO · cotas, geometría de referencia y dato incompleto
+     Y, aparte de las seis, la familia pastel de lo que se APLICA a la
+     estructura: azul apagado la puntual, rojo apagado la distribuida, verde
+     apagado el momento aplicado.
 
-  /* Acciones aplicadas — ROJO. */
-  --sc-color-load-point: var(--fs-red);
-  --sc-color-load-distributed: var(--fs-red);
-  --sc-color-load-moment-applied: var(--fs-red);
-  --sc-color-load-moment: var(--fs-red);
-  --sc-color-technical-load: var(--fs-red);
-  --sc-color-technical-distributed: var(--fs-red);
-  --sc-color-technical-distributed-area: rgb(240 86 76 / .12);
+     Ya no es «un mismo HEX en Día y en Noche»: cada valor tiene su par, porque
+     ningún hex puede estar medido a la vez contra papel y contra carbón. Lo
+     invariante es el SIGNIFICADO. */
+
+  /* Acciones aplicadas — la familia pastel. Cada carga con su tono, para que
+     una puntual no se confunda con una distribuida ni con un momento
+     aplicado, que es lo que pasaba cuando las tres eran el mismo rojo. */
+  --sc-color-load-point: var(--fs-load-point);
+  --sc-color-load-distributed: var(--fs-load-distributed);
+  --sc-color-load-moment-applied: var(--fs-load-moment);
+  --sc-color-load-moment: var(--fs-load-moment);
+  --sc-color-technical-load: var(--fs-load-point);
+  --sc-color-technical-distributed: var(--fs-load-distributed);
+  --sc-color-technical-distributed-area: rgb(160 101 92 / .12);
 
   /* Acciones internas — AZUL / VERDE / ROSA. */
   /* Tinta de señal: el escalón que necesita una cifra, una etiqueta o una
@@ -311,12 +383,29 @@
   --sc-color-signal-moment-ink: var(--fs-signal-moment-ink);
   --sc-color-signal-action-ink: var(--fs-signal-action-ink);
   --sc-color-signal-deformed-ink: var(--fs-signal-deformed-ink);
+  --sc-color-signal-yield-ink: var(--fs-signal-yield-ink);
   --sc-color-signal-alert-ink: var(--fs-signal-alert-ink);
+  --sc-color-signal-attention-ink: var(--fs-signal-attention-ink);
+
+  /* Familias y estados como roles. El `-ink` no existe aquí: el valor ya está
+     en escalón de tinta contra el papel de su tema. */
+  --sc-color-family-nucleo: var(--fs-family-nucleo);
+  --sc-color-family-analisis: var(--fs-family-analisis);
+  --sc-color-family-modelo: var(--fs-family-modelo);
+  --sc-color-family-civil: var(--fs-family-civil);
+  --sc-color-family-proyecto: var(--fs-family-proyecto);
+  --sc-color-family-interop: var(--fs-family-interop);
+  --sc-color-family-aprendizaje: var(--fs-family-aprendizaje);
+
+  --sc-color-status-disponible: var(--fs-status-disponible);
+  --sc-color-status-experimental: var(--fs-status-experimental);
+  --sc-color-status-planeado: var(--fs-status-planeado);
+  --sc-color-status-no-comprometido: var(--fs-status-no-comprometido);
 
   --sc-color-technical-axial: var(--fs-blue);
   --sc-color-technical-shear: var(--fs-green);
-  --sc-color-technical-shear-area: rgb(31 169 111 / .12);
-  --sc-color-technical-moment: var(--fs-pink);
+  --sc-color-technical-shear-area: rgb(39 118 84 / .12);
+  --sc-color-technical-moment: var(--fs-signal-moment);
   --sc-color-technical-deformed: var(--fs-purple);
   --sc-color-technical-reaction: var(--fs-green);
 
@@ -350,13 +439,13 @@
   --sc-color-axial-compression: var(--fs-blue-ink);
   --sc-color-shear-positive: var(--fs-green);
   --sc-color-shear-negative: var(--fs-green);
-  --sc-color-moment-positive: var(--fs-pink);
-  --sc-color-moment-negative: var(--fs-pink);
+  --sc-color-moment-positive: var(--fs-signal-moment);
+  --sc-color-moment-negative: var(--fs-signal-moment);
   --sc-color-deformation: var(--fs-purple);
   /* Influencia: área rosa muy diluida con canto rosa. El consumidor mantiene
      `stroke-dasharray`; el patrón acompaña al contraste, no lo sustituye. */
-  --sc-color-influence-area: rgb(222 92 164 / .13);
-  --sc-color-influence-line: var(--fs-pink);
+  --sc-color-influence-area: rgb(180 74 126 / .13);
+  --sc-color-influence-line: var(--fs-signal-yield);
   --sc-color-envelope: var(--fs-gray-500);
   --sc-color-critical-point: var(--fs-yellow-ink);
   --sc-color-geometry-error: var(--fs-red);
@@ -366,15 +455,21 @@
   --sc-color-hover-target: var(--fs-gray-950);
 
   /* Identificación de herramientas: refleja exactamente la codificación del
-     lienzo, para que la herramienta y lo que dibuja compartan color. */
+     lienzo, para que la herramienta y lo que dibuja compartan color.
+
+     Estos valores se pintan sobre el CHROME —una tecla de 48px en la consola—,
+     no sobre el lienzo, y el chrome tiene su propio papel. Antes tomaban el
+     valor de trazo tal cual y en Día se quedaban en 2,9–3,4:1 sobre
+     `--fs-paper-25`: por eso los iconos no elegidos se perdían. Ahora cada uno
+     apunta a un valor medido contra el papel de su tema. */
   --sc-color-tool-navigation: var(--sc-color-text-secondary);
   --sc-color-tool-structure: var(--sc-color-text-primary);
-  --sc-color-tool-point-load: var(--fs-red);
-  --sc-color-tool-distributed-load: var(--fs-red);
-  --sc-color-tool-moment: var(--fs-red);
-  --sc-color-tool-dimension: var(--fs-yellow-ink);
-  --sc-color-tool-cut: var(--fs-gray-500);
-  --sc-color-tool-destructive: var(--fs-red);
+  --sc-color-tool-point-load: var(--fs-load-point);
+  --sc-color-tool-distributed-load: var(--fs-load-distributed);
+  --sc-color-tool-moment: var(--fs-load-moment);
+  --sc-color-tool-dimension: var(--fs-signal-attention);
+  --sc-color-tool-cut: var(--fs-gray-700);
+  --sc-color-tool-destructive: var(--fs-signal-moment);
 
   /* ------------------------------------------------------------------ */
   /* 4 · ESPACIADO, TAMAÑOS Y FORMA                                      */
@@ -407,24 +502,22 @@
   --sc-focus-ring-offset: 2px;
 
   /* ---- RADIOS ---------------------------------------------------------
-     La escala vuelve a tener cuerpo, porque el sistema vuelve a tener volumen:
-     una pieza con un escalón de arcilla necesita una esquina que acompañe a su
-     sombra, o el canto duro delata que la sombra es un adorno pegado.
+     La escala del brandbook, sin el escalón de rebaja que llevaba:
 
-       data 0 · control 10px · card 14px · panel 18px · modal 22px
+       data 6px · control 12px · card 18px · panel 18px · modal 24px
 
-     No es la escala del claymorphism de origen (10 / 18 / 24 / 28): es un
-     escalón por debajo en todo salvo en `control`, porque la densidad de este
-     producto —filas de 24px, controles de 28px— no aguanta más curva.
-
-     `data` sigue siendo el escalón cero de la rejilla técnica: redondear una
-     celda comparable destruye el barrido lineal de la columna, y esa regla no
-     depende de si el sistema tiene volumen o no. */
-  --sc-radius-data: 0;
-  --sc-radius-control: 10px;
-  --sc-radius-card: 14px;
+     El producto había bajado un escalón en todo argumentando densidad —filas
+     de 24px, controles de 28px—, y el dato lo había dejado en 0 con un
+     argumento propio: redondear una celda comparable rompe el barrido lineal
+     de la columna. El brandbook dice 6px también para el dato y eso es lo que
+     se implementa. Es el punto de esta migración con más riesgo visible, y por
+     eso se comprueba con capturas de hoja de datos, BOM y tabla de resultados
+     en los dos temas, no de memoria. */
+  --sc-radius-data: 6px;
+  --sc-radius-control: 12px;
+  --sc-radius-card: 18px;
   --sc-radius-panel: 18px;
-  --sc-radius-modal: 22px;
+  --sc-radius-modal: 24px;
   --sc-radius-sheet: 18px;
   --sc-radius-pill: 999px;
 
@@ -454,24 +547,28 @@
      Lo que NO vuelve del claymorphism de origen: el marfil cálido, el acento
      menta, la sombra con luz propia por pieza y los degradados de brillo.
      `designSystem.test.ts` sigue montando guardia sobre todo eso. */
-  --sc-shadow-raised: 3px 4px 10px rgb(23 26 28 / .08), -2px -2px 7px rgb(255 255 255 / .6);
-  --sc-shadow-lifted: 6px 8px 18px rgb(23 26 28 / .1), -3px -3px 10px rgb(255 255 255 / .65);
-  --sc-shadow-xs: 2px 2px 6px rgb(23 26 28 / .06), -1px -1px 4px rgb(255 255 255 / .5);
+  --sc-shadow-raised: 3px 4px 10px rgb(20 23 26 / .08), -2px -2px 7px rgb(255 255 255 / .6);
+  --sc-shadow-lifted: 6px 8px 18px rgb(20 23 26 / .1), -3px -3px 10px rgb(255 255 255 / .65);
+  --sc-shadow-xs: 2px 2px 6px rgb(20 23 26 / .06), -1px -1px 4px rgb(255 255 255 / .5);
   --sc-shadow-sm: var(--sc-shadow-raised);
   --sc-shadow-md: var(--sc-shadow-lifted);
   /* Una cavidad invierte la misma luz: se hunde por arriba-izquierda. */
-  --sc-shadow-inset: inset 2px 2px 6px rgb(23 26 28 / .09), inset -1px -1px 4px rgb(255 255 255 / .55);
-  --sc-shadow-pressed: inset 2px 3px 6px rgb(23 26 28 / .14);
+  --sc-shadow-inset: inset 2px 2px 6px rgb(20 23 26 / .09), inset -1px -1px 4px rgb(255 255 255 / .55);
+  --sc-shadow-pressed: inset 2px 3px 6px rgb(20 23 26 / .14);
   --sc-shadow-action: var(--sc-shadow-raised);
   --sc-shadow-action-hover: var(--sc-shadow-lifted);
   --sc-shadow-action-pressed: inset 0 1px 3px rgb(0 0 0 / .22);
-  --sc-shadow-lg: 10px 13px 28px rgb(23 26 28 / .12), -4px -4px 14px rgb(255 255 255 / .7);
+  --sc-shadow-lg: 10px 13px 28px rgb(20 23 26 / .12), -4px -4px 14px rgb(255 255 255 / .7);
   --sc-shadow-floating: var(--sc-shadow-lg);
   --sc-shadow-popover: var(--sc-shadow-lg);
   --sc-shadow-modal: 0 1px 2px rgb(10 10 10 / .06), 0 16px 40px rgb(10 10 10 / .12);
   --sc-shadow-sheet: 0 -1px 2px rgb(10 10 10 / .05), 0 -12px 32px rgb(10 10 10 / .10);
   /* `drop-shadow()` sólo admite una capa. */
   --sc-shadow-drop: 0 6px 16px rgb(10 10 10 / .10);
+  /* El velo del brandbook: lo que apaga el fondo detrás de un modal. Es una
+     sombra de extensión enorme y sin difuminado, no una capa de profundidad;
+     por eso no la alcanza la regla de la luz única. */
+  --sc-shadow-veil: 0 0 0 2000px rgb(20 23 26 / .45);
 
   /* Contrato público de materia: cuatro niveles, cada uno con su distancia.
      El filete de 1px no se va a ninguna parte —sigue siendo lo que delimita—;
@@ -589,37 +686,44 @@
   /* ------------------------------------------------------------------ */
   /* 8 · MOTION Y APILAMIENTO                                            */
   /* ------------------------------------------------------------------ */
-  /* Rápido y corto. Sin muelles: un sistema sin volumen no rebota. */
-  /* LA ESCALA DEL BRANDBOOK. Cuatro duraciones con un trabajo cada una:
-     Rápido responde al dedo, Puente cambia de plano, Revelar trae contenido
-     contextual y Pulso acompaña una espera. Nada dura más que Revelar salvo lo
-     que de verdad está procesando. */
-  --sc-motion-quick: 120ms;
-  --sc-motion-bridge: 180ms;
-  --sc-motion-reveal: 260ms;
-  --sc-motion-pulse: 680ms;
+  /* LA ESCALA DEL BRANDBOOK, ahora con sus valores. Seis duraciones con un
+     trabajo cada una: Instante acusa recibo, Rápido responde al dedo, Puente
+     cambia de plano, Revelar trae contenido contextual, Trazar dibuja un
+     resultado y Pulso acompaña una espera.
 
-  --sc-motion-instant: 60ms;
-  --sc-motion-press: 80ms;
+     `trace` es nueva y es la única que puede pasar de Revelar sin estar
+     procesando: dibujar un diagrama de momento es la explicación de un
+     resultado, y verlo aparecer de golpe no explica nada. */
+  --sc-motion-instant: 90ms;
+  --sc-motion-quick: 140ms;
+  --sc-motion-bridge: 200ms;
+  --sc-motion-reveal: 280ms;
+  --sc-motion-trace: 520ms;
+  --sc-motion-pulse: 1400ms;
+
+  --sc-motion-press: 90ms;
   --sc-motion-fast: var(--sc-motion-quick);
   --sc-motion-control: var(--sc-motion-quick);
   --sc-motion-standard: var(--sc-motion-bridge);
-  --sc-motion-slow: 220ms;
+  --sc-motion-slow: var(--sc-motion-reveal);
   --sc-motion-loading: var(--sc-motion-pulse);
-  --sc-motion-morph-duration: 200ms;
+  --sc-motion-morph-duration: var(--sc-motion-bridge);
   --sc-motion-distance-factor: 0.5;
   --sc-motion-dock-scale: 1;
 
-  --sc-ease-standard: cubic-bezier(.2, 0, 0, 1);
-  /* Curva de revelado: sale rápido y frena largo, para que un panel que aparece
-     se lea como una consecuencia y no como un salto. */
-  --sc-ease-reveal: cubic-bezier(.16, .84, .24, 1);
-  --sc-ease-enter: cubic-bezier(0, 0, .2, 1);
-  --sc-ease-exit: cubic-bezier(.4, 0, 1, 1);
-  --sc-ease-press: cubic-bezier(.2, 0, 0, 1);
-  --sc-ease-emphasized: cubic-bezier(.2, 0, 0, 1);
-  --sc-spring-soft: cubic-bezier(.2, 0, 0, 1);
-  --sc-spring-panel: cubic-bezier(.2, 0, 0, 1);
+  /* Las tres curvas del brandbook. `standard` sale rápido y frena largo, para
+     que lo que aparece se lea como una consecuencia y no como un salto;
+     `exit` acelera al irse, porque lo que se va no necesita ser leído; `firm`
+     es simétrica y es la de un cambio que el sistema decide, no el dedo. */
+  --sc-ease-standard: cubic-bezier(.2, .8, .2, 1);
+  --sc-ease-reveal: var(--sc-ease-standard);
+  --sc-ease-enter: var(--sc-ease-standard);
+  --sc-ease-exit: cubic-bezier(.5, 0, .75, 0);
+  --sc-ease-firm: cubic-bezier(.65, 0, .35, 1);
+  --sc-ease-press: var(--sc-ease-standard);
+  --sc-ease-emphasized: var(--sc-ease-firm);
+  --sc-spring-soft: var(--sc-ease-standard);
+  --sc-spring-panel: var(--sc-ease-standard);
 
   --sc-transition-control:
     background-color var(--sc-motion-control) var(--sc-ease-standard),
@@ -799,16 +903,29 @@
   --sc-color-selection-stroke: #f4f4f1;
   --sc-color-selection-outline: #f4f4f1;
 
-  /* TINTA DE SEÑAL EN NOCHE. Aquí es donde viven los valores publicados del
-     brandbook: sobre carbón son exactamente el escalón que un texto necesita.
-     El TRAZO de la señal no se toca — un cortante es el mismo verde con la luz
-     encendida o apagada—; lo que se recalibra es la tinta que lo nombra. */
-  --sc-color-signal-axial-ink: #63c5ff;
-  --sc-color-signal-shear-ink: #55c990;
-  --sc-color-signal-moment-ink: #ef7ab9;
-  --sc-color-signal-action-ink: #ff6f66;
-  --sc-color-signal-deformed-ink: #9b87ff;
-  --sc-color-signal-alert-ink: #f3c553;
+  /* LAS SEIS SEÑALES EN NOCHE, y la familia pastel de las cargas.
+     Se recalibra la SEÑAL, no una tinta aparte: desde la adopción del par
+     Día/Noche del brandbook la señal y su tinta son la misma variable, así que
+     todo lo que cuelga de ellas —trazo del diagrama, cifra de la leyenda,
+     icono de la herramienta— se recalibra de una vez y no puede
+     descuadrarse. */
+  --fs-signal-axial: #63c5ff;
+  --fs-signal-moment: #ff8e80;
+  --fs-signal-shear: #55c990;
+  --fs-signal-deformed: #9b87ff;
+  --fs-signal-yield: #ef7ab9;
+  --fs-signal-attention: #f3c553;
+
+  /* Aquí el pastel es literal: sobre carbón un tono claro y poco cromático es
+     legible y sigue leyéndose como apunte frente a la señal viva. */
+  --fs-load-point: #9ec9e8;
+  --fs-load-distributed: #e5afa6;
+  --fs-load-moment: #a8cbb6;
+
+  /* Los dos neutrales de familia y estado que no cuelgan de una señal. */
+  --fs-family-nucleo: #aeb9be;
+  --fs-status-planeado: #8b9599;
+  --fs-status-no-comprometido: #5e6a6f;
 
   --sc-color-state-success-foreground: #55c990;
   --sc-color-state-warning-foreground: #f3c553;
@@ -847,8 +964,17 @@
   --sc-color-demand-peak: #a8d5f4;
   --sc-color-demand-unevaluated: #5f6669;
 
-  --sc-color-tool-dimension: #f3c553;
-  --sc-color-tool-cut: #8d8f8c;
+  /* Las tres áreas traslúcidas llevan el hex literal de su tono porque
+     `rgb()` no acepta una variable en sus canales. Al recalibrarse la señal,
+     tienen que recalibrarse con ella o el relleno deja de pertenecer a su
+     línea. */
+  --sc-color-technical-distributed-area: rgb(229 175 166 / .14);
+  --sc-color-technical-shear-area: rgb(85 201 144 / .14);
+  --sc-color-influence-area: rgb(239 122 185 / .14);
+
+  /* El corte es el único rol de herramienta que no cuelga de una señal ni de
+     una carga: es tinta de chrome, y el gris tiene que cambiar de lado. */
+  --sc-color-tool-cut: #a7a9a6;
 
   /* MATERIA EN NOCHE. La sombra necesita más peso sobre un plano oscuro, y el
      contacto claro deja de ser blanco: lo que recoge un canto de noche no es
@@ -861,6 +987,7 @@
   --sc-shadow-action-pressed: inset 0 1px 3px rgb(0 0 0 / .4);
   --sc-shadow-lg: 10px 13px 28px rgb(0 0 0 / .52), -4px -4px 14px rgb(120 124 126 / .24);
   --sc-shadow-modal: 0 1px 2px rgb(0 0 0 / .5), 0 16px 40px rgb(0 0 0 / .7);
+  --sc-shadow-veil: 0 0 0 2000px rgb(0 0 0 / .62);
   --sc-shadow-sheet: 0 -1px 2px rgb(0 0 0 / .5), 0 -12px 32px rgb(0 0 0 / .6);
   --sc-shadow-drop: 0 6px 16px rgb(0 0 0 / .6);
 }
