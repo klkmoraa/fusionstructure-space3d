@@ -32,17 +32,22 @@ export const NodeGlyph = ({ size, ...rest }: StructuralGlyphProps) => (
   </svg>
 );
 
+/* Los nudos de estos glifos se rellenaban con `var(--surface)`, el papel del
+   panel. En la tecla elegida del riel, que invierte a tinta, ese relleno se
+   quedaba con el color de FUERA y dejaba dos agujeros claros dentro de una
+   pieza oscura —o al revés en Noche—. `--sc-color-surface-inverse` sigue a la
+   tecla: es el papel del plano sobre el que el glifo se está dibujando. */
 export const MemberGlyph = ({ size, ...rest }: StructuralGlyphProps) => (
   <svg {...base(size, rest)}>
     <path d="M5.5 17.5 18.5 6.5" />
-    <circle cx="5.5" cy="17.5" r="2.2" fill="var(--surface)" />
-    <circle cx="18.5" cy="6.5" r="2.2" fill="var(--surface)" />
+    <circle cx="5.5" cy="17.5" r="2.2" fill="var(--sc-glyph-hole, var(--sc-color-surface-1))" />
+    <circle cx="18.5" cy="6.5" r="2.2" fill="var(--sc-glyph-hole, var(--sc-color-surface-1))" />
   </svg>
 );
 
 export const SupportGlyph = ({ size, ...rest }: StructuralGlyphProps) => (
   <svg {...base(size, rest)}>
-    <circle cx="12" cy="5.2" r="2" fill="var(--surface)" />
+    <circle cx="12" cy="5.2" r="2" fill="var(--sc-glyph-hole, var(--sc-color-surface-1))" />
     <path d="m12 7.3-6.1 8.1h12.2L12 7.3Z" />
     <path d="M4.7 18.2h14.6M6.5 20.8l2-2.6m3 2.6 2-2.6m3 2.6 2-2.6" />
   </svg>
@@ -91,5 +96,21 @@ export const MomentLoadGlyph = ({ size, ...rest }: StructuralGlyphProps) => (
   <svg {...base(size, rest)}>
     <path d="M17.8 7.1A7 7 0 1 0 18.9 15" />
     <path d="m18.1 3.8-.3 3.3-3.3-.3" />
+  </svg>
+);
+
+/**
+ * Entrada por coordenadas: los dos ejes del lienzo, las dos proyecciones
+ * punteadas y el punto que definen. Es un glifo propio y no uno genérico de
+ * lucide porque nombra una acción que sólo existe aquí —escribir un punto en
+ * vez de picarlo—, y tiene que distinguirse de la mira del lector de
+ * coordenadas, que informa y no hace nada.
+ */
+export const CoordinateEntryGlyph = ({ size, ...rest }: StructuralGlyphProps) => (
+  <svg {...base(size, rest)}>
+    <path d="M4.6 4.6v14.8h14.8" />
+    <path d="M15.4 19.4v-6.8h-6.8" strokeDasharray="2 2.2" />
+    <circle cx="15.4" cy="12.6" r="2.1" fill="currentColor" stroke="none" />
+    <path d="M8.6 4.6h2.2M8.6 8.2h2.2" />
   </svg>
 );

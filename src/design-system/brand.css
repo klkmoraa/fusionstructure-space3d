@@ -13,9 +13,16 @@
 .fs-mark__register { fill: var(--sc-color-signal-axial-ink); }
 
 /* Familia de herramientas: el marco lleva el color de la colección y el glifo
-   se queda en tinta, para que el color nunca sea el único identificador. */
-.fs-mark--solver2d .fs-mark__frame { fill: none; stroke: var(--fs-signal-action); stroke-width: 2; opacity: .55; }
+   se queda en tinta, para que el color nunca sea el único identificador.
+
+   El marco llevaba el rojo de acción rebajado a `opacity:.55` y el datum la
+   tinta al 34%: sobre papel eran 1,8:1 y 2,2:1, es decir, en Día la marca de la
+   consola se disolvía. Ahora el marco lleva el color de su familia —Análisis, y
+   no una señal de dominio prestada— a plena opacidad, y el datum es un gris de
+   chrome con contraste declarado. La jerarquía se sigue leyendo, pero por
+   grosor y por color, no por transparencia. */
+.fs-mark--solver2d .fs-mark__frame { fill: none; stroke: var(--sc-color-family-analisis); stroke-width: 2; }
 .fs-mark--solver2d .fs-mark__glyph { stroke: currentColor; }
-.fs-mark--solver2d .fs-mark__datum { stroke-width: 2; opacity: .34; }
+.fs-mark--solver2d .fs-mark__datum { stroke: var(--sc-color-text-muted); stroke-width: 2; }
 .fs-mark--solver2d .fs-mark__response { stroke-width: 2.6; }
 .fs-mark--solver2d .fs-mark__node { fill: currentColor; }

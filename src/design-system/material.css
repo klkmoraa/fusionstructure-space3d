@@ -196,18 +196,28 @@
 .sc-surface[data-level='floating'] { border-radius: var(--sc-radius-panel); }
 .sc-surface[data-level='modal'] { border-radius: var(--sc-radius-modal); }
 
-/* pressed · coexiste con cualquier nivel. Cambia de plano, no de posición. */
+/* pressed · coexiste con cualquier nivel. Cambia de plano Y de profundidad:
+   con la arcilla adoptada, lo pulsado es una cavidad, no un gris distinto. Sin
+   la sombra interior, «pulsado» sólo se distinguía de «encima» por un escalón
+   de papel de 1,03:1 — que es exactamente el problema que se corrigió en el
+   riel de herramientas. */
 .sc-surface[data-pressed='true'],
 [data-pressed='true'] {
   background: var(--sc-color-surface-pressed);
-  box-shadow: none;
+  box-shadow: var(--sc-shadow-pressed);
 }
 
 /* Chrome del lienzo — lo que flota sobre el dibujo técnico. Es el único grupo
    que necesita un filete más fuerte: se apoya sobre un plano que puede tener
    una línea de diagrama justo debajo. El dibujo en sí (miembros, nudos,
    cargas, diagramas, deformada, cotas) no recibe materia: sólo la recibe lo
-   que flota ENCIMA. */
+   que flota ENCIMA.
+
+   Y flotar es justo lo que este bloque decía y no hacía: llevaba
+   `box-shadow: none` desde la retirada del claymorphism y nunca se revisó al
+   volver el volumen. Sobre la mesa —papel casi blanco en Día— un filete de 1px
+   no basta para decir que una pieza está delante del dibujo, que es la única
+   información que este grupo tiene que dar. */
 .canvas-mode-badge,
 .canvas-view-chips span,
 .canvas-controls,
@@ -216,7 +226,6 @@
 .canvas-feedback,
 .canvas-hint,
 .mobile-inspector-toggle,
-.quick-entry-bar,
 .selection-cycle-indicator,
 .canvas-layer-trigger,
 .repeat-action-control,
@@ -225,7 +234,7 @@
   background: var(--sc-color-surface-1);
   border: 1px solid var(--sc-color-border);
   border-radius: var(--sc-radius-control);
-  box-shadow: none;
+  box-shadow: var(--sc-depth-raised-shadow);
 }
 
 /* El panel de capas es el único FLOATING de verdad del chrome del lienzo. */

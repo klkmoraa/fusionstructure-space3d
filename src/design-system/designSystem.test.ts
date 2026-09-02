@@ -197,76 +197,148 @@ describe('color · la interfaz es acromática y el dominio es el único que tiñ
     expect(aRgb(resolver(valorEn(bloqueNoche, '--sc-color-action-primary')!, bloqueNoche))![0]).toBeGreaterThan(223);
   });
 
-  it('las seis señales del dominio se declaran una vez y no se redefinen en Noche', () => {
-    const senales = ['axial', 'shear', 'moment', 'action', 'deformed', 'alert'];
-    for (const senal of senales) {
-      const trazo = `--fs-signal-${senal}`;
-      expect(valorEn(bloqueRaiz, trazo), `${trazo} debe declararse en :root`).toBeTruthy();
-      expect(valorEn(bloqueNoche, trazo), `${trazo} no puede redefinirse en Noche`).toBeNull();
+  /** Las seis del brandbook, con los nombres que el brandbook les da. */
+  const SENALES = ['axial', 'moment', 'shear', 'deformed', 'yield', 'attention'] as const;
+  /** La séptima familia: lo que se APLICA a la estructura. */
+  const CARGAS = ['point', 'distributed', 'moment'] as const;
+
+  it('cada señal declara su par Día/Noche', () => {
+    // Esta guarda cambió de polaridad al adoptar el brandbook. Antes prohibía
+    // que una señal se redefiniera en Noche: el trazo era invariante y sólo la
+    // tinta se recalibraba. El brandbook publica doce valores —seis por tema—
+    // porque un mismo hex no puede estar medido a la vez contra papel y contra
+    // carbón, y ahora eso es lo que se EXIGE. Una señal declarada sólo en Día
+    // es una señal que en Noche está sin medir.
+    for (const senal of SENALES) {
+      const rol = `--fs-signal-${senal}`;
+      expect(valorEn(bloqueRaiz, rol), `${rol} debe declararse en Día`).toMatch(/^#/);
+      expect(valorEn(bloqueNoche, rol), `${rol} debe recalibrarse en Noche`).toMatch(/^#/);
     }
-    // Los alias por familia siguen existiendo para el CSS heredado, y siguen
-    // apuntando a la misma verdad en vez de declarar un segundo valor.
-    for (const alias of ['--fs-red', '--fs-blue', '--fs-green', '--fs-yellow', '--fs-pink', '--fs-purple']) {
+    for (const carga of CARGAS) {
+      const rol = `--fs-load-${carga}`;
+      expect(valorEn(bloqueRaiz, rol), `${rol} debe declararse en Día`).toMatch(/^#/);
+      expect(valorEn(bloqueNoche, rol), `${rol} debe recalibrarse en Noche`).toMatch(/^#/);
+    }
+    // Los alias por familia y los de migración siguen existiendo para el CSS
+    // heredado, y siguen apuntando a la única verdad en vez de declarar un
+    // segundo valor: si declararan uno propio, se descuadrarían en Noche.
+    for (const alias of ['--fs-red', '--fs-blue', '--fs-green', '--fs-yellow', '--fs-pink', '--fs-purple', '--fs-signal-alert', '--fs-signal-action']) {
       expect(valorEn(bloqueRaiz, alias), `${alias} debe declararse en :root`).toMatch(/^var\(--fs-signal-/);
-      expect(valorEn(bloqueNoche, alias), `${alias} no puede redefinirse en Noche`).toBeNull();
+      expect(valorEn(bloqueNoche, alias), `${alias} no puede declarar valor propio en Noche`).toBeNull();
     }
   });
 
-  it('cada señal se separa del papel y del carbón lo suficiente para leerse como trazo', () => {
-    // Mínimo gráfico de WCAG para un elemento no textual: 3:1. Una señal que no
-    // lo cumple en los dos temas no es una señal, es una decoración.
+  it('cada señal y cada carga se leen contra el papel de SU tema', () => {
+    // Mínimo gráfico de WCAG para un elemento no textual: 3:1.
     //
-    // El aviso queda fuera de esta lista por una razón física, no por una
-    // excepción cómoda: ningún amarillo llega a 3:1 sobre papel sin dejar de
-    // ser amarillo. Por eso el rol que lo pinta en Día es su tinta —lo
-    // comprueba la prueba siguiente— y el valor de trazo se reserva a Noche.
+    // Antes esta prueba medía un solo valor contra los dos fondos, y ahí el
+    // amarillo no cabía: ningún amarillo llega a 3:1 sobre papel sin dejar de
+    // ser amarillo. Con el par del brandbook la excepción desaparece — el
+    // amarillo de Día es `#8a6110`, que es ámbar oscuro y pasa —, así que la
+    // lista ya no tiene huecos.
     const papel = aRgb(resolver(valorEn(bloqueRaiz, '--sc-color-bg-canvas')!, bloqueRaiz))!;
     const carbon = aRgb(resolver(valorEn(bloqueNoche, '--sc-color-bg-canvas')!, bloqueNoche))!;
-    for (const senal of ['axial', 'shear', 'moment', 'action', 'deformed']) {
-      const rgb = aRgb(valorEn(bloqueRaiz, `--fs-signal-${senal}`)!)!;
-      expect(contraste(rgb, papel), `${senal} no se separa del papel`).toBeGreaterThanOrEqual(3);
-      expect(contraste(rgb, carbon), `${senal} no se separa del carbón`).toBeGreaterThanOrEqual(3);
+    for (const senal of SENALES) {
+      const dia = aRgb(valorEn(bloqueRaiz, `--fs-signal-${senal}`)!)!;
+      const noche = aRgb(valorEn(bloqueNoche, `--fs-signal-${senal}`)!)!;
+      expect(contraste(dia, papel), `${senal} no se lee sobre papel`).toBeGreaterThanOrEqual(3);
+      expect(contraste(noche, carbon), `${senal} no se lee sobre carbón`).toBeGreaterThanOrEqual(3);
+    }
+    // Las cargas son pastel a propósito, y «pastel» y «legible» se contradicen
+    // sobre papel: sin esta prueba, el tono apagado de Día se iría deslizando
+    // hacia el pastel literal hasta desaparecer, que es de donde venimos.
+    for (const carga of CARGAS) {
+      const dia = aRgb(valorEn(bloqueRaiz, `--fs-load-${carga}`)!)!;
+      const noche = aRgb(valorEn(bloqueNoche, `--fs-load-${carga}`)!)!;
+      expect(contraste(dia, papel), `la carga ${carga} no se lee sobre papel`).toBeGreaterThanOrEqual(3);
+      expect(contraste(noche, carbon), `la carga ${carga} no se lee sobre carbón`).toBeGreaterThanOrEqual(3);
     }
   });
 
-  it('el aviso se pinta con su tinta sobre papel y con su trazo sobre carbón', () => {
-    const papel = aRgb(resolver(valorEn(bloqueRaiz, '--sc-color-bg-canvas')!, bloqueRaiz))!;
-    const carbon = aRgb(resolver(valorEn(bloqueNoche, '--sc-color-bg-canvas')!, bloqueNoche))!;
-    const dia = aRgb(resolver(valorEn(bloqueRaiz, '--sc-color-technical-dimension')!, bloqueRaiz))!;
-    const noche = aRgb(resolver(valorEn(bloqueNoche, '--sc-color-technical-dimension')!, bloqueNoche))!;
-    expect(contraste(dia, papel), 'la cota no se lee sobre papel').toBeGreaterThanOrEqual(3);
-    expect(contraste(noche, carbon), 'la cota no se lee sobre carbón').toBeGreaterThanOrEqual(3);
-  });
-
-  it('las acciones internas mantienen su significado en los dos temas', () => {
-    // Un momento flector no cambia de color al apagar la luz.
-    for (const rol of ['--sc-color-technical-axial', '--sc-color-technical-shear', '--sc-color-technical-moment', '--sc-color-technical-load', '--sc-color-technical-deformed']) {
-      expect(valorEn(bloqueNoche, rol), `${rol} no puede redefinirse en Noche`).toBeNull();
+  it('una carga aplicada no se confunde con la señal de resultado de su mismo tono', () => {
+    // El usuario eligió las cargas por hue —puntual azul, distribuida roja,
+    // momento verde—, que son los tres hues que ya usan axial, momento y
+    // cortante. Lo que las separa es el CROMA: una carga es un apunte apagado,
+    // un resultado es una línea viva. Si esa distancia se pierde, el diagrama
+    // de momento y la flecha de carga pasan a ser el mismo color, que es
+    // exactamente lo que esta migración tenía que evitar.
+    const croma = (rgb: [number, number, number]) => Math.max(...rgb) - Math.min(...rgb);
+    const pares: readonly (readonly [string, string])[] = [
+      ['point', 'axial'],
+      ['distributed', 'moment'],
+      ['moment', 'shear'],
+    ];
+    for (const [tema, bloque] of [['día', bloqueRaiz], ['noche', bloqueNoche]] as const) {
+      for (const [carga, senal] of pares) {
+        const cargaRgb = aRgb(valorEn(bloque, `--fs-load-${carga}`)!)!;
+        const senalRgb = aRgb(valorEn(bloque, `--fs-signal-${senal}`)!)!;
+        expect(croma(cargaRgb), `en ${tema} la carga ${carga} está tan cromada como ${senal}`)
+          .toBeLessThan(croma(senalRgb));
+      }
     }
   });
 
-  it('cada señal tiene una tinta legible declarada en los dos temas', () => {
-    for (const senal of ['axial', 'shear', 'moment', 'action', 'deformed', 'alert']) {
-      const rol = `--sc-color-signal-${senal}-ink`;
-      expect(valorEn(bloqueRaiz, rol), `${rol} debe declararse en Día`).toBeTruthy();
-      expect(valorEn(bloqueNoche, rol), `${rol} debe recalibrarse en Noche`).toBeTruthy();
+  it('las siete familias y los cuatro estados existen en los dos temas', () => {
+    // Dos escalas que el brandbook publica y que el producto no tenía. Sin
+    // ellas, el landing pintaba «Modelo» con el color de una carga aplicada y
+    // «Experimental» con el de un aviso del solver.
+    const familias = ['nucleo', 'analisis', 'modelo', 'civil', 'proyecto', 'interop', 'aprendizaje'];
+    const estados = ['disponible', 'experimental', 'planeado', 'no-comprometido'];
+    for (const nombre of familias) {
+      expect(valorEn(bloqueRaiz, `--fs-family-${nombre}`), `--fs-family-${nombre} no existe`).toBeTruthy();
+    }
+    for (const nombre of estados) {
+      expect(valorEn(bloqueRaiz, `--fs-status-${nombre}`), `--fs-status-${nombre} no existe`).toBeTruthy();
+    }
+    // Los dos neutrales que no cuelgan de una señal tienen que recalibrarse
+    // solos: son los únicos que no heredan el par de nadie.
+    for (const rol of ['--fs-family-nucleo', '--fs-status-planeado', '--fs-status-no-comprometido']) {
+      expect(valorEn(bloqueNoche, rol), `${rol} debe recalibrarse en Noche`).toMatch(/^#/);
+    }
+    const papel = aRgb(resolver(valorEn(bloqueRaiz, '--sc-color-bg-app')!, bloqueRaiz))!;
+    const carbon = aRgb(resolver(valorEn(bloqueNoche, '--sc-color-bg-app')!, bloqueNoche))!;
+    for (const nombre of familias) {
+      const dia = aRgb(resolver(valorEn(bloqueRaiz, `--fs-family-${nombre}`)!, bloqueRaiz))!;
+      const noche = aRgb(resolver(valorEn(bloqueNoche, `--fs-family-${nombre}`) ?? valorEn(bloqueRaiz, `--fs-family-${nombre}`)!, bloqueNoche))!;
+      expect(contraste(dia, papel), `la familia ${nombre} no se lee en Día`).toBeGreaterThanOrEqual(3);
+      expect(contraste(noche, carbon), `la familia ${nombre} no se lee en Noche`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('el color de una herramienta se lee sobre el papel de la consola', () => {
+    // Ésta es la prueba que faltaba y por la que en Día los iconos no elegidos
+    // del riel se perdían: tomaban el valor de trazo —medido contra el lienzo—
+    // y se pintaban sobre una tecla de la consola. Aquí se mide contra la
+    // superficie sobre la que de verdad se dibujan.
+    const roles = ['navigation', 'structure', 'point-load', 'distributed-load', 'moment', 'dimension', 'cut', 'destructive'];
+    for (const [tema, bloque] of [['día', bloqueRaiz], ['noche', bloqueNoche]] as const) {
+      const tecla = aRgb(resolver(valorEn(bloque, '--sc-color-surface-1') ?? valorEn(bloqueRaiz, '--sc-color-surface-1')!, bloque))!;
+      for (const rol of roles) {
+        const nombre = `--sc-color-tool-${rol}`;
+        const valor = valorEn(bloque, nombre) ?? valorEn(bloqueRaiz, nombre);
+        const rgb = aRgb(resolver(valor!, bloque))!;
+        expect(contraste(rgb, tecla), `en ${tema}, ${nombre} no se lee sobre la tecla`).toBeGreaterThanOrEqual(3);
+      }
     }
   });
 });
 
 describe('forma · la escala de radios acompaña al volumen sin inflarlo', () => {
-  it('la escala es la declarada por rol, y crece con el rol', () => {
+  it('la escala es la del brandbook, y crece con el rol', () => {
     // El radio acompaña a la sombra: sin curva, el canto duro delata que el
-    // volumen es un adorno pegado. Pero la densidad no se negocia, así que la
-    // escala está un escalón por debajo de la del claymorphism de origen
-    // (10 / 18 / 24 / 28) en todo salvo en `control`.
+    // volumen es un adorno pegado. El producto había bajado un escalón en todo
+    // argumentando densidad; el brandbook publica 12 / 18 / 18 / 24 y es lo que
+    // se implementa.
     const escala = ['--sc-radius-control', '--sc-radius-card', '--sc-radius-panel', '--sc-radius-modal']
       .map((rol) => Number((valorEn(bloqueRaiz, rol) ?? '').replace('px', '')));
-    expect(escala).toEqual([10, 14, 18, 22]);
+    expect(escala).toEqual([12, 18, 18, 24]);
 
-    // El dato es el escalón cero y no se mueve: redondear una celda comparable
-    // destruye el barrido lineal de la columna, haya volumen o no.
-    expect(valorEn(bloqueRaiz, '--sc-radius-data')).toBe('0');
+    // El dato deja de ser el escalón cero. Era la excepción mejor argumentada
+    // del sistema —redondear una celda comparable rompe el barrido lineal de la
+    // columna— y el brandbook la contradice con 6px. Se implementa el 6px, y la
+    // comprobación de si la columna sigue leyendo bien es visual: está en las
+    // capturas de hoja de datos, BOM y tabla de resultados, no aquí.
+    expect(valorEn(bloqueRaiz, '--sc-radius-data')).toBe('6px');
   });
 
   it('ninguna hoja declara un radio literal fuera de la escala', () => {
@@ -274,8 +346,52 @@ describe('forma · la escala de radios acompaña al volumen sin inflarlo', () =>
     for (const hoja of rutas()) {
       if (hoja.endsWith('tokens.css')) continue;
       for (const m of contenido(hoja).matchAll(/border-radius:\s*(\d+)px/g)) {
-        // `0` es el escalón cero de la rejilla y `999` es la píldora: son roles.
+        // `0` sigue siendo un valor válido —una barra a sangre no tiene canto—
+        // y `999` es la píldora: los dos son roles, no medidas sueltas.
         if (!['0', '999'].includes(m[1])) infractoras.push(`${hoja}: ${m[0]}`);
+      }
+    }
+    expect(infractoras).toEqual([]);
+  });
+});
+
+describe('movimiento · la escala del brandbook, con un trabajo por duración', () => {
+  it('las seis duraciones son las publicadas', () => {
+    // Seis duraciones, no seis números: Instante acusa recibo, Rápido responde
+    // al dedo, Puente cambia de plano, Revelar trae contenido, Trazar dibuja un
+    // resultado y Pulso acompaña una espera. La guarda existe para que nadie
+    // añada una séptima a ojo dentro de una hoja de feature.
+    const escala: Record<string, string> = {
+      '--sc-motion-instant': '90ms',
+      '--sc-motion-quick': '140ms',
+      '--sc-motion-bridge': '200ms',
+      '--sc-motion-reveal': '280ms',
+      '--sc-motion-trace': '520ms',
+      '--sc-motion-pulse': '1400ms',
+    };
+    for (const [rol, valor] of Object.entries(escala)) {
+      expect(valorEn(bloqueRaiz, rol), `${rol} fuera de la escala`).toBe(valor);
+    }
+  });
+
+  it('trazar es la única duración que pasa de revelar sin estar procesando', () => {
+    // Dibujar un diagrama de momento es la explicación de un resultado y verlo
+    // aparecer de golpe no explica nada; cualquier OTRA cosa que dure más que
+    // Revelar sin estar calculando es una animación de adorno.
+    const ms = (rol: string) => Number((valorEn(bloqueRaiz, rol) ?? '').replace('ms', ''));
+    expect(ms('--sc-motion-trace')).toBeGreaterThan(ms('--sc-motion-reveal'));
+    expect(ms('--sc-motion-slow') || ms('--sc-motion-reveal')).toBeLessThanOrEqual(ms('--sc-motion-reveal'));
+  });
+
+  it('ninguna hoja declara una duración literal fuera de la escala', () => {
+    const permitidas = new Set(['0', '90', '140', '200', '280', '520', '1400']);
+    const infractoras: string[] = [];
+    for (const hoja of rutas()) {
+      if (hoja.endsWith('tokens.css')) continue;
+      // El `(?<![\d.])` deja fuera el interruptor de movimiento reducido
+      // (`0.01ms`, `0.001ms`): eso no es una duración, es un apagado.
+      for (const m of contenido(hoja).matchAll(/(?:transition|animation)(?:-duration)?:[^;]*?(?<![\d.])(\d+)ms/g)) {
+        if (!permitidas.has(m[1])) infractoras.push(`${hoja}: ${m[0].trim()}`);
       }
     }
     expect(infractoras).toEqual([]);

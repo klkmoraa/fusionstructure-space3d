@@ -106,8 +106,15 @@ const TOKEN_COLORS = {
   node: ['--sc-color-text-primary', '#23312c'],
   nodeSelected: ['--sc-color-selection-stroke', '#6a5df2'],
   support: ['--sc-color-technical-reaction', '#3a72e3'],
-  load: ['--sc-color-technical-load', '#3a72e3'],
-  moment: ['--sc-color-technical-moment', '#ed4b46'],
+  load: ['--sc-color-technical-load', '#5a7f96'],
+  /* El momento APLICADO es una carga, no una respuesta, y desde la adopción del
+     brandbook tiene su propio verde apagado. Este rol apuntaba a
+     `--sc-color-technical-moment`, que ahora es el rojo del momento flector: sin
+     separarlos, en el 3D una carga de momento se pintaba con el color del
+     resultado y se deshacía la distinción que la migración acababa de
+     introducir. La escena espacial no dibuja diagramas, así que el rol del
+     momento flector no tiene aquí ningún consumidor y no se declara. */
+  loadMoment: ['--sc-color-load-moment-applied', '#57876b'],
   deformed: ['--sc-color-technical-deformed', '#8b5cf6'],
   grid: ['--sc-color-canvas-grid', '#e8e1d7'],
   gridStrong: ['--sc-color-canvas-grid-strong', '#d9d0c4'],
@@ -184,7 +191,10 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   const { canvas } = options;
   let model = options.model;
   let layers = options.layers ?? SPACE3D_DEFAULT_LAYERS;
-  const palette = readPalette();
+  // La paleta sale de los tokens del documento, así que depende del tema. Es
+  // `let` y no `const` porque el tema puede cambiar con la escena montada: ver
+  // el observador del final.
+  let palette = readPalette();
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(45, 1, 0.1, 1_000);
@@ -313,7 +323,7 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
     for (const load of model.loads) {
       const direction = new Vector3(...load.direction);
       const length = loadLength * (0.45 + 0.55 * load.relative);
-      const color = load.kind === 'force' ? palette.load : palette.moment;
+      const color = load.kind === 'force' ? palette.load : palette.loadMoment;
       // La flecha apunta hacia el nudo: el vector nace fuera y termina donde actúa.
       const tail = new Vector3(...load.origin).addScaledVector(direction, -length);
       loadsGroup.add(new ArrowHelper(direction, tail, length, color, length * 0.26, length * 0.14));
@@ -455,6 +465,23 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   setView(options.initialView ?? 'isometric');
   resize();
 
+  /* La escena leía los tokens UNA vez, al crearse, y hasta ahora eso no se
+     notaba porque la superficie 3D forzaba el tema claro al montarse. Retirada
+     esa imposición, cambiar de tema con la escena abierta dejaba un pórtico
+     pintado con la tinta del tema anterior. Se vuelve a leer y se reconstruye:
+     `buildStatic` y `buildModel` ya son las dos únicas fuentes de geometría. */
+  const onThemeChange = () => {
+    if (disposed) return;
+    palette = readPalette();
+    clearGroup('grid');
+    clearGroup('world-axes');
+    buildStatic();
+    buildModel();
+    requestRender();
+  };
+  const themeObserver = typeof MutationObserver === 'undefined' ? null : new MutationObserver(onThemeChange);
+  themeObserver?.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
   return {
     scene,
     camera,
@@ -489,6 +516,7 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
       if (frame !== 0) cancelAnimationFrame(frame);
       frame = 0;
       controls.removeEventListener('change', onControlsChange);
+      themeObserver?.disconnect();
       controls.dispose();
       disposeObject(scene);
       renderer.dispose();
