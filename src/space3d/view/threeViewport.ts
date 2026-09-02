@@ -106,8 +106,15 @@ const TOKEN_COLORS = {
   node: ['--sc-color-text-primary', '#23312c'],
   nodeSelected: ['--sc-color-selection-stroke', '#6a5df2'],
   support: ['--sc-color-technical-reaction', '#3a72e3'],
-  load: ['--sc-color-technical-load', '#3a72e3'],
-  moment: ['--sc-color-technical-moment', '#ed4b46'],
+  load: ['--sc-color-technical-load', '#5a7f96'],
+  /* El momento APLICADO es una carga, no una respuesta, y desde la adopción del
+     brandbook tiene su propio verde apagado. Este rol apuntaba a
+     `--sc-color-technical-moment`, que ahora es el rojo del momento flector: sin
+     separarlos, en el 3D una carga de momento se pintaba con el color del
+     resultado y se deshacía la distinción que la migración acababa de
+     introducir. La escena espacial no dibuja diagramas, así que el rol del
+     momento flector no tiene aquí ningún consumidor y no se declara. */
+  loadMoment: ['--sc-color-load-moment-applied', '#57876b'],
   deformed: ['--sc-color-technical-deformed', '#8b5cf6'],
   grid: ['--sc-color-canvas-grid', '#e8e1d7'],
   gridStrong: ['--sc-color-canvas-grid-strong', '#d9d0c4'],
@@ -316,7 +323,7 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
     for (const load of model.loads) {
       const direction = new Vector3(...load.direction);
       const length = loadLength * (0.45 + 0.55 * load.relative);
-      const color = load.kind === 'force' ? palette.load : palette.moment;
+      const color = load.kind === 'force' ? palette.load : palette.loadMoment;
       // La flecha apunta hacia el nudo: el vector nace fuera y termina donde actúa.
       const tail = new Vector3(...load.origin).addScaledVector(direction, -length);
       loadsGroup.add(new ArrowHelper(direction, tail, length, color, length * 0.26, length * 0.14));
