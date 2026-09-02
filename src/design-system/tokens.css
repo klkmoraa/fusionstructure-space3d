@@ -26,14 +26,17 @@
  *     que el solver o el modelo dicen. Se usan como TRAZO, no como relleno de
  *     superficie. Un panel nunca se tiñe; una línea sí.
  *
- *  3. LA PROFUNDIDAD ES EL FILETE. Un borde de 1px y el espacio separan las
- *     cosas. La escala de sombras existe en un solo escalón real, reservado a
- *     lo que de verdad se despega del plano —popover, hoja, modal, toast— y es
- *     una sombra de contacto neutra, nunca una luz propia por pieza.
+ *  3. LA PROFUNDIDAD ES UNA SOLA LUZ. Un borde de 1px sigue delimitando, y
+ *     además hay un escalón de arcilla: la luz entra por arriba-izquierda, la
+ *     sombra cae abajo-derecha y el contacto claro queda arriba-izquierda. La
+ *     luz es del SISTEMA, no de la pieza: ninguna superficie se ilumina sola,
+ *     ninguna capa tiñe. Un panel no sube por ser importante; sube porque
+ *     tapa contenido.
  *
- *  4. MENOS SUPERFICIE, MENOS TEXTO. Radios cortos, tarjetas pequeñas, filas
- *     densas, etiquetas breves. Lo que se puede decir con una cifra no lleva
- *     una frase.
+ *  4. MENOS SUPERFICIE, MENOS TEXTO. Tarjetas pequeñas, filas densas,
+ *     etiquetas breves. Lo que se puede decir con una cifra no lleva una
+ *     frase. El radio acompaña a la sombra —una esquina dura delata que el
+ *     volumen es un adorno pegado—, pero la densidad no se negocia.
  *
  * INVARIANZA POR TEMA
  * ---------------------------------------------------------------------------
@@ -49,7 +52,7 @@
  *   2. Roles semánticos de interfaz (Día).
  *   3. Roles técnicos del dominio (invariantes).
  *   4. Espaciado, tamaños y forma.
- *   5. Materia: filete y un único escalón de elevación.
+ *   5. Materia: el filete, y un escalón de arcilla con una sola luz.
  *   6. Tipografía.
  *   7. Controles, layout y densidad.
  *   8. Motion y apilamiento.
@@ -404,21 +407,25 @@
   --sc-focus-ring-offset: 2px;
 
   /* ---- RADIOS ---------------------------------------------------------
-     La escala anterior (10 / 18 / 24 / 28px) era la forma del claymorphism:
-     una pieza de arcilla necesita esquinas gordas para leerse como volumen. Sin
-     volumen, ese radio sólo infla la caja. La escala nueva es la mínima que
-     evita el canto duro:
+     La escala vuelve a tener cuerpo, porque el sistema vuelve a tener volumen:
+     una pieza con un escalón de arcilla necesita una esquina que acompañe a su
+     sombra, o el canto duro delata que la sombra es un adorno pegado.
 
-       data 0 · control 3px · card 4px · panel 6px · modal 8px
+       data 0 · control 10px · card 14px · panel 18px · modal 22px
+
+     No es la escala del claymorphism de origen (10 / 18 / 24 / 28): es un
+     escalón por debajo en todo salvo en `control`, porque la densidad de este
+     producto —filas de 24px, controles de 28px— no aguanta más curva.
 
      `data` sigue siendo el escalón cero de la rejilla técnica: redondear una
-     celda comparable destruye el barrido lineal de la columna. */
+     celda comparable destruye el barrido lineal de la columna, y esa regla no
+     depende de si el sistema tiene volumen o no. */
   --sc-radius-data: 0;
-  --sc-radius-control: 3px;
-  --sc-radius-card: 4px;
-  --sc-radius-panel: 6px;
-  --sc-radius-modal: 8px;
-  --sc-radius-sheet: 6px;
+  --sc-radius-control: 10px;
+  --sc-radius-card: 14px;
+  --sc-radius-panel: 18px;
+  --sc-radius-modal: 22px;
+  --sc-radius-sheet: 18px;
   --sc-radius-pill: 999px;
 
   /* Alias de migración. Ninguno declara valor propio. */
@@ -431,28 +438,34 @@
   --sc-radius-hero: var(--sc-radius-panel);
 
   /* ------------------------------------------------------------------ */
-  /* 5 · MATERIA: el filete, y un solo escalón de elevación              */
+  /* 5 · MATERIA: un escalón de arcilla, y una sola luz                  */
   /* ------------------------------------------------------------------ */
-  /* Lo que separaba las piezas en el sistema anterior era una sombra por pieza
-     con luz propia arriba-izquierda y oscuridad abajo-derecha, más dos capas
-     `inset`. Eso era el claymorphism, y no queda nada de él: aquí una pieza se
-     apoya en el plano y lo que la delimita es un filete de 1px.
+  /* El sistema vuelve a tener volumen, pero con una condición que el
+     claymorphism de origen no cumplía: la luz es UNA, del sistema, y no una
+     por pieza. Entra por arriba-izquierda; la sombra cae abajo-derecha y el
+     contacto claro queda arriba-izquierda. Ninguna superficie se ilumina sola,
+     ninguna capa tiñe: la sombra es tinta neutra y el realce es papel, porque
+     el color en este producto significa dominio y nunca profundidad.
 
-     La ÚNICA excepción es lo que de verdad flota por encima del contenido y
-     puede taparlo —popover, menú, hoja, modal, toast—. Ahí una sombra de
-     contacto neutra dice "esto está delante", que es información, no adorno.
-     Es una sola dirección, sin luz interior y sin tinte. */
-  --sc-shadow-raised: none;
-  --sc-shadow-lifted: none;
-  --sc-shadow-xs: none;
-  --sc-shadow-sm: none;
-  --sc-shadow-md: none;
-  --sc-shadow-inset: none;
-  --sc-shadow-pressed: none;
-  --sc-shadow-action: none;
-  --sc-shadow-action-hover: none;
-  --sc-shadow-action-pressed: none;
-  --sc-shadow-lg: 0 1px 2px rgb(10 10 10 / .05), 0 8px 24px rgb(10 10 10 / .08);
+     Es UN escalón, no una escalera de adorno: `raised` para lo que se apoya,
+     `lg` y su familia para lo que de verdad flota por encima del contenido y
+     puede taparlo. Un panel no sube por ser importante; sube porque tapa.
+
+     Lo que NO vuelve del claymorphism de origen: el marfil cálido, el acento
+     menta, la sombra con luz propia por pieza y los degradados de brillo.
+     `designSystem.test.ts` sigue montando guardia sobre todo eso. */
+  --sc-shadow-raised: 3px 4px 10px rgb(23 26 28 / .08), -2px -2px 7px rgb(255 255 255 / .6);
+  --sc-shadow-lifted: 6px 8px 18px rgb(23 26 28 / .1), -3px -3px 10px rgb(255 255 255 / .65);
+  --sc-shadow-xs: 2px 2px 6px rgb(23 26 28 / .06), -1px -1px 4px rgb(255 255 255 / .5);
+  --sc-shadow-sm: var(--sc-shadow-raised);
+  --sc-shadow-md: var(--sc-shadow-lifted);
+  /* Una cavidad invierte la misma luz: se hunde por arriba-izquierda. */
+  --sc-shadow-inset: inset 2px 2px 6px rgb(23 26 28 / .09), inset -1px -1px 4px rgb(255 255 255 / .55);
+  --sc-shadow-pressed: inset 2px 3px 6px rgb(23 26 28 / .14);
+  --sc-shadow-action: var(--sc-shadow-raised);
+  --sc-shadow-action-hover: var(--sc-shadow-lifted);
+  --sc-shadow-action-pressed: inset 0 1px 3px rgb(0 0 0 / .22);
+  --sc-shadow-lg: 10px 13px 28px rgb(23 26 28 / .12), -4px -4px 14px rgb(255 255 255 / .7);
   --sc-shadow-floating: var(--sc-shadow-lg);
   --sc-shadow-popover: var(--sc-shadow-lg);
   --sc-shadow-modal: 0 1px 2px rgb(10 10 10 / .06), 0 16px 40px rgb(10 10 10 / .12);
@@ -460,13 +473,15 @@
   /* `drop-shadow()` sólo admite una capa. */
   --sc-shadow-drop: 0 6px 16px rgb(10 10 10 / .10);
 
-  /* Contrato público de materia: cuatro niveles, y sólo el último tiene sombra. */
+  /* Contrato público de materia: cuatro niveles, cada uno con su distancia.
+     El filete de 1px no se va a ninguna parte —sigue siendo lo que delimita—;
+     lo que cambia es que ahora además hay una distancia que leer. */
   --sc-depth-base-border: 1px solid var(--sc-color-border-soft);
   --sc-depth-base-shadow: none;
   --sc-depth-inset-border: 1px solid var(--sc-color-border-soft);
-  --sc-depth-inset-shadow: none;
+  --sc-depth-inset-shadow: var(--sc-shadow-inset);
   --sc-depth-raised-border: 1px solid var(--sc-color-border-soft);
-  --sc-depth-raised-shadow: none;
+  --sc-depth-raised-shadow: var(--sc-shadow-raised);
   --sc-depth-floating-border: 1px solid var(--sc-color-border);
   --sc-depth-floating-shadow: var(--sc-shadow-lg);
 
@@ -474,12 +489,14 @@
   --sc-surface-fill: var(--sc-color-surface-1);
   --sc-surface-fill-action: var(--sc-color-action-primary);
 
-  /* Sin volumen no hay nada que hundir: un control pulsado cambia de plano, no
-     de posición. Mover 2px una interfaz plana la hace parecer suelta. */
-  --sc-press-transform: none;
-  --sc-press-transform-flat: none;
+  /* Con volumen sí hay algo que hundir: un control pulsado baja un píxel. Uno
+     solo — a dos ya parece que se despega de la interfaz en vez de responder. */
+  --sc-press-transform: translateY(1px);
+  --sc-press-transform-flat: translateY(1px);
 
-  /* Sin luz propia: no hay anillo interior, ni brillo, ni degradado. */
+  /* La luz es del sistema, no de la pieza: sigue sin haber anillo interior de
+     brillo, ni glow, ni degradado. Una cosa es un escalón de contacto y otra
+     que cada superficie finja su propia fuente. */
   --sc-ring-inset: none;
   --sc-ring-focus: 0 0 0 var(--sc-focus-ring-width) var(--sc-color-focus);
   --sc-glow-accent: none;
@@ -833,8 +850,16 @@
   --sc-color-tool-dimension: #f3c553;
   --sc-color-tool-cut: #8d8f8c;
 
-  /* La sombra de contacto necesita más peso sobre un plano oscuro. */
-  --sc-shadow-lg: 0 1px 2px rgb(0 0 0 / .5), 0 8px 24px rgb(0 0 0 / .6);
+  /* MATERIA EN NOCHE. La sombra necesita más peso sobre un plano oscuro, y el
+     contacto claro deja de ser blanco: lo que recoge un canto de noche no es
+     una fuente, es ambiente. Gris de ambiente, no papel. */
+  --sc-shadow-raised: 3px 4px 10px rgb(0 0 0 / .4), -2px -2px 7px rgb(120 124 126 / .16);
+  --sc-shadow-lifted: 6px 8px 18px rgb(0 0 0 / .46), -3px -3px 10px rgb(120 124 126 / .2);
+  --sc-shadow-xs: 2px 2px 6px rgb(0 0 0 / .34), -1px -1px 4px rgb(120 124 126 / .12);
+  --sc-shadow-inset: inset 2px 2px 6px rgb(0 0 0 / .45), inset -1px -1px 4px rgb(120 124 126 / .14);
+  --sc-shadow-pressed: inset 2px 3px 6px rgb(0 0 0 / .5);
+  --sc-shadow-action-pressed: inset 0 1px 3px rgb(0 0 0 / .4);
+  --sc-shadow-lg: 10px 13px 28px rgb(0 0 0 / .52), -4px -4px 14px rgb(120 124 126 / .24);
   --sc-shadow-modal: 0 1px 2px rgb(0 0 0 / .5), 0 16px 40px rgb(0 0 0 / .7);
   --sc-shadow-sheet: 0 -1px 2px rgb(0 0 0 / .5), 0 -12px 32px rgb(0 0 0 / .6);
   --sc-shadow-drop: 0 6px 16px rgb(0 0 0 / .6);

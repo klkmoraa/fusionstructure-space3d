@@ -16,12 +16,19 @@ const tokens = leer(`${SRC}/design-system/tokens.css`);
  * Guarda de la identidad visual de FusionStructure.
  *
  * La fundación implementa el brandbook: papel y carbón para el chrome, seis
- * señales para el dominio y una escala de movimiento corta. Estas pruebas
- * existen para que la dirección visual de los dos productos de origen
- * —claymorphism, marfil cálido, acento menta, y la capa de parches que la
- * tapaba de blanco con `!important`— no pueda volver por la puerta de atrás:
- * no basta con haberla quitado una vez, porque cualquier regla nueva copiada de
- * cualquiera de los dos la reintroduce.
+ * señales para el dominio, una escala de movimiento corta y —desde la adopción
+ * de la arcilla leve— un escalón de volumen con UNA sola luz.
+ *
+ * Estas pruebas existían para que el claymorphism de los dos productos de
+ * origen no pudiera volver por la puerta de atrás. El producto decidió que
+ * vuelva, pero acotado, así que la guarda no se retira: cambia de polaridad.
+ * Lo que antes se prohibía —que una sombra proyecte y realce a la vez— ahora
+ * se EXIGE, y lo que sigue prohibido es lo que hacía ilegible al original:
+ * que cada pieza finja su propia fuente de luz, que la profundidad tiña, que
+ * el volumen crezca sin límite y que el dato se redondee.
+ *
+ * Sigue en pie, sin tocar, la guarda del marfil cálido, el acento menta y la
+ * capa de parches con `!important`: eso no vuelve.
  */
 
 /** Todas las hojas del producto, en rutas relativas estables entre máquinas. */
@@ -73,37 +80,82 @@ const contraste = (a: [number, number, number], b: [number, number, number]): nu
   return (claro + 0.05) / (oscuro + 0.05);
 };
 
-describe('materia · el claymorphism no puede volver', () => {
-  it('ninguna sombra del sistema tiene luz interior blanca', () => {
-    // La firma del claymorphism es una capa `inset` clara que finge una fuente
-    // de luz propia dentro de cada pieza.
-    const sospechosas = tokens
-      .split('\n')
-      .filter((linea: string) => /--sc-shadow-|--sc-depth-/.test(linea) && /inset/.test(linea) && /255,\s*255,\s*255|#fff/i.test(linea));
-    expect(sospechosas).toEqual([]);
-  });
+describe('materia · la arcilla tiene una sola luz', () => {
+  /** Cada capa de una sombra, como (x, y, difuminado).
+   *  El desplazamiento en X puede venir como `0` pelado —así se escriben las
+   *  sombras de contacto verticales—, así que el `px` sólo se exige en Y y en
+   *  el difuminado. El ancla al principio del valor o a una coma es lo que
+   *  impide que los tres enteros de un `rgb(23 26 28 …)` se lean como una capa. */
+  const capasDe = (valor: string) =>
+    [...valor.matchAll(/(?:^|,)\s*(?:inset\s+)?(-?\d+)(?:px)?\s+(-?\d+)px\s+(\d+)px/g)]
+      .map((m) => ({ x: Number(m[1]), y: Number(m[2]), difuminado: Number(m[3]) }));
 
-  it('ninguna sombra proyecta en dos direcciones opuestas a la vez', () => {
-    // La otra firma: una capa hacia abajo-derecha y otra hacia arriba-izquierda.
-    for (const linea of tokens.split('\n').filter((l: string) => /--sc-shadow-[a-z-]+:/.test(l))) {
-      const capas = linea.slice(linea.indexOf(':') + 1);
-      const desplazamientosX = [...capas.matchAll(/(-?\d+)px\s+-?\d+px\s+\d+px/g)].map((m) => Number(m[1]));
-      const haciaAmbos = desplazamientosX.some((x) => x > 0) && desplazamientosX.some((x) => x < 0);
-      expect(haciaAmbos, `sombra bidireccional en: ${linea.trim()}`).toBe(false);
+  /** Los tokens de sombra con un valor propio, en el bloque que se pida. */
+  const sombrasDe = (bloque: string) =>
+    [...bloque.matchAll(/^\s*(--sc-shadow-[a-z-]+):\s*([^;]+);/gm)]
+      .map(([, nombre, valor]) => ({ nombre, valor: valor.trim() }))
+      .filter(({ valor }) => valor !== 'none' && !valor.startsWith('var('));
+
+  it('la luz entra por una sola esquina: nada proyecta abajo-izquierda ni arriba-derecha', () => {
+    // Ésta es la prueba que sostiene toda la materia. Con la luz arriba-
+    // izquierda, una capa que se aleja a la derecha tiene que bajar y una que
+    // se aleja a la izquierda tiene que subir. Una capa con signos opuestos
+    // sería una segunda fuente de luz, que es exactamente lo que hacía
+    // ilegible al claymorphism de origen.
+    for (const { nombre, valor } of sombrasDe(bloqueRaiz).concat(sombrasDe(bloqueNoche))) {
+      for (const capa of capasDe(valor)) {
+        const opuestos = (capa.x > 0 && capa.y < 0) || (capa.x < 0 && capa.y > 0);
+        expect(opuestos, `${nombre}: capa ${capa.x}px ${capa.y}px contradice la luz del sistema`).toBe(false);
+      }
     }
   });
 
-  it('sólo el escalón de contacto y sus alias declaran sombra', () => {
-    const conSombra = [...tokens.matchAll(/^\s*(--sc-shadow-[a-z-]+):\s*([^;]+);/gm)]
-      .filter(([, , valor]) => valor.trim() !== 'none' && !valor.includes('var(--sc-shadow-lg)'))
-      .map(([, nombre]) => nombre);
-    // `lg` es el escalón de contacto; `modal`, `sheet` y `drop` son su familia.
-    expect(new Set(conSombra)).toEqual(new Set(['--sc-shadow-lg', '--sc-shadow-modal', '--sc-shadow-sheet', '--sc-shadow-drop']));
+  it('ninguna capa de profundidad tiñe', () => {
+    // La sombra es tinta neutra y el realce es papel. En cuanto una capa tiene
+    // hue, la profundidad empieza a competir con las seis señales del dominio,
+    // que son lo único que puede significar color en este producto.
+    for (const { nombre, valor } of sombrasDe(bloqueRaiz).concat(sombrasDe(bloqueNoche))) {
+      for (const [, r, g, b] of valor.matchAll(/rgb\(\s*(\d+)\s+(\d+)\s+(\d+)/g)) {
+        const canales = [Number(r), Number(g), Number(b)];
+        const desviacion = Math.max(...canales) - Math.min(...canales);
+        expect(desviacion, `${nombre}: rgb(${canales.join(' ')}) tiene tinte`).toBeLessThanOrEqual(12);
+      }
+    }
   });
 
-  it('un control pulsado no se desplaza', () => {
-    expect(valorEn(bloqueRaiz, '--sc-press-transform')).toBe('none');
-    expect(valorEn(bloqueRaiz, '--sc-press-transform-flat')).toBe('none');
+  it('la escalera de elevación es monótona y no se dispara', () => {
+    // Un escalón, no una escalera de adorno: cada nivel se separa del anterior
+    // y el que más flota sigue siendo una sombra de contacto, no un cráter.
+    const difuminadoDe = (nombre: string) =>
+      Math.max(...capasDe(valorEn(bloqueRaiz, nombre) ?? '').map((c) => c.difuminado));
+    const escalera = ['--sc-shadow-xs', '--sc-shadow-raised', '--sc-shadow-lifted', '--sc-shadow-lg'].map(difuminadoDe);
+    for (let i = 1; i < escalera.length; i += 1) {
+      expect(escalera[i], `el escalón ${i} no supera al anterior`).toBeGreaterThan(escalera[i - 1]);
+    }
+    expect(Math.max(...escalera), 'la sombra más alta se despegó del contacto').toBeLessThanOrEqual(32);
+  });
+
+  it('cada escalón de arcilla se recalibra en Noche', () => {
+    // Un realce blanco sobre carbón es una fuente que no existe: de noche lo
+    // que recoge un canto es ambiente.
+    for (const nombre of ['--sc-shadow-raised', '--sc-shadow-lifted', '--sc-shadow-xs', '--sc-shadow-inset', '--sc-shadow-pressed', '--sc-shadow-lg']) {
+      expect(valorEn(bloqueNoche, nombre), `${nombre} debe recalibrarse en Noche`).toBeTruthy();
+    }
+    expect(valorEn(bloqueNoche, '--sc-shadow-raised')).not.toMatch(/255\s+255\s+255/);
+  });
+
+  it('un control pulsado se hunde un píxel, ni más ni menos', () => {
+    // Dos píxeles ya no es responder: es despegarse.
+    expect(valorEn(bloqueRaiz, '--sc-press-transform')).toBe('translateY(1px)');
+    expect(valorEn(bloqueRaiz, '--sc-press-transform-flat')).toBe('translateY(1px)');
+  });
+
+  it('la luz sigue siendo del sistema y no de la pieza', () => {
+    // Lo que NO vuelve: el anillo interior de brillo, el glow y los degradados
+    // con los que cada superficie fingía su propia fuente.
+    for (const nombre of ['--sc-ring-inset', '--sc-glow-accent', '--sc-glow-aula', '--sc-gradient-brand-soft', '--sc-gradient-display', '--sc-gradient-sheen']) {
+      expect(valorEn(bloqueRaiz, nombre), `${nombre} debe seguir en none`).toBe('none');
+    }
   });
 });
 
@@ -202,12 +254,19 @@ describe('color · la interfaz es acromática y el dominio es el único que tiñ
   });
 });
 
-describe('forma · la escala de radios es la del sistema sin volumen', () => {
-  it('ningún radio de rol supera los 8px', () => {
-    for (const rol of ['--sc-radius-control', '--sc-radius-card', '--sc-radius-panel', '--sc-radius-modal', '--sc-radius-sheet']) {
-      const px = Number((valorEn(bloqueRaiz, rol) ?? '').replace('px', ''));
-      expect(px, `${rol} = ${px}px`).toBeLessThanOrEqual(8);
-    }
+describe('forma · la escala de radios acompaña al volumen sin inflarlo', () => {
+  it('la escala es la declarada por rol, y crece con el rol', () => {
+    // El radio acompaña a la sombra: sin curva, el canto duro delata que el
+    // volumen es un adorno pegado. Pero la densidad no se negocia, así que la
+    // escala está un escalón por debajo de la del claymorphism de origen
+    // (10 / 18 / 24 / 28) en todo salvo en `control`.
+    const escala = ['--sc-radius-control', '--sc-radius-card', '--sc-radius-panel', '--sc-radius-modal']
+      .map((rol) => Number((valorEn(bloqueRaiz, rol) ?? '').replace('px', '')));
+    expect(escala).toEqual([10, 14, 18, 22]);
+
+    // El dato es el escalón cero y no se mueve: redondear una celda comparable
+    // destruye el barrido lineal de la columna, haya volumen o no.
+    expect(valorEn(bloqueRaiz, '--sc-radius-data')).toBe('0');
   });
 
   it('ninguna hoja declara un radio literal fuera de la escala', () => {
