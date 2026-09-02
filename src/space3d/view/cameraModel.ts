@@ -25,7 +25,7 @@ export interface Space3DCameraPlacement {
 }
 
 const FOV_DEGREES = 45;
-const MARGIN = 1.35;
+const MARGIN = 0.88;
 
 /** Direcciones unitarias de cada preset, en la convención global Y-arriba. */
 const DIRECTIONS: Record<Space3DViewPreset, { readonly offset: Space3DVector; readonly up: Space3DVector }> = {

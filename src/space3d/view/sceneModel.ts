@@ -14,6 +14,16 @@ import { resolveSpace3DTarget } from '../engine/solver';
 import { Space3DGeometryError, type Space3DAnalysisResult, type Space3DOrientationBasis, type Space3DProjectV1, type Space3DVector } from '../model/types';
 import type { Space3DAnalysisState, Space3DSelection } from '../store/Space3DProjectContext';
 
+export type Space3DResultMode = 'model' | 'deformed' | 'axial' | 'shear' | 'moment' | 'reactions';
+
+export interface Space3DSceneMemberResult {
+  readonly mode: 'axial' | 'shear' | 'moment';
+  readonly start: number;
+  readonly end: number;
+  readonly magnitude: number;
+  readonly relative: number;
+}
+
 export interface Space3DSceneNode {
   readonly id: string;
   readonly position: Space3DVector;
@@ -31,6 +41,15 @@ export interface Space3DSceneMember {
   readonly length: number;
   readonly basis: Space3DOrientationBasis | null;
   readonly selected: boolean;
+  readonly result: Space3DSceneMemberResult | null;
+}
+
+export interface Space3DSceneReaction {
+  readonly nodeId: string;
+  readonly origin: Space3DVector;
+  readonly direction: Space3DVector;
+  readonly magnitude: number;
+  readonly relative: number;
 }
 
 export interface Space3DSceneSupport {
@@ -83,6 +102,7 @@ export interface Space3DSceneModel {
   readonly members: readonly Space3DSceneMember[];
   readonly supports: readonly Space3DSceneSupport[];
   readonly loads: readonly Space3DSceneLoad[];
+  readonly reactions: readonly Space3DSceneReaction[];
   readonly localAxes: Space3DSceneLocalAxes | null;
   readonly deformed: Space3DSceneDeformed | null;
   readonly bounds: Space3DSceneBounds;
@@ -98,6 +118,7 @@ export interface Space3DSceneInput {
   readonly targetId: string;
   /** Escala explícita de la deformada; si falta se calcula para ocupar el 8 % del modelo. */
   readonly deformationScale?: number;
+  readonly resultMode?: Space3DResultMode;
 }
 
 const DEFAULT_SPAN = 6;
@@ -134,8 +155,20 @@ const normalizeOrZero = (vector: Space3DVector): Space3DVector => {
 };
 
 export const buildSpace3DSceneModel = (input: Space3DSceneInput): Space3DSceneModel => {
-  const { project, analysis, analysisState, selection, targetId, deformationScale } = input;
+  const { project, analysis, analysisState, selection, targetId, deformationScale, resultMode = 'model' } = input;
   const diagnostics: Space3DSceneDiagnostic[] = [];
+
+  const resultKind = resultMode === 'axial' || resultMode === 'shear' || resultMode === 'moment' ? resultMode : null;
+  const resultIsCurrent = analysisState === 'ready' && analysis?.success === true;
+  const rawMemberResults = new Map((resultIsCurrent && resultKind ? analysis.memberResults : []).map((item) => {
+    const values = resultKind === 'axial'
+      ? [item.start.N, item.end.N]
+      : resultKind === 'shear'
+        ? [Math.hypot(item.start.Vy, item.start.Vz), Math.hypot(item.end.Vy, item.end.Vz)]
+        : [Math.hypot(item.start.My, item.start.Mz), Math.hypot(item.end.My, item.end.Mz)];
+    return [item.memberId, { start: values[0], end: values[1], magnitude: Math.max(Math.abs(values[0]), Math.abs(values[1])) }] as const;
+  }));
+  const maxMemberResult = Math.max(...[...rawMemberResults.values()].map((item) => item.magnitude), 0);
 
   const nodes: Space3DSceneNode[] = [];
   const positionById = new Map<string, Space3DVector>();
@@ -175,6 +208,7 @@ export const buildSpace3DSceneModel = (input: Space3DSceneInput): Space3DSceneMo
       if (!(error instanceof Space3DGeometryError)) throw error;
       basis = null;
     }
+    const rawResult = rawMemberResults.get(member.id);
     members.push(Object.freeze({
       id: member.id,
       nodeI: member.i,
@@ -185,6 +219,11 @@ export const buildSpace3DSceneModel = (input: Space3DSceneInput): Space3DSceneMo
       length,
       basis,
       selected: selection?.kind === 'member' && selection.id === member.id,
+      result: rawResult && resultKind ? Object.freeze({
+        mode: resultKind,
+        ...rawResult,
+        relative: maxMemberResult > 0 ? rawResult.magnitude / maxMemberResult : 0,
+      }) : null,
     }));
   }
 
@@ -230,6 +269,24 @@ export const buildSpace3DSceneModel = (input: Space3DSceneInput): Space3DSceneMo
     });
   });
 
+  const rawReactions = resultIsCurrent && resultMode === 'reactions'
+    ? analysis.nodeResults.flatMap((item) => {
+      const origin = positionById.get(item.nodeId);
+      if (!origin) return [];
+      const vector = point(item.reaction.ux, item.reaction.uy, item.reaction.uz);
+      const magnitude = Math.hypot(...vector);
+      return magnitude > 0 ? [{ nodeId: item.nodeId, origin, vector, magnitude }] : [];
+    })
+    : [];
+  const maxReaction = Math.max(...rawReactions.map((item) => item.magnitude), 0);
+  const reactions: Space3DSceneReaction[] = rawReactions.map((item) => Object.freeze({
+    nodeId: item.nodeId,
+    origin: item.origin,
+    direction: normalizeOrZero(item.vector),
+    magnitude: item.magnitude,
+    relative: maxReaction > 0 ? item.magnitude / maxReaction : 0,
+  }));
+
   const bounds = boundsOf(nodes.map((node) => node.position));
 
   const selectedMember = selection?.kind === 'member'
@@ -251,6 +308,7 @@ export const buildSpace3DSceneModel = (input: Space3DSceneInput): Space3DSceneMo
     members: Object.freeze(members),
     supports: Object.freeze(supports),
     loads: Object.freeze(loads),
+    reactions: Object.freeze(reactions),
     localAxes,
     deformed,
     bounds,

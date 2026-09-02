@@ -7,11 +7,11 @@
  * crear una entidad nueva, porque en S3D-1 el apoyo es un atributo del nudo.
  */
 import {
-  Box, CircleDot, MousePointer2, Redo2, Spline, Trash2, Triangle, Undo2, Weight,
+  BarChart3, CircleDot, Ellipsis, MousePointer2, Spline, Triangle, Weight,
 } from 'lucide-react';
 import type { TranslationKey } from '../../i18n/catalogs';
 
-export type Space3DActiveTool = 'select' | 'node' | 'member' | 'load';
+export type Space3DActiveTool = 'select' | 'node' | 'member' | 'support' | 'load' | 'results';
 
 export interface Space3DConsoleToolsProps {
   readonly t: (key: TranslationKey, variables?: Record<string, string | number>) => string;
@@ -24,20 +24,15 @@ export interface Space3DConsoleToolsProps {
   readonly canNewMember: boolean;
   readonly canNewLoad: boolean;
   readonly canEditSupport: boolean;
-  /** «Vista»: avanza al siguiente preset de cámara (mismo estado que el selector del lienzo y la lista Vistas). */
-  readonly onCycleView: () => void;
-  readonly canUndo: boolean;
-  readonly canRedo: boolean;
-  readonly canDelete: boolean;
-  readonly onUndo: () => void;
-  readonly onRedo: () => void;
-  readonly onDelete: () => void;
+  readonly canShowResults: boolean;
+  readonly onShowResults: () => void;
+  readonly onMore: () => void;
+  readonly moreOpen: boolean;
 }
 
 export const Space3DConsoleTools = ({
   t, activeTool, onSelectTool, onNewNode, onNewMember, onNewLoad, onEditSupport,
-  canNewMember, canNewLoad, canEditSupport, onCycleView,
-  canUndo, canRedo, canDelete, onUndo, onRedo, onDelete,
+  canNewMember, canNewLoad, canEditSupport, canShowResults, onShowResults, onMore, moreOpen,
 }: Space3DConsoleToolsProps) => <nav className="space3d-console-tools space3d-rail-vertical" aria-label={t('space3d.toolRailLabel')}>
   <div className="space3d-rail-vertical-group" role="group" aria-label={t('space3d.toolRailLabel')}>
     <button
@@ -88,6 +83,7 @@ export const Space3DConsoleTools = ({
     <button
       type="button"
       className="space3d-rail-button"
+      aria-pressed={activeTool === 'support'}
       onClick={onEditSupport}
       disabled={!canEditSupport}
       aria-label={t('space3d.newSupport')}
@@ -99,26 +95,20 @@ export const Space3DConsoleTools = ({
     <button
       type="button"
       className="space3d-rail-button"
-      onClick={onCycleView}
-      title={t('space3d.toolbarView')}
+      aria-pressed={activeTool === 'results'}
+      onClick={onShowResults}
+      disabled={!canShowResults}
+      title={t('space3d.tabResults')}
     >
-      <Box size={19} aria-hidden="true" />
-      <span>{t('space3d.toolbarView')}</span>
+      <BarChart3 size={19} aria-hidden="true" />
+      <span>{t('space3d.tabResults')}</span>
     </button>
   </div>
 
   <div className="space3d-rail-vertical-group space3d-rail-vertical-group--history" role="group" aria-label={t('space3d.toolbarProject')}>
-    <button type="button" className="space3d-rail-button" onClick={onUndo} disabled={!canUndo} title={t('space3d.undo')}>
-      <Undo2 size={18} aria-hidden="true" />
-      <span className="space3d-visually-hidden">{t('space3d.undo')}</span>
-    </button>
-    <button type="button" className="space3d-rail-button" onClick={onRedo} disabled={!canRedo} title={t('space3d.redo')}>
-      <Redo2 size={18} aria-hidden="true" />
-      <span className="space3d-visually-hidden">{t('space3d.redo')}</span>
-    </button>
-    <button type="button" className="space3d-rail-button space3d-rail-button--danger" onClick={onDelete} disabled={!canDelete} title={t('space3d.deleteSelected')}>
-      <Trash2 size={18} aria-hidden="true" />
-      <span className="space3d-visually-hidden">{t('space3d.deleteSelected')}</span>
+    <button type="button" className="space3d-rail-button" aria-expanded={moreOpen} onClick={onMore} title="Más">
+      <Ellipsis size={20} aria-hidden="true" />
+      <span>Más</span>
     </button>
   </div>
 </nav>;
