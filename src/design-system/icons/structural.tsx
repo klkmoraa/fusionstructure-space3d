@@ -93,3 +93,19 @@ export const MomentLoadGlyph = ({ size, ...rest }: StructuralGlyphProps) => (
     <path d="m18.1 3.8-.3 3.3-3.3-.3" />
   </svg>
 );
+
+/**
+ * Entrada por coordenadas: los dos ejes del lienzo, las dos proyecciones
+ * punteadas y el punto que definen. Es un glifo propio y no uno genérico de
+ * lucide porque nombra una acción que sólo existe aquí —escribir un punto en
+ * vez de picarlo—, y tiene que distinguirse de la mira del lector de
+ * coordenadas, que informa y no hace nada.
+ */
+export const CoordinateEntryGlyph = ({ size, ...rest }: StructuralGlyphProps) => (
+  <svg {...base(size, rest)}>
+    <path d="M4.6 4.6v14.8h14.8" />
+    <path d="M15.4 19.4v-6.8h-6.8" strokeDasharray="2 2.2" />
+    <circle cx="15.4" cy="12.6" r="2.1" fill="currentColor" stroke="none" />
+    <path d="M8.6 4.6h2.2M8.6 8.2h2.2" />
+  </svg>
+);
