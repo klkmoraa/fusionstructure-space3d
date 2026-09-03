@@ -1354,12 +1354,25 @@
     padding-block: 2px;
   }
 
+  /* El cajón es una FILA FLEXIBLE QUE ENVUELVE, no una rejilla.
+     Aquí se declaraba `display:grid` con dos columnas, pero la regla sin
+     envolver de más abajo vuelve a poner `display:flex` y gana por orden, así
+     que la rejilla nunca llegó a aplicarse: ni sus columnas, ni los
+     `grid-column` que la acompañaban. Lo que de verdad coloca las bandejas es
+     el `flex-wrap:wrap` de la regla base más el `inline-size:100%` que reciben
+     al abrirse —cada una ocupa su propia línea—, y así se ha medido a 390px:
+     historial en y=54, capas en y=101 y ejecución en y=148, las tres a ancho
+     completo y ninguna comprimida.
+
+     Se declara lo que gobierna en vez de lo que se ignora. Una rejilla inerte
+     no es inofensiva: invita a tocar `flex-wrap` creyendo que no manda, y ese
+     día las tres bandejas sí se apretarían en una sola fila. */
   .space3d-toolbar {
     position: relative;
     inset: auto;
     z-index: auto;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 6px;
     padding: 0 10px;
     background: transparent;
@@ -1393,7 +1406,7 @@
 
   .space3d-toolbar[data-mobile-open] > .space3d-tray:not(.space3d-tray--run) {
     display: flex;
-    grid-column: 1 / -1;
+    /* `inline-size:100%` es lo que las manda a su propia línea al envolver. */
     inline-size: 100%;
   }
 
@@ -1402,7 +1415,6 @@
 
   .space3d-tray--run {
     order: 4;
-    grid-column: 2;
     inline-size: auto;
     min-inline-size: 0;
     margin: 0;
