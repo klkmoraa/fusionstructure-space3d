@@ -228,11 +228,19 @@ const LABEL_MAX_WIDTH_PX = 768;
  * un contexto 2D: lo que se verifica es que la caja nunca es más estrecha que
  * la tinta y que el sprite hereda la relación real de la textura.
  */
-export const labelTextureMetrics = (measuredWidth: number): { width: number; height: number; aspect: number } => {
+export const labelTextureMetrics = (
+  measuredWidth: number,
+): { width: number; height: number; aspect: number; inkWidth: number } => {
   const ink = Number.isFinite(measuredWidth) && measuredWidth > 0 ? measuredWidth : LABEL_FONT_PX;
   const height = Math.round(LABEL_FONT_PX * 1.5);
   const width = Math.min(LABEL_MAX_WIDTH_PX, Math.max(height, Math.ceil(ink + LABEL_PADDING_PX * 2)));
-  return { width, height, aspect: width / height };
+  // Ancho REAL disponible para la tinta dentro de la caja. Importa cuando el
+  // texto topa con el techo: sin dárselo a `fillText`, el navegador lo pinta a
+  // su anchura natural y vuelve a recortarlo por los dos lados —el mismo fallo
+  // que esto vino a arreglar, sólo que a partir de unos 28 caracteres en vez de
+  // cuatro—. Y no es hipotético: un identificador importado sólo se valida
+  // contra el tope de 20.000 caracteres del migrador.
+  return { width, height, aspect: width / height, inkWidth: Math.max(1, width - LABEL_PADDING_PX * 2) };
 };
 
 const makeLabel = (text: string, color: Color, size: number): Sprite | null => {
@@ -249,7 +257,7 @@ const makeLabel = (text: string, color: Color, size: number): Sprite | null => {
   // todo su estado de dibujo —incluida la fuente— y medir con una y pintar con
   // otra devolvería el mismo recorte que se venía arreglando.
   context.font = LABEL_FONT;
-  const { width, height } = labelTextureMetrics(context.measureText(text).width);
+  const { width, height, inkWidth } = labelTextureMetrics(context.measureText(text).width);
   canvas.width = width;
   canvas.height = height;
   context.clearRect(0, 0, width, height);
@@ -257,7 +265,12 @@ const makeLabel = (text: string, color: Color, size: number): Sprite | null => {
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.fillStyle = `#${color.getHexString()}`;
-  context.fillText(text, width / 2, height / 2);
+  // El cuarto argumento es la diferencia entre condensar y AMPUTAR: con él, un
+  // texto que no cabe se estrecha y se lee entero; sin él, se pinta a su
+  // anchura natural y el lienzo se come sus extremos. Un rótulo puede quedar
+  // apretado; lo que no puede es perder caracteres en silencio, porque así es
+  // como 42,7 kN pasaba a leerse 2,7.
+  context.fillText(text, width / 2, height / 2, inkWidth);
 
   const texture = new CanvasTexture(canvas);
   texture.needsUpdate = true;

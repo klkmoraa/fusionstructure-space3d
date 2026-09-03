@@ -32,6 +32,23 @@ describe('etiquetas del visor espacial', () => {
   it('una etiqueta larguísima se topa con un techo en vez de devorar textura', () => {
     expect(labelTextureMetrics(20000).width).toBeLessThanOrEqual(768);
   });
+
+  it('el techo publica cuánto sitio queda para la tinta, para no volver a amputar', () => {
+    // El techo por sí solo reproducía el fallo original a partir de unos 28
+    // caracteres: la caja dejaba de crecer pero el texto se seguía pintando a
+    // su anchura natural, así que el lienzo se comía sus extremos. Y no es
+    // hipotético: un identificador importado sólo se valida contra el tope de
+    // 20.000 caracteres del migrador. `inkWidth` es lo que `fillText` recibe
+    // como anchura máxima, de modo que un texto que no cabe se ESTRECHA y se
+    // lee entero en vez de perder caracteres en silencio.
+    const topado = labelTextureMetrics(20000);
+    expect(topado.inkWidth).toBeGreaterThan(0);
+    expect(topado.inkWidth).toBeLessThanOrEqual(topado.width);
+
+    // Con holgura, la tinta cabe entera y la caja sólo le añade el aire.
+    const holgado = labelTextureMetrics(180);
+    expect(holgado.inkWidth).toBeGreaterThanOrEqual(180);
+  });
 });
 
 describe('brújula de ejes del visor espacial', () => {
