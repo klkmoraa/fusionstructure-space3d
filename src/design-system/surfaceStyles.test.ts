@@ -82,6 +82,25 @@ describe('una superficie modal no puede montarse sin hoja', () => {
     expect(leer(`${SRC}/features/workspace/CommandPalette.tsx`)).toContain("import './commandPalette.css'");
     expect(leer(`${SRC}/features/space3d/Space3DEntryDialog.tsx`)).toContain("import './space3dEntry.css'");
   });
+
+  /**
+   * La segunda mitad de la misma lección. Tener la hoja junto al componente no
+   * basta cuando el componente se carga con `lazy()`: sus reglas viajan
+   * entonces en un trozo diferido y no existen hasta que ese trozo llega. La
+   * paleta se monta con el atajo, toma el foco y, sin hoja, cae al final del
+   * flujo del documento —sin posición, sin fondo, sin caja—: exactamente el
+   * «tiene foco pero no se ve» que reporta la auditoría de la versión
+   * publicada.
+   *
+   * Por eso la hoja entra TAMBIÉN por la entrada estable que ya está cargada
+   * antes de que la paleta pueda abrirse. La prueba mira las dos cosas a la
+   * vez: que la superficie sea diferida y que su hoja no dependa de serlo.
+   */
+  it('una superficie diferida no deja sus reglas en el trozo diferido', () => {
+    const shell = leer(`${SRC}/features/workspace/WorkspaceShell.tsx`);
+    expect(shell, 'la paleta sigue siendo diferida').toMatch(/lazy\(\(\) => import\('\.\/CommandPalette'\)/);
+    expect(shell, 'y su hoja entra por la entrada estable').toContain("import './commandPalette.css'");
+  });
 });
 
 describe('una hoja sin quien la importe no es una hoja: es peso muerto', () => {
