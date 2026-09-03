@@ -38,6 +38,8 @@ export const esInterchange = {
   'storage.recoveredShort': 'Recuperado',
   'storage.failedShort': 'Error al guardar',
   'storage.loadFailedShort': 'Error al cargar',
+  'storage.conflictShort': 'Revisión en conflicto',
+  'storage.repositoryShort': 'Biblioteca degradada',
   'storage.recovered': 'Se recuperó la copia de seguridad local. El archivo dañado se conservó para diagnóstico.',
   'storage.failed': 'No se pudo guardar el proyecto en este navegador.',
   'storage.loadFailed': 'No se pudo abrir la copia local. Se inició un proyecto seguro y se conservó el contenido dañado para diagnóstico.',
