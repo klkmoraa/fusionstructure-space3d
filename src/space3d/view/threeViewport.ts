@@ -741,6 +741,10 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
       themeObserver?.disconnect();
       controls.dispose();
       disposeObject(scene);
+      // La brújula vive en su propia escena: `scene` no la alcanza, y sin esta
+      // línea sus flechas y sus tres letras se quedaban en la GPU cada vez que
+      // se abandona y se reabre Space 3D —remontajes de StrictMode incluidos—.
+      disposeObject(gizmoScene);
       renderer.dispose();
       // Deliberadamente NO se llama a `forceContextLoss()`: mata el contexto
       // WebGL del `<canvas>`, y React vuelve a montar sobre ese mismo elemento
@@ -752,6 +756,21 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   };
 };
 
+/**
+ * Libera geometría, material Y TEXTURA de un árbol.
+ *
+ * La textura faltaba. Cada etiqueta del visor —identificadores de nudo y barra,
+ * valores de carga— es un sprite con un `CanvasTexture` propio, y `clearGroup`
+ * pasa por aquí en cada reconstrucción del modelo: liberar el material y dejar
+ * su `map` colgado significaba una textura huérfana por etiqueta y por
+ * reconstrucción, en la GPU, durante toda la sesión.
+ */
+const disposeMaterial = (material: Material) => {
+  const withMap = material as Material & { map?: { dispose?: () => void } | null };
+  withMap.map?.dispose?.();
+  material.dispose();
+};
+
 const disposeObject = (root: Object3D) => {
   root.traverse((object) => {
     const holder = object as Object3D & {
@@ -760,8 +779,8 @@ const disposeObject = (root: Object3D) => {
     };
     holder.geometry?.dispose();
     const material = holder.material;
-    if (Array.isArray(material)) material.forEach((item) => item.dispose());
-    else material?.dispose();
+    if (Array.isArray(material)) material.forEach(disposeMaterial);
+    else if (material) disposeMaterial(material);
   });
 };
 
