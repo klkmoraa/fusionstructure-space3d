@@ -83,3 +83,50 @@ describe('una superficie modal no puede montarse sin hoja', () => {
     expect(leer(`${SRC}/features/space3d/Space3DEntryDialog.tsx`)).toContain("import './space3dEntry.css'");
   });
 });
+
+describe('una hoja sin quien la importe no es una hoja: es peso muerto', () => {
+  /**
+   * `features/welcome/home.css` llevaba 305 líneas sin que nadie la importara,
+   * junto al componente que estilaba —`StructuralPortalHero`, otras 306 líneas
+   * sin una sola referencia—, cuyo propio comentario documentaba un enganche
+   * (`.portal-hero__body { filter: url(#…) }`) que nunca llegó a existir: su
+   * acabado no se vio nunca. Nada falla cuando eso pasa; simplemente hay
+   * reglas que ningún navegador llega a leer y que el siguiente que abra el
+   * archivo creerá vivas.
+   */
+  it('cada hoja de `src` la carga alguien', () => {
+    const importadas = new Set(['design-system/tokens.css', 'design-system/fonts.css']);
+    const recorrer = (dir: string, salida: string[] = []): string[] => {
+      for (const entrada of readdirSync(dir).sort()) {
+        const ruta = `${dir}/${entrada}`;
+        if (statSync(ruta).isDirectory()) recorrer(ruta, salida);
+        else salida.push(ruta);
+      }
+      return salida;
+    };
+    const todos = recorrer(SRC);
+    const relativa = (ruta: string) => ruta.slice(SRC.length + 1);
+
+    for (const archivo of todos) {
+      if (!/\.(ts|tsx|css)$/.test(archivo)) continue;
+      const carpeta = relativa(archivo).split('/').slice(0, -1);
+      for (const encontrado of leer(archivo).matchAll(/(?:import|@import)\s+['"]([^'"]+\.css)['"]/g)) {
+        const partes = [...carpeta, ...encontrado[1].split('/')];
+        const resuelta: string[] = [];
+        for (const parte of partes) {
+          if (parte === '.' || parte === '') continue;
+          if (parte === '..') resuelta.pop();
+          else resuelta.push(parte);
+        }
+        importadas.add(resuelta.join('/'));
+      }
+    }
+
+    const huerfanas = todos
+      .filter((archivo) => archivo.endsWith('.css'))
+      .map(relativa)
+      .filter((archivo) => !importadas.has(archivo));
+
+    expect(huerfanas, 'hojas que ningún módulo carga').toEqual([]);
+  });
+});

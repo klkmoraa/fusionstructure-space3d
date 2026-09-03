@@ -31,7 +31,7 @@ import type { Space3DSelection } from '../store/Space3DProjectContext';
 
 
 export const SPACE3D_SCENE_LAYERS = Object.freeze([
-  'grid', 'world-axes', 'members', 'nodes', 'supports', 'loads', 'reactions', 'local-axes', 'deformed', 'labels',
+  'grid', 'members', 'nodes', 'supports', 'loads', 'reactions', 'local-axes', 'deformed', 'labels',
 ] as const);
 export type Space3DSceneLayer = (typeof SPACE3D_SCENE_LAYERS)[number];
 
@@ -53,6 +53,12 @@ export interface Space3DRendererLike {
   render(scene: Scene, camera: Camera): void;
   dispose(): void;
   forceContextLoss?(): void;
+  /* Los cuatro de la brújula de ejes, opcionales a propósito: sin ellos el
+     visor dibuja el modelo igual y se queda sin el recuadro de la esquina. */
+  setViewport?(x: number, y: number, width: number, height: number): void;
+  setScissor?(x: number, y: number, width: number, height: number): void;
+  setScissorTest?(enabled: boolean): void;
+  clearDepth?(): void;
 }
 
 export interface Space3DControlsLike {
@@ -168,6 +174,39 @@ const lineGeometry = (values: readonly number[]): BufferGeometry => {
  */
 let labelsSupported: boolean | null = null;
 
+/**
+ * Recuadro de la brújula de ejes, en coordenadas de WebGL —origen abajo a la
+ * izquierda—, dentro del lienzo.
+ *
+ * Se escala con el lienzo para que en un teléfono no se coma la escena y en una
+ * pantalla grande no quede ridícula, con un suelo y un techo para que siga
+ * siendo legible en los dos extremos. Es una función pura para poder probar los
+ * límites sin una GPU.
+ */
+export const worldAxesViewport = (
+  width: number,
+  height: number,
+  bottomInset = 0,
+): { x: number; y: number; size: number } => {
+  const safeWidth = Number.isFinite(width) && width > 0 ? width : 1;
+  const safeHeight = Number.isFinite(height) && height > 0 ? height : 1;
+  const shortest = Math.min(safeWidth, safeHeight);
+  const size = Math.round(Math.max(64, Math.min(124, shortest * 0.19)));
+  const margin = Math.round(Math.min(16, shortest * 0.03));
+  const inset = Number.isFinite(bottomInset) && bottomInset > 0 ? Math.round(bottomInset) : 0;
+  return {
+    x: margin,
+    y: margin + inset,
+    size: Math.max(1, Math.min(size, Math.floor(shortest) - margin * 2)),
+  };
+};
+
+/** `62px` → 62. Cualquier otra cosa, incluido el valor sin declarar, → 0. */
+export const parseGizmoInset = (declared: string): number => {
+  const parsed = Number.parseFloat(declared);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+};
+
 const LABEL_FONT_PX = 44;
 const LABEL_FONT = `600 ${LABEL_FONT_PX}px "IBM Plex Mono", ui-monospace, monospace`;
 /** Aire a los lados del texto, para que la tinta no toque el borde de la textura. */
@@ -240,6 +279,14 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(45, 1, 0.1, 1_000);
+  // Escena aparte para la brújula de ejes: no comparte cámara, ni escala, ni
+  // profundidad con el modelo, que es justo lo que la mantiene fuera de él.
+  const gizmoScene = new Scene();
+  const gizmoGroup = new Group();
+  gizmoScene.add(gizmoGroup);
+  const gizmoCamera = new PerspectiveCamera(45, 1, 0.1, 20);
+  let viewportSize = { width: 1, height: 1 };
+  let gizmoInset = 0;
   const renderer = (options.createRenderer ?? defaultRenderer)(canvas);
   const controls = (options.createControls ?? defaultControls)(camera, canvas);
   controls.enableDamping = false;
@@ -268,6 +315,39 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   const render = () => {
     if (disposed) return;
     renderer.render(scene, camera);
+    renderWorldAxes();
+  };
+
+  /**
+   * Segunda pasada en un recuadro de la esquina. Los cuatro métodos que hacen
+   * falta son OPCIONALES en `Space3DRendererLike`: un renderizador inyectado
+   * que no los traiga simplemente se queda sin brújula, y el visor sigue
+   * dibujando el modelo. Un accesorio no puede exigirle nada al contrato.
+   */
+  const renderWorldAxes = () => {
+    if (!renderer.setViewport || !renderer.setScissor || !renderer.setScissorTest || !renderer.clearDepth) return;
+    const box = worldAxesViewport(viewportSize.width, viewportSize.height, gizmoInset);
+    // La cámara de la brújula mira al origen desde la MISMA dirección que la
+    // principal, así que las flechas giran con el modelo aunque no compartan
+    // escena.
+    // 4.2 y no 3.4: a 3.4 la mitad del alto visible mide 1,41 unidades y la
+    // etiqueta del eje vertical, anclada a 1,3, quedaba justo en el borde del
+    // recuadro y se recortaba. La brújula debe caber entera, incluidas sus tres
+    // letras, que son lo único que la hace legible.
+    gizmoCamera.position.copy(camera.position).sub(controls.target).normalize().multiplyScalar(4.2);
+    gizmoCamera.up.copy(camera.up);
+    gizmoCamera.lookAt(0, 0, 0);
+    gizmoCamera.updateMatrixWorld(true);
+
+    renderer.clearDepth();
+    renderer.setScissorTest(true);
+    renderer.setScissor(box.x, box.y, box.size, box.size);
+    renderer.setViewport(box.x, box.y, box.size, box.size);
+    renderer.render(gizmoScene, gizmoCamera);
+    // Se restituye el recuadro completo: dejarlo puesto recortaría el siguiente
+    // dibujo del modelo a la esquina.
+    renderer.setScissorTest(false);
+    renderer.setViewport(0, 0, viewportSize.width, viewportSize.height);
   };
 
   const requestRender = () => {
@@ -295,20 +375,41 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
     (grid.material as Material).opacity = 0.28;
     gridGroup.add(grid);
 
-    const axesGroup = groups.get('world-axes')!;
-    const axisLength = Math.max(model.bounds.span * 0.28, 1);
-    const origin = new Vector3(model.bounds.min[0], model.bounds.min[1], model.bounds.min[2]);
+    buildWorldAxes();
+  };
+
+  /**
+   * La referencia de ejes es una BRÚJULA, no una pieza del modelo.
+   *
+   * Se plantaba en la esquina mínima del modelo, que en un pórtico es
+   * exactamente donde hay un nudo: las tres flechas cruzaban la estructura y la
+   * etiqueta «Y» tapaba «N1». Moverla dentro del mundo no arregla nada —probado:
+   * en isométrica, apartarla en −X y −Z la lleva al centro de la pantalla,
+   * porque «apartado» depende de la vista y no de las coordenadas—.
+   *
+   * Así que deja de vivir en la escena del modelo. Es una escena propia, de ejes
+   * unitarios, que se pinta al final en un recuadro de la esquina inferior
+   * izquierda con su propia cámara orientada como la principal: gira con el
+   * modelo, dice hacia dónde miran X, Y y Z, y no le disputa un solo píxel a lo
+   * que hay que leer.
+   */
+  const buildWorldAxes = () => {
+    for (const child of [...gizmoGroup.children]) {
+      gizmoGroup.remove(child);
+      disposeObject(child);
+    }
+    const origin = new Vector3(0, 0, 0);
     const axes: [Vector3, Color, string][] = [
       [new Vector3(1, 0, 0), palette.axisX, 'X'],
       [new Vector3(0, 1, 0), palette.axisY, 'Y'],
       [new Vector3(0, 0, 1), palette.axisZ, 'Z'],
     ];
     for (const [direction, color, letter] of axes) {
-      axesGroup.add(new ArrowHelper(direction, origin, axisLength, color, axisLength * 0.18, axisLength * 0.1));
-      const label = makeLabel(letter, color, axisLength * 0.22);
+      gizmoGroup.add(new ArrowHelper(direction, origin, 1, color, 0.28, 0.16));
+      const label = makeLabel(letter, color, 0.42);
       if (label) {
-        label.position.copy(origin).addScaledVector(direction, axisLength * 1.14);
-        axesGroup.add(label);
+        label.position.copy(direction).multiplyScalar(1.3);
+        gizmoGroup.add(label);
       }
     }
   };
@@ -523,6 +624,12 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
     const height = Math.max(1, canvas.clientHeight || canvas.parentElement?.clientHeight || 1);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    viewportSize = { width, height };
+    // El hueco lo declara la hoja de estilos junto a la barra que hay que
+    // esquivar; aquí sólo se lee, y sólo al redimensionar.
+    gizmoInset = typeof getComputedStyle === 'undefined'
+      ? 0
+      : parseGizmoInset(getComputedStyle(canvas).getPropertyValue('--space3d-gizmo-inset'));
     renderer.setSize(width, height, false);
     setView(activeView);
   };
@@ -591,7 +698,6 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
     if (disposed) return;
     palette = readPalette();
     clearGroup('grid');
-    clearGroup('world-axes');
     buildStatic();
     buildModel();
     requestRender();
@@ -610,7 +716,6 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
       buildModel();
       if (boundsChanged) {
         clearGroup('grid');
-        clearGroup('world-axes');
         buildStatic();
       }
       requestRender();

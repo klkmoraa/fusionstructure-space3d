@@ -1665,7 +1665,12 @@
   box-shadow: none;
   overflow: hidden;
 }
-.space3d-canvas-stage { block-size: 100%; min-block-size: 0; border: 0; border-radius: 0; background: transparent; }
+/* Hueco que la brújula de ejes debe dejar libre en la esquina inferior. En
+   escritorio la barra de resultados va centrada y no llega a esa esquina, así
+   que no hay nada que esquivar; en teléfono ocupa casi todo el ancho y sí. El
+   valor se declara AQUÍ, en la misma hoja que dimensiona la barra, y el visor
+   lo lee: es el único modo de que las dos cifras no se separen con el tiempo. */
+.space3d-canvas-stage { block-size: 100%; min-block-size: 0; border: 0; border-radius: 0; background: transparent; --space3d-gizmo-inset: 0px; }
 .space3d-canvas { background: radial-gradient(circle at 50% 40%, #fff 0, #f5f6f6 72%); }
 .space3d-canvas-summary { display: none; }
 .space3d-help { display: none; }
@@ -1835,6 +1840,8 @@
     transform: translateY(calc(100% + var(--space3d-dock-h)));
   }
   .space3d-sheet[data-expanded] { transform: translateY(0); }
+  /* La barra pasa a ocupar casi todo el ancho: la brújula sube por encima. */
+  .space3d-canvas-stage { --space3d-gizmo-inset: 62px; }
   .space3d-result-bar { inset-block-end: 10px; max-inline-size: calc(100% - 18px); overflow-x: auto; }
   .space3d-result-bar button { min-inline-size: 44px; min-block-size: 44px; }
   .space3d-canvas-topbar-actions .space3d-tool { min-inline-size: 44px; min-block-size: 44px; }
