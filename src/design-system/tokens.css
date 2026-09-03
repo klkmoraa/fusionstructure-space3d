@@ -149,26 +149,32 @@
   --fs-signal-action: var(--fs-signal-moment);
   --fs-signal-action-ink: var(--fs-signal-moment);
 
-  /* LA SÉPTIMA FAMILIA · LAS CARGAS, EN PASTEL.
+  /* LA SÉPTIMA FAMILIA · LAS CARGAS, VIVAS.
      ---------------------------------------------------------------------
      El brandbook no publica ninguna señal para una carga aplicada: sus seis
      significados son todos respuesta de la estructura. Antes las tres cargas
      compartían el rojo de `action`, y con el rojo pasando a `moment` habrían
-     quedado del mismo color que el diagrama de momento.
+     quedado del mismo color que el diagrama de momento. Así que son una
+     familia propia, con los hues que el usuario les asignó: puntual azul,
+     distribuida roja, momento verde.
 
-     Así que las cargas son una familia propia y se distinguen por CROMA, no
-     por hue: puntual azul, distribuida roja, momento verde, las tres con
-     bastante menos saturación que la señal de resultado del mismo tono. Lo que
-     se aplica a la estructura se lee como un apunte; lo que la estructura
-     responde se lee como una línea viva.
+     Lo que cambia aquí es el CROMA. La versión anterior distinguía la carga de
+     la señal de su mismo tono apagándola —croma 48-68 frente a 79-149— y el
+     resultado, medido en pantalla, era una entrada del modelo que se leía como
+     una mancha sucia: lo que el usuario dibuja, que es el dato que él mismo
+     introdujo, no puede ser lo más apagado del lienzo. Ahora la carga es viva
+     (croma 155-216) y lo que la separa de su señal ya no es la saturación sino
+     la DISTANCIA de color: cobalto contra azur, bermellón contra ladrillo,
+     esmeralda contra verde bosque, con ≥55 de separación RGB frente a las seis
+     señales, que es la misma que tenía la familia apagada. La guarda vive en
+     `designSystem.test.ts` y mide las dos cosas: separación y 3:1 sobre el
+     papel de su tema.
 
-     El pastel de verdad vive en Noche, donde el fondo es carbón. En Día el
-     mismo tono apagado se oscurece hasta pasar el mínimo gráfico de 3:1 sobre
-     papel: un pastel literal sobre `#fdfdfb` queda en 1,6:1 y desaparece, que
-     es justo lo que había que arreglar. */
-  --fs-load-point: #5a7f96;
-  --fs-load-distributed: #a0655c;
-  --fs-load-moment: #57876b;
+     Los valores de Día están medidos sobre `#fdfdfb` y los de Noche sobre
+     carbón: un mismo hex no puede estar medido a la vez contra los dos. */
+  --fs-load-point: #1a4fe0;
+  --fs-load-distributed: #ee5116;
+  --fs-load-moment: #009b7a;
 
   /* Alias de dominio por hue. El código existente nombra los colores por su
      familia; el sistema los nombra por su significado. Ambos apuntan al mismo
@@ -372,7 +378,7 @@
   --sc-color-load-moment: var(--fs-load-moment);
   --sc-color-technical-load: var(--fs-load-point);
   --sc-color-technical-distributed: var(--fs-load-distributed);
-  --sc-color-technical-distributed-area: rgb(160 101 92 / .12);
+  --sc-color-technical-distributed-area: color-mix(in srgb, var(--fs-load-distributed) 12%, transparent);
 
   /* Acciones internas — AZUL / VERDE / ROSA. */
   /* Tinta de señal: el escalón que necesita una cifra, una etiqueta o una
@@ -407,6 +413,10 @@
   --sc-color-technical-shear-area: rgb(39 118 84 / .12);
   --sc-color-technical-moment: var(--fs-signal-moment);
   --sc-color-technical-deformed: var(--fs-purple);
+  /* Fluencia. El mapa de demanda ya pintaba con esta señal la barra que
+     alcanza su Fy; el rol faltaba, así que la ficha del riel que lo
+     enciende no tenía de dónde tomar su color. */
+  --sc-color-technical-yield: var(--fs-signal-yield);
   --sc-color-technical-reaction: var(--fs-green);
 
   /* Referencia geométrica — AMARILLO y tinta. */
@@ -800,6 +810,7 @@
   --shear: var(--sc-color-technical-shear);
   --moment: var(--sc-color-technical-moment);
   --deformed: var(--sc-color-technical-deformed);
+  --yield: var(--sc-color-technical-yield);
   --reaction: var(--sc-color-technical-reaction);
   --dimension: var(--sc-color-technical-dimension);
   --axis: var(--sc-color-technical-axis);
@@ -922,11 +933,12 @@
   --fs-signal-yield: #ef7ab9;
   --fs-signal-attention: #f3c553;
 
-  /* Aquí el pastel es literal: sobre carbón un tono claro y poco cromático es
-     legible y sigue leyéndose como apunte frente a la señal viva. */
-  --fs-load-point: #9ec9e8;
-  --fs-load-distributed: #e5afa6;
-  --fs-load-moment: #a8cbb6;
+  /* Sobre carbón la carga sube de luminosidad sin perder croma: el mismo
+     cobalto, bermellón y esmeralda, recalibrados para que sigan separados de
+     la señal de su tono, que en Noche también es más clara. */
+  --fs-load-point: #2f92ff;
+  --fs-load-distributed: #ff6f3c;
+  --fs-load-moment: #1ddfae;
 
   /* Los dos neutrales de familia y estado que no cuelgan de una señal. */
   --fs-family-nucleo: #aeb9be;
@@ -974,7 +986,7 @@
      `rgb()` no acepta una variable en sus canales. Al recalibrarse la señal,
      tienen que recalibrarse con ella o el relleno deja de pertenecer a su
      línea. */
-  --sc-color-technical-distributed-area: rgb(229 175 166 / .14);
+  --sc-color-technical-distributed-area: color-mix(in srgb, var(--fs-load-distributed) 14%, transparent);
   --sc-color-technical-shear-area: rgb(85 201 144 / .14);
   --sc-color-influence-area: rgb(239 122 185 / .14);
 

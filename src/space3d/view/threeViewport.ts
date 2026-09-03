@@ -31,7 +31,7 @@ import type { Space3DSelection } from '../store/Space3DProjectContext';
 
 
 export const SPACE3D_SCENE_LAYERS = Object.freeze([
-  'grid', 'world-axes', 'members', 'nodes', 'supports', 'loads', 'reactions', 'local-axes', 'deformed', 'labels',
+  'grid', 'members', 'nodes', 'supports', 'loads', 'reactions', 'local-axes', 'deformed', 'labels',
 ] as const);
 export type Space3DSceneLayer = (typeof SPACE3D_SCENE_LAYERS)[number];
 
@@ -53,6 +53,12 @@ export interface Space3DRendererLike {
   render(scene: Scene, camera: Camera): void;
   dispose(): void;
   forceContextLoss?(): void;
+  /* Los cuatro de la brújula de ejes, opcionales a propósito: sin ellos el
+     visor dibuja el modelo igual y se queda sin el recuadro de la esquina. */
+  setViewport?(x: number, y: number, width: number, height: number): void;
+  setScissor?(x: number, y: number, width: number, height: number): void;
+  setScissorTest?(enabled: boolean): void;
+  clearDepth?(): void;
 }
 
 export interface Space3DControlsLike {
@@ -106,15 +112,15 @@ const TOKEN_COLORS = {
   node: ['--sc-color-text-primary', '#23312c'],
   nodeSelected: ['--sc-color-selection-stroke', '#6a5df2'],
   support: ['--sc-color-technical-reaction', '#3a72e3'],
-  load: ['--sc-color-technical-load', '#5a7f96'],
+  load: ['--sc-color-technical-load', '#1a4fe0'],
   /* El momento APLICADO es una carga, no una respuesta, y desde la adopción del
-     brandbook tiene su propio verde apagado. Este rol apuntaba a
+     brandbook tiene su propio verde. Este rol apuntaba a
      `--sc-color-technical-moment`, que ahora es el rojo del momento flector: sin
      separarlos, en el 3D una carga de momento se pintaba con el color del
      resultado y se deshacía la distinción que la migración acababa de
      introducir. La escena espacial no dibuja diagramas, así que el rol del
      momento flector no tiene aquí ningún consumidor y no se declara. */
-  loadMoment: ['--sc-color-load-moment-applied', '#57876b'],
+  loadMoment: ['--sc-color-load-moment-applied', '#009b7a'],
   axial: ['--sc-color-technical-axial', '#276b76'],
   shear: ['--sc-color-technical-shear', '#a66b24'],
   moment: ['--sc-color-technical-moment', '#b34d55'],
@@ -168,6 +174,75 @@ const lineGeometry = (values: readonly number[]): BufferGeometry => {
  */
 let labelsSupported: boolean | null = null;
 
+/**
+ * Recuadro de la brújula de ejes, en coordenadas de WebGL —origen abajo a la
+ * izquierda—, dentro del lienzo.
+ *
+ * Se escala con el lienzo para que en un teléfono no se coma la escena y en una
+ * pantalla grande no quede ridícula, con un suelo y un techo para que siga
+ * siendo legible en los dos extremos. Es una función pura para poder probar los
+ * límites sin una GPU.
+ */
+export const worldAxesViewport = (
+  width: number,
+  height: number,
+  bottomInset = 0,
+): { x: number; y: number; size: number } => {
+  const safeWidth = Number.isFinite(width) && width > 0 ? width : 1;
+  const safeHeight = Number.isFinite(height) && height > 0 ? height : 1;
+  const shortest = Math.min(safeWidth, safeHeight);
+  const size = Math.round(Math.max(64, Math.min(124, shortest * 0.19)));
+  const margin = Math.round(Math.min(16, shortest * 0.03));
+  const inset = Number.isFinite(bottomInset) && bottomInset > 0 ? Math.round(bottomInset) : 0;
+  return {
+    x: margin,
+    y: margin + inset,
+    size: Math.max(1, Math.min(size, Math.floor(shortest) - margin * 2)),
+  };
+};
+
+/** `62px` → 62. Cualquier otra cosa, incluido el valor sin declarar, → 0. */
+export const parseGizmoInset = (declared: string): number => {
+  const parsed = Number.parseFloat(declared);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+};
+
+const LABEL_FONT_PX = 44;
+const LABEL_FONT = `600 ${LABEL_FONT_PX}px "IBM Plex Mono", ui-monospace, monospace`;
+/** Aire a los lados del texto, para que la tinta no toque el borde de la textura. */
+const LABEL_PADDING_PX = 16;
+/** Tope de textura: una etiqueta larguísima se estrecha antes que devorar VRAM. */
+const LABEL_MAX_WIDTH_PX = 768;
+
+/**
+ * Tamaño de la textura de una etiqueta y la relación que debe tener su sprite.
+ *
+ * Aquí vivía el fallo: el canvas medía 128x64 fijos con una fuente de 44px y el
+ * sprite se escalaba siempre 2:1. «N4» cabía; «2.70 kN» mide unos 180px, así
+ * que el navegador lo recortaba a la caja y en pantalla se leía «2.7 k» —una
+ * unidad amputada en un visor de cálculo, que es de las peores cosas que puede
+ * decir una interfaz—. Y aunque el ancho hubiera bastado, un sprite 2:1 fijo
+ * habría deformado cualquier texto de otra proporción.
+ *
+ * Es una función pura sobre la anchura MEDIDA del texto para poder probarla sin
+ * un contexto 2D: lo que se verifica es que la caja nunca es más estrecha que
+ * la tinta y que el sprite hereda la relación real de la textura.
+ */
+export const labelTextureMetrics = (
+  measuredWidth: number,
+): { width: number; height: number; aspect: number; inkWidth: number } => {
+  const ink = Number.isFinite(measuredWidth) && measuredWidth > 0 ? measuredWidth : LABEL_FONT_PX;
+  const height = Math.round(LABEL_FONT_PX * 1.5);
+  const width = Math.min(LABEL_MAX_WIDTH_PX, Math.max(height, Math.ceil(ink + LABEL_PADDING_PX * 2)));
+  // Ancho REAL disponible para la tinta dentro de la caja. Importa cuando el
+  // texto topa con el techo: sin dárselo a `fillText`, el navegador lo pinta a
+  // su anchura natural y vuelve a recortarlo por los dos lados —el mismo fallo
+  // que esto vino a arreglar, sólo que a partir de unos 28 caracteres en vez de
+  // cuatro—. Y no es hipotético: un identificador importado sólo se valida
+  // contra el tope de 20.000 caracteres del migrador.
+  return { width, height, aspect: width / height, inkWidth: Math.max(1, width - LABEL_PADDING_PX * 2) };
+};
+
 const makeLabel = (text: string, color: Color, size: number): Sprite | null => {
   if (typeof document === 'undefined' || labelsSupported === false) return null;
   const canvas = document.createElement('canvas');
@@ -176,20 +251,33 @@ const makeLabel = (text: string, color: Color, size: number): Sprite | null => {
   // sesión, y volver a preguntarlo por cada nudo sólo genera ruido.
   labelsSupported = context !== null;
   if (!context) return null;
-  const scale = 128;
-  canvas.width = scale;
-  canvas.height = scale / 2;
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  context.font = '600 44px "IBM Plex Mono", ui-monospace, monospace';
+
+  // La fuente se declara dos veces a propósito: la primera para medir, y otra
+  // vez tras asignar `canvas.width`, porque redimensionar un canvas restablece
+  // todo su estado de dibujo —incluida la fuente— y medir con una y pintar con
+  // otra devolvería el mismo recorte que se venía arreglando.
+  context.font = LABEL_FONT;
+  const { width, height, inkWidth } = labelTextureMetrics(context.measureText(text).width);
+  canvas.width = width;
+  canvas.height = height;
+  context.clearRect(0, 0, width, height);
+  context.font = LABEL_FONT;
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.fillStyle = `#${color.getHexString()}`;
-  context.fillText(text, canvas.width / 2, canvas.height / 2);
+  // El cuarto argumento es la diferencia entre condensar y AMPUTAR: con él, un
+  // texto que no cabe se estrecha y se lee entero; sin él, se pinta a su
+  // anchura natural y el lienzo se come sus extremos. Un rótulo puede quedar
+  // apretado; lo que no puede es perder caracteres en silencio, porque así es
+  // como 42,7 kN pasaba a leerse 2,7.
+  context.fillText(text, width / 2, height / 2, inkWidth);
 
   const texture = new CanvasTexture(canvas);
   texture.needsUpdate = true;
   const sprite = new Sprite(new SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
-  sprite.scale.set(size * 2, size, 1);
+  // `size` sigue siendo la ALTURA en unidades de mundo; el ancho lo dicta la
+  // textura, así que el texto no se estira ni se aplasta.
+  sprite.scale.set(size * (width / height), size, 1);
   return sprite;
 };
 
@@ -204,6 +292,14 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(45, 1, 0.1, 1_000);
+  // Escena aparte para la brújula de ejes: no comparte cámara, ni escala, ni
+  // profundidad con el modelo, que es justo lo que la mantiene fuera de él.
+  const gizmoScene = new Scene();
+  const gizmoGroup = new Group();
+  gizmoScene.add(gizmoGroup);
+  const gizmoCamera = new PerspectiveCamera(45, 1, 0.1, 20);
+  let viewportSize = { width: 1, height: 1 };
+  let gizmoInset = 0;
   const renderer = (options.createRenderer ?? defaultRenderer)(canvas);
   const controls = (options.createControls ?? defaultControls)(camera, canvas);
   controls.enableDamping = false;
@@ -232,6 +328,39 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   const render = () => {
     if (disposed) return;
     renderer.render(scene, camera);
+    renderWorldAxes();
+  };
+
+  /**
+   * Segunda pasada en un recuadro de la esquina. Los cuatro métodos que hacen
+   * falta son OPCIONALES en `Space3DRendererLike`: un renderizador inyectado
+   * que no los traiga simplemente se queda sin brújula, y el visor sigue
+   * dibujando el modelo. Un accesorio no puede exigirle nada al contrato.
+   */
+  const renderWorldAxes = () => {
+    if (!renderer.setViewport || !renderer.setScissor || !renderer.setScissorTest || !renderer.clearDepth) return;
+    const box = worldAxesViewport(viewportSize.width, viewportSize.height, gizmoInset);
+    // La cámara de la brújula mira al origen desde la MISMA dirección que la
+    // principal, así que las flechas giran con el modelo aunque no compartan
+    // escena.
+    // 4.2 y no 3.4: a 3.4 la mitad del alto visible mide 1,41 unidades y la
+    // etiqueta del eje vertical, anclada a 1,3, quedaba justo en el borde del
+    // recuadro y se recortaba. La brújula debe caber entera, incluidas sus tres
+    // letras, que son lo único que la hace legible.
+    gizmoCamera.position.copy(camera.position).sub(controls.target).normalize().multiplyScalar(4.2);
+    gizmoCamera.up.copy(camera.up);
+    gizmoCamera.lookAt(0, 0, 0);
+    gizmoCamera.updateMatrixWorld(true);
+
+    renderer.clearDepth();
+    renderer.setScissorTest(true);
+    renderer.setScissor(box.x, box.y, box.size, box.size);
+    renderer.setViewport(box.x, box.y, box.size, box.size);
+    renderer.render(gizmoScene, gizmoCamera);
+    // Se restituye el recuadro completo: dejarlo puesto recortaría el siguiente
+    // dibujo del modelo a la esquina.
+    renderer.setScissorTest(false);
+    renderer.setViewport(0, 0, viewportSize.width, viewportSize.height);
   };
 
   const requestRender = () => {
@@ -259,20 +388,41 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
     (grid.material as Material).opacity = 0.28;
     gridGroup.add(grid);
 
-    const axesGroup = groups.get('world-axes')!;
-    const axisLength = Math.max(model.bounds.span * 0.28, 1);
-    const origin = new Vector3(model.bounds.min[0], model.bounds.min[1], model.bounds.min[2]);
+    buildWorldAxes();
+  };
+
+  /**
+   * La referencia de ejes es una BRÚJULA, no una pieza del modelo.
+   *
+   * Se plantaba en la esquina mínima del modelo, que en un pórtico es
+   * exactamente donde hay un nudo: las tres flechas cruzaban la estructura y la
+   * etiqueta «Y» tapaba «N1». Moverla dentro del mundo no arregla nada —probado:
+   * en isométrica, apartarla en −X y −Z la lleva al centro de la pantalla,
+   * porque «apartado» depende de la vista y no de las coordenadas—.
+   *
+   * Así que deja de vivir en la escena del modelo. Es una escena propia, de ejes
+   * unitarios, que se pinta al final en un recuadro de la esquina inferior
+   * izquierda con su propia cámara orientada como la principal: gira con el
+   * modelo, dice hacia dónde miran X, Y y Z, y no le disputa un solo píxel a lo
+   * que hay que leer.
+   */
+  const buildWorldAxes = () => {
+    for (const child of [...gizmoGroup.children]) {
+      gizmoGroup.remove(child);
+      disposeObject(child);
+    }
+    const origin = new Vector3(0, 0, 0);
     const axes: [Vector3, Color, string][] = [
       [new Vector3(1, 0, 0), palette.axisX, 'X'],
       [new Vector3(0, 1, 0), palette.axisY, 'Y'],
       [new Vector3(0, 0, 1), palette.axisZ, 'Z'],
     ];
     for (const [direction, color, letter] of axes) {
-      axesGroup.add(new ArrowHelper(direction, origin, axisLength, color, axisLength * 0.18, axisLength * 0.1));
-      const label = makeLabel(letter, color, axisLength * 0.22);
+      gizmoGroup.add(new ArrowHelper(direction, origin, 1, color, 0.28, 0.16));
+      const label = makeLabel(letter, color, 0.42);
       if (label) {
-        label.position.copy(origin).addScaledVector(direction, axisLength * 1.14);
-        axesGroup.add(label);
+        label.position.copy(direction).multiplyScalar(1.3);
+        gizmoGroup.add(label);
       }
     }
   };
@@ -487,6 +637,12 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
     const height = Math.max(1, canvas.clientHeight || canvas.parentElement?.clientHeight || 1);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    viewportSize = { width, height };
+    // El hueco lo declara la hoja de estilos junto a la barra que hay que
+    // esquivar; aquí sólo se lee, y sólo al redimensionar.
+    gizmoInset = typeof getComputedStyle === 'undefined'
+      ? 0
+      : parseGizmoInset(getComputedStyle(canvas).getPropertyValue('--space3d-gizmo-inset'));
     renderer.setSize(width, height, false);
     setView(activeView);
   };
@@ -555,7 +711,6 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
     if (disposed) return;
     palette = readPalette();
     clearGroup('grid');
-    clearGroup('world-axes');
     buildStatic();
     buildModel();
     requestRender();
@@ -574,7 +729,6 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
       buildModel();
       if (boundsChanged) {
         clearGroup('grid');
-        clearGroup('world-axes');
         buildStatic();
       }
       requestRender();
@@ -600,6 +754,10 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
       themeObserver?.disconnect();
       controls.dispose();
       disposeObject(scene);
+      // La brújula vive en su propia escena: `scene` no la alcanza, y sin esta
+      // línea sus flechas y sus tres letras se quedaban en la GPU cada vez que
+      // se abandona y se reabre Space 3D —remontajes de StrictMode incluidos—.
+      disposeObject(gizmoScene);
       renderer.dispose();
       // Deliberadamente NO se llama a `forceContextLoss()`: mata el contexto
       // WebGL del `<canvas>`, y React vuelve a montar sobre ese mismo elemento
@@ -611,6 +769,21 @@ export const createSpace3DViewport = (options: Space3DViewportOptions): Space3DV
   };
 };
 
+/**
+ * Libera geometría, material Y TEXTURA de un árbol.
+ *
+ * La textura faltaba. Cada etiqueta del visor —identificadores de nudo y barra,
+ * valores de carga— es un sprite con un `CanvasTexture` propio, y `clearGroup`
+ * pasa por aquí en cada reconstrucción del modelo: liberar el material y dejar
+ * su `map` colgado significaba una textura huérfana por etiqueta y por
+ * reconstrucción, en la GPU, durante toda la sesión.
+ */
+const disposeMaterial = (material: Material) => {
+  const withMap = material as Material & { map?: { dispose?: () => void } | null };
+  withMap.map?.dispose?.();
+  material.dispose();
+};
+
 const disposeObject = (root: Object3D) => {
   root.traverse((object) => {
     const holder = object as Object3D & {
@@ -619,8 +792,8 @@ const disposeObject = (root: Object3D) => {
     };
     holder.geometry?.dispose();
     const material = holder.material;
-    if (Array.isArray(material)) material.forEach((item) => item.dispose());
-    else material?.dispose();
+    if (Array.isArray(material)) material.forEach(disposeMaterial);
+    else if (material) disposeMaterial(material);
   });
 };
 

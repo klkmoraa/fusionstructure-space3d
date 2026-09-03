@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { ArrowRight, FlaskConical, Undo2, X } from 'lucide-react';
 import { useModalFocus } from '../../design-system/components/modalFocus';
+import './space3dEntry.css';
 
 export type Space3DEntryOrigin = 'workspace' | 'standalone';
 
@@ -55,27 +56,33 @@ export const Space3DEntryDialog = ({ language, origin, projectName, onCancel, on
     ? text.workspaceOrigin.replace('{name}', projectName)
     : text.standaloneOrigin;
 
-  return <section ref={dialogRef} className="space3d-entry-dialog" role="dialog" aria-modal="true" aria-labelledby="space3d-entry-title" tabIndex={-1}>
-    <button type="button" className="space3d-entry-dialog__close" aria-label={text.close} onClick={onCancel}><X size={18} /></button>
-    <span className="space3d-entry-dialog__badge"><FlaskConical size={15} />{text.badge}</span>
-    <h2 id="space3d-entry-title">{text.title}</h2>
-    <p>{text.intro}</p>
-    <ul>
-      <li>{originText}</li>
-      <li>{text.bridge}</li>
-      <li>{text.return}</li>
-    </ul>
-    <section className="space3d-entry-dialog__matrix" aria-labelledby="space3d-entry-matrix-title">
-      <h3 id="space3d-entry-matrix-title">{text.matrixTitle}</h3>
-      <dl>
-        <div><dt>{text.mappedLabel}</dt><dd>{text.mapped}</dd></div>
-        <div><dt>{text.completeLabel}</dt><dd>{text.complete}</dd></div>
-        <div><dt>{text.acknowledgeLabel}</dt><dd>{text.acknowledge}</dd></div>
-      </dl>
+  // El diálogo se apoya en un fondo propio: sin él quedaba en el flujo del
+  // documento, debajo de la pantalla que lo abrió, y en un teléfono no llegaba
+  // a verse. El fondo también es la salida por descarte, igual que en el resto
+  // de superficies modales del producto.
+  return <div className="space3d-entry-backdrop" role="presentation" onPointerDown={(event) => { if (event.target === event.currentTarget) onCancel(); }}>
+    <section ref={dialogRef} className="space3d-entry-dialog" role="dialog" aria-modal="true" aria-labelledby="space3d-entry-title" tabIndex={-1}>
+      <button type="button" className="space3d-entry-dialog__close" aria-label={text.close} onClick={onCancel}><X size={18} /></button>
+      <span className="space3d-entry-dialog__badge"><FlaskConical size={15} />{text.badge}</span>
+      <h2 id="space3d-entry-title">{text.title}</h2>
+      <p>{text.intro}</p>
+      <ul>
+        <li>{originText}</li>
+        <li>{text.bridge}</li>
+        <li>{text.return}</li>
+      </ul>
+      <section className="space3d-entry-dialog__matrix" aria-labelledby="space3d-entry-matrix-title">
+        <h3 id="space3d-entry-matrix-title">{text.matrixTitle}</h3>
+        <dl>
+          <div><dt>{text.mappedLabel}</dt><dd>{text.mapped}</dd></div>
+          <div><dt>{text.completeLabel}</dt><dd>{text.complete}</dd></div>
+          <div><dt>{text.acknowledgeLabel}</dt><dd>{text.acknowledge}</dd></div>
+        </dl>
+      </section>
+      <footer>
+        <button ref={cancelRef} type="button" onClick={onCancel}><Undo2 size={16} />{text.cancel}</button>
+        <button type="button" className="space3d-entry-dialog__proceed" onClick={onProceed}>{text.proceed}<ArrowRight size={16} /></button>
+      </footer>
     </section>
-    <footer>
-      <button ref={cancelRef} type="button" onClick={onCancel}><Undo2 size={16} />{text.cancel}</button>
-      <button type="button" className="space3d-entry-dialog__proceed" onClick={onProceed}>{text.proceed}<ArrowRight size={16} /></button>
-    </footer>
-  </section>;
+  </div>;
 };

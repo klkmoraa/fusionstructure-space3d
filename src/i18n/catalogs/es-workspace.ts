@@ -347,7 +347,6 @@ export const esWorkspace = {
   'space3d.experimentalNotice': 'Vista experimental. Revisa el modelo y los resultados antes de tomar decisiones.',
   'space3d.controls': 'Controles 3D',
   'space3d.closeControls': 'Cerrar controles 3D',
-  'space3d.toolbarView': 'Vista',
   'space3d.toolbarProject': 'Proyecto',
   'space3d.newNode': 'Nuevo nodo',
   'space3d.newMember': 'Nueva barra',
