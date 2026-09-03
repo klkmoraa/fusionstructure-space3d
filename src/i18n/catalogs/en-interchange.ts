@@ -38,6 +38,8 @@ export const enInterchange = {
   'storage.recoveredShort': 'Recovered',
   'storage.failedShort': 'Save error',
   'storage.loadFailedShort': 'Load error',
+  'storage.conflictShort': 'Revision conflict',
+  'storage.repositoryShort': 'Library degraded',
   'storage.recovered': 'The local backup was restored. The damaged file was preserved for diagnostics.',
   'storage.failed': 'The project could not be saved in this browser.',
   'storage.loadFailed': 'The local copy could not be opened. A safe project was started and the damaged content was preserved for diagnostics.',
