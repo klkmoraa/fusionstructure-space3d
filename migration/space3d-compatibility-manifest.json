@@ -13,31 +13,32 @@
   "availableCaseCount": 9,
   "unsupportedCaseCount": 7,
   "cases": [
-    { "id": "axial", "status": "available", "capability": "axial", "oracle": "closed-form P L/(E A) and static equilibrium" },
-    { "id": "torsion", "status": "available", "capability": "torsion", "oracle": "closed-form T L/(G J) and moment equilibrium" },
-    { "id": "local-y-bending", "status": "available", "capability": "local Y bending", "oracle": "closed-form P L^3/(3 E Iz), P L^2/(2 E Iz)" },
-    { "id": "local-z-bending", "status": "available", "capability": "local Z bending", "oracle": "closed-form P L^3/(3 E Iy), -P L^2/(2 E Iy)" },
-    { "id": "oblique-member", "status": "available", "capability": "oblique member", "oracle": "rotated axial closed form" },
-    { "id": "rigid-coordinate-rotation", "status": "available", "capability": "rigid coordinate rotation", "oracle": "rigid-body invariance" },
-    { "id": "combination", "status": "available", "capability": "linear load combination", "oracle": "superposition" },
-    { "id": "free-structure", "status": "available", "capability": "deterministic mechanism", "oracle": "six rigid-body modes" },
-    { "id": "near-degenerate-orientation", "status": "available", "capability": "orientation rejection", "oracle": "perpendicularity ratio" },
-    { "id": "releases", "status": "unsupported", "capability": "member releases", "oracle": "none" },
-    { "id": "springs", "status": "unsupported", "capability": "springs", "oracle": "none" },
-    { "id": "member-loads", "status": "unsupported", "capability": "member loads", "oracle": "none" },
-    { "id": "diaphragms", "status": "unsupported", "capability": "diaphragms", "oracle": "none" },
-    { "id": "dynamics", "status": "unsupported", "capability": "dynamics", "oracle": "none" },
-    { "id": "stability", "status": "unsupported", "capability": "stability/buckling", "oracle": "none" },
-    { "id": "nonlinear", "status": "unsupported", "capability": "nonlinear analysis", "oracle": "none" }
+    { "id": "axial", "status": "available", "capability": "axial member", "oracle": "closed form ux=P L/(E A), reactions and N from static equilibrium" },
+    { "id": "torsion", "status": "available", "capability": "torsion", "oracle": "closed form rx=T L/(G J) and moment equilibrium" },
+    { "id": "local-y-bending", "status": "available", "capability": "local Y bending (v-rz, Iz)", "oracle": "closed form v=P L^3/(3 E Iz), rz=P L^2/(2 E Iz), fixed-end equilibrium" },
+    { "id": "local-z-bending", "status": "available", "capability": "local Z bending (w-ry, Iy)", "oracle": "closed form w=P L^3/(3 E Iy), ry=-P L^2/(2 E Iy), fixed-end equilibrium" },
+    { "id": "oblique-member", "status": "available", "capability": "oblique member", "oracle": "rotate axial closed form into global components; N and strain are invariant" },
+    { "id": "rigid-coordinate-rotation", "status": "available", "capability": "rigid coordinate rotation", "oracle": "rigid-body invariance of axial displacement magnitude and force" },
+    { "id": "combination", "status": "available", "capability": "load combination superposition", "oracle": "linear superposition: P=0.5(10)+2(4)=13 kN then axial closed form" },
+    { "id": "free-structure", "status": "available", "capability": "free structure mechanism", "oracle": "independent rigid-body stability check: six unconstrained modes" },
+    { "id": "near-degenerate-orientation", "status": "available", "capability": "near-degenerate orientation rejection", "oracle": "independent geometric perpendicularity ratio below 1e-8 threshold" },
+    { "id": "releases", "status": "unsupported", "capability": "member releases", "oracle": "none: no executable implementation or independent result contract" },
+    { "id": "springs", "status": "unsupported", "capability": "springs", "oracle": "none: no executable implementation or independent result contract" },
+    { "id": "member-loads", "status": "unsupported", "capability": "member loads", "oracle": "none: no executable implementation or independent result contract" },
+    { "id": "diaphragms", "status": "unsupported", "capability": "diaphragms", "oracle": "none: no executable implementation or independent result contract" },
+    { "id": "dynamics", "status": "unsupported", "capability": "dynamics", "oracle": "none: no executable implementation or independent result contract" },
+    { "id": "stability", "status": "unsupported", "capability": "stability/buckling", "oracle": "none: no executable implementation or independent result contract" },
+    { "id": "nonlinear", "status": "unsupported", "capability": "nonlinear analysis", "oracle": "none: no executable implementation or independent result contract" }
   ],
   "runtimeContract": {
     "workerProtocolVersion": 1,
-    "supported": ["run", "structured errors", "requestId stale-response rejection", "real terminate cancellation", "inline fallback parity"],
-    "unsupported": ["progress events", "cooperative cancellation inside a numerical loop", "automatic pre-v1 storage migration; pre-v1 payloads are rejected fail-closed"]
+    "supported": ["run", "structured errors", "requestId stale-response rejection", "actual worker module message seam", "real terminate cancellation", "inline fallback message delivery"],
+    "unsupported": ["progress events", "cooperative cancellation inside a numerical loop", "automatic pre-v1 storage migration; pre-v1 payloads are rejected fail-closed", "true module Worker execution in Vitest"]
   },
   "artifacts": [
-    { "path": "src/space3d/compatibilityCorpus.ts", "digestAlgorithm": "sha256", "sha256": "f4f4250a7707538ce0f8f9f93106e41c4a9d9031b4d53195c6ee40e70c053c8b", "role": "canonical cases, independent oracle metadata, tolerances, result serializer" },
-    { "path": "src/space3d/compatibilityCorpus.test.ts", "digestAlgorithm": "sha256", "sha256": "ed9d3da61b88a1a05e0ed3d491a3e679cfb6473989c5440427912ef8a8680bf2", "role": "direct engine/codec/storage/worker corpus and mutation sensitivity" }
+    { "path": "src/space3d/compatibilityCorpus.ts", "digestAlgorithm": "sha256", "sha256": "c117ff67a9d19da1cd0b0996cdf62636a22243aa195cc6e9a55828b0be0e4c5e", "role": "canonical cases, independent oracle metadata, tolerances, result serializer" },
+    { "path": "src/space3d/compatibilityCorpus.test.ts", "digestAlgorithm": "sha256", "sha256": "b3c17f887b10e5cc0b4b49844c13b3ba16556f3e413332263373a295928580dd", "role": "direct engine/codec/storage/worker corpus and mutation sensitivity" },
+    { "path": "src/space3d/runtime/space3d.worker.ts", "digestAlgorithm": "sha256", "sha256": "dbaaf904c0fb1deeb3bc42f414f4bfeecb8e4d04d12c88f53191ad449c244f6c", "role": "actual worker module message seam" }
   ],
   "claims": { "maturity": "experimental", "normativeOrCertificationClaim": false, "solverAlgorithmModified": false, "unsupportedCapabilitiesFaked": false }
 }

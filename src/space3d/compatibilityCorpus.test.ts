@@ -7,9 +7,11 @@ import { analyzeSpace3DProject } from './engine/solver';
 import { buildSpaceFrameElement } from './engine/element';
 import { buildMemberOrientation } from './engine/orientation';
 import { axialCantilever } from './engine/fixtures';
+import type { Space3DAnalysisResult } from './model/types';
 import { parseSpace3DProject, serializeSpace3DProject, Space3DCodecError } from './data/codec';
 import { loadSpace3DProject, saveSpace3DProject, space3dStorageKeys } from './data/storage';
 import { handleSpace3DWorkerRequest, SPACE3D_PROTOCOL_VERSION } from './runtime/protocol';
+import { installSpace3DWorker, type Space3DWorkerScope } from './runtime/space3d.worker';
 import { Space3DAnalysisCancelledError, Space3DWorkerClient, type WorkerLike } from './runtime/workerClient';
 import {
   availableSpace3DCorpus,
@@ -19,17 +21,36 @@ import {
   space3dCorpus,
   unsupportedSpace3DCapabilities,
   space3dCorpusAssertionMatches,
+  SPACE3D_CORPUS_ALGORITHM_ID,
+  SPACE3D_CORPUS_ENGINE_ID,
+  SPACE3D_CORPUS_SCHEMA,
+  SPACE3D_CORPUS_TOLERANCES,
+  SPACE3D_RUNTIME_CONTRACT,
 } from './compatibilityCorpus';
 
 describe('direct Space3D compatibility corpus', () => {
   it('keeps post-baseline manifest and artifact digests stable', () => {
     const root = resolve(import.meta.dirname, '..', '..');
-    const manifest = JSON.parse(readFileSync(resolve(root, 'migration', 'space3d-compatibility-manifest.json'), 'utf8')) as { baseline: string; task2Cut: string; caseCount: number; availableCaseCount: number; unsupportedCaseCount: number; artifacts: Array<{ path: string; sha256: string }> };
+    const manifest = JSON.parse(readFileSync(resolve(root, 'migration', 'space3d-compatibility-manifest.json'), 'utf8')) as { schemaVersion: number; corpusId: string; baseline: string; task2Cut: string; units: string; coordinateConvention: string; schema: string; engineId: string; algorithmId: string; tolerances: typeof SPACE3D_CORPUS_TOLERANCES; caseCount: number; availableCaseCount: number; unsupportedCaseCount: number; cases: Array<{ id: string; status: string; capability: string; oracle: string }>; runtimeContract: typeof SPACE3D_RUNTIME_CONTRACT; claims: { maturity: string; normativeOrCertificationClaim: boolean; solverAlgorithmModified: boolean; unsupportedCapabilitiesFaked: boolean }; artifacts: Array<{ path: string; sha256: string }> };
+    expect(manifest.schemaVersion).toBe(1);
+    expect(manifest.corpusId).toBe('fusionstructure-direct-space3d/v1');
     expect(manifest.baseline).toBe('5955722');
     expect(manifest.task2Cut).toBe('94aa5cb');
     expect(manifest.caseCount).toBe(space3dCorpus.length);
     expect(manifest.availableCaseCount).toBe(availableSpace3DCorpus.length);
     expect(manifest.unsupportedCaseCount).toBe(unsupportedSpace3DCapabilities.length);
+    expect(manifest.units).toContain('kN-m');
+    expect(manifest.coordinateConvention).toContain('[ux,uy,uz,rx,ry,rz]');
+    expect(manifest.schema).toBe(SPACE3D_CORPUS_SCHEMA);
+    expect(manifest.engineId).toBe(SPACE3D_CORPUS_ENGINE_ID);
+    expect(manifest.algorithmId).toBe(SPACE3D_CORPUS_ALGORITHM_ID);
+    expect(manifest.tolerances).toEqual(SPACE3D_CORPUS_TOLERANCES);
+    expect(manifest.cases).toHaveLength(space3dCorpus.length);
+    for (const fixture of space3dCorpus) {
+      expect(manifest.cases.find((item) => item.id === fixture.id)).toEqual({ id: fixture.id, status: fixture.status, capability: fixture.capability, oracle: fixture.oracle });
+    }
+    expect(manifest.runtimeContract).toEqual(SPACE3D_RUNTIME_CONTRACT);
+    expect(manifest.claims).toEqual({ maturity: 'experimental', normativeOrCertificationClaim: false, solverAlgorithmModified: false, unsupportedCapabilitiesFaked: false });
     for (const artifact of manifest.artifacts) {
       const digest = createHash('sha256').update(readFileSync(resolve(root, artifact.path))).digest('hex');
       expect(digest, artifact.path).toBe(artifact.sha256);
@@ -113,27 +134,41 @@ describe('direct Space3D compatibility corpus', () => {
     expect(loadSpace3DProject(storage, 'corpus')?.nodalLoads[0].fx).toBe(10);
   });
 
-  it('keeps worker protocol and main-thread results identical', () => {
+  it('keeps the actual worker module message seam and main-thread results identical', () => {
     const project = axialCantilever({ P: 10 });
     const direct = analyzeSpace3DProject(project, 'CO1');
-    const response = handleSpace3DWorkerRequest({ protocolVersion: SPACE3D_PROTOCOL_VERSION, type: 'run', requestId: 7, project, targetId: 'CO1' });
+    const posted: unknown[] = [];
+    let receive: ((event: MessageEvent<unknown>) => void) | undefined;
+    const scope: Space3DWorkerScope = { addEventListener: (_type, listener) => { receive = listener; }, postMessage: (message) => posted.push(structuredClone(message)) };
+    installSpace3DWorker(scope);
+    receive?.({ data: structuredClone({ protocolVersion: SPACE3D_PROTOCOL_VERSION, type: 'run', requestId: 7, project, targetId: 'CO1' }) } as MessageEvent<unknown>);
+    const response = posted[0] as { type: string; result?: Space3DAnalysisResult };
     expect(response.type).toBe('success');
-    if (response.type === 'success') expect(serializeSpace3DResult(response.result)).toBe(serializeSpace3DResult(direct));
+    if (response.type === 'success') expect(serializeSpace3DResult(response.result!)).toBe(serializeSpace3DResult(direct));
     expect(handleSpace3DWorkerRequest({ protocolVersion: 99, type: 'run', requestId: 8, project, targetId: 'CO1' })).toMatchObject({ type: 'error', code: 'PROTOCOL_MISMATCH', requestId: 8 });
   });
 
   it('cancels a pending run at the public client seam', async () => {
-    let queued: ((event: { data: unknown }) => void) | undefined;
-    const worker: WorkerLike = {
-      postMessage: () => {}, terminate: () => {},
-      addEventListener: (type, listener) => { if (type === 'message') queued = listener; },
-      removeEventListener: () => {},
+    const workers: Array<{ worker: WorkerLike; message?: (event: { data: unknown }) => void; terminated: boolean }> = [];
+    const factory = () => {
+      const record = { terminated: false, worker: undefined as unknown as WorkerLike, message: undefined as ((event: { data: unknown }) => void) | undefined };
+      record.worker = { postMessage: () => {}, terminate: () => { record.terminated = true; }, addEventListener: (type, listener) => { if (type === 'message') record.message = listener; }, removeEventListener: () => {} };
+      workers.push(record);
+      return record.worker;
     };
-    const client = new Space3DWorkerClient(() => worker);
+    const client = new Space3DWorkerClient(factory);
     const pending = client.run(axialCantilever(), 'CO1');
     client.cancel();
     await expect(pending).rejects.toBeInstanceOf(Space3DAnalysisCancelledError);
-    queued?.({ data: { requestId: 1, type: 'success', protocolVersion: 1, result: analyzeSpace3DProject(axialCantilever(), 'CO1') } });
+    expect(workers[0].terminated).toBe(true);
+    const next = client.run(axialCantilever({ P: 20 }), 'CO1');
+    let settled = false;
+    void next.then(() => { settled = true; });
+    workers[1].message?.({ data: { requestId: 1, type: 'success', protocolVersion: 1, result: analyzeSpace3DProject(axialCantilever(), 'CO1') } });
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    workers[1].message?.({ data: { requestId: 2, type: 'success', protocolVersion: 1, result: analyzeSpace3DProject(axialCantilever({ P: 20 }), 'CO1') } });
+    await expect(next).resolves.toMatchObject({ success: true });
   });
 
   it('uses near-zero tolerance and remains mutation-sensitive', () => {

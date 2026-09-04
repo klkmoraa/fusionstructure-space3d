@@ -4,7 +4,9 @@
  * Un análisis espacial de 150 nudos puede tardar cientos de milisegundos; si el
  * usuario sigue editando, ese trabajo ya no sirve. La cancelación aquí es real
  * —`terminate()`— porque un Worker no admite abortar un bucle numérico en
- * curso: se mata el hilo y la siguiente corrida arranca uno nuevo.
+ * curso: se mata el hilo y la siguiente corrida arranca uno nuevo. El fallback
+ * inline ejecuta el handler sincrónicamente y por tanto no es cooperativamente
+ * cancelable; sólo puede suprimir la entrega encolada antes de publicarla.
  *
  * Las respuestas llevan `requestId`: cualquier mensaje de una corrida anterior
  * se descarta en vez de resolver una promesa que ya no corresponde al modelo.

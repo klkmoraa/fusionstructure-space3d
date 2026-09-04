@@ -7,13 +7,16 @@
  */
 import { handleSpace3DWorkerRequest, type Space3DWorkerResponse } from './protocol';
 
-interface Space3DWorkerScope {
+export interface Space3DWorkerScope {
   addEventListener(type: 'message', listener: (event: MessageEvent<unknown>) => void): void;
   postMessage(message: Space3DWorkerResponse): void;
 }
 
-const workerScope = self as unknown as Space3DWorkerScope;
+/** Installs the production message seam; exported for a structured-clone harness. */
+export const installSpace3DWorker = (workerScope: Space3DWorkerScope): void => {
+  workerScope.addEventListener('message', (event) => {
+    workerScope.postMessage(handleSpace3DWorkerRequest(event.data));
+  });
+};
 
-workerScope.addEventListener('message', (event) => {
-  workerScope.postMessage(handleSpace3DWorkerRequest(event.data));
-});
+if (typeof self !== 'undefined') installSpace3DWorker(self as unknown as Space3DWorkerScope);

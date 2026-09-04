@@ -6,13 +6,19 @@
  * y voladizo Euler-Bernoulli indicadas en `oracle`; el corpus no llama a ningún
  * helper numérico del motor para construir sus expectativas.
  */
-import { analyzeSpace3DProject } from './engine/solver';
 import { axialCantilever, bendingCantilever, freeFloatingMember, torsionCantilever } from './engine/fixtures';
 import type { Space3DAnalysisResult, Space3DProjectV1 } from './model/types';
+import { SPACE3D_PROTOCOL_VERSION } from './runtime/protocol';
 
 export const SPACE3D_CORPUS_SCHEMA = 'fusionstructure-space3d-result/v1' as const;
 export const SPACE3D_CORPUS_ENGINE_ID = 'fusionstructure-space3d' as const;
 export const SPACE3D_CORPUS_ALGORITHM_ID = 'space-frame-euler-bernoulli-linear-v1' as const;
+export const SPACE3D_CORPUS_TOLERANCES = Object.freeze({ absolute: 1e-9, relative: 1e-8, nearZero: 1e-10, equilibriumNormalized: 1e-7 });
+export const SPACE3D_RUNTIME_CONTRACT = Object.freeze({
+  workerProtocolVersion: SPACE3D_PROTOCOL_VERSION,
+  supported: ['run', 'structured errors', 'requestId stale-response rejection', 'actual worker module message seam', 'real terminate cancellation', 'inline fallback message delivery'] as const,
+  unsupported: ['progress events', 'cooperative cancellation inside a numerical loop', 'automatic pre-v1 storage migration; pre-v1 payloads are rejected fail-closed', 'true module Worker execution in Vitest'] as const,
+});
 
 export interface Space3DCorpusAssertion {
   readonly id: string;
@@ -26,7 +32,8 @@ export interface Space3DCorpusAssertion {
 export type Space3DCorpusInvariant =
   | { readonly id: string; readonly kind: 'equilibrium'; readonly max: number }
   | { readonly id: string; readonly kind: 'success'; readonly expected: boolean }
-  | { readonly id: string; readonly kind: 'deterministic-issues' };
+  | { readonly id: string; readonly kind: 'deterministic-issues'; readonly expectedCodes: readonly string[] }
+  | { readonly id: string; readonly kind: 'free-structure-criterion'; readonly expectedIssueCode: string };
 
 export interface Space3DCorpusCase {
   readonly id: string;
@@ -44,7 +51,7 @@ export interface Space3DCorpusCase {
   readonly invariants: readonly Space3DCorpusInvariant[];
 }
 
-const TOLERANCES = Object.freeze({ absoluteTolerance: 1e-9, relativeTolerance: 1e-8, nearZeroTolerance: 1e-10 });
+const TOLERANCES = Object.freeze({ absoluteTolerance: SPACE3D_CORPUS_TOLERANCES.absolute, relativeTolerance: SPACE3D_CORPUS_TOLERANCES.relative, nearZeroTolerance: SPACE3D_CORPUS_TOLERANCES.nearZero });
 const assertion = (id: string, target: string, expected: number | boolean | string): Space3DCorpusAssertion => ({ ...TOLERANCES, id, target, expected });
 const equilibrium = { id: '6d-equilibrium', kind: 'equilibrium' as const, max: 1e-7 };
 const success = { id: 'analysis-success', kind: 'success' as const, expected: true };
@@ -102,8 +109,8 @@ export const availableSpace3DCorpus: readonly Space3DCorpusCase[] = Object.freez
   available({ id: 'oblique-member', capability: 'oblique member', units: 'kN-m', coordinateAssumptions: 'J=(sqrt(2),sqrt(2),0) m; load is axial P along member', oracle: 'rotate axial closed form into global components; N and strain are invariant', targetId: 'CO1', project: makeOblique, assertions: [assertion('global-ux', 'node.J.displacement.ux', 7.071067811865476e-6), assertion('global-uy', 'node.J.displacement.uy', 7.071067811865476e-6), assertion('axial-force', 'member.M1.end.N', 10)], invariants: [success, equilibrium] }),
   available({ id: 'rigid-coordinate-rotation', capability: 'rigid coordinate rotation', units: 'kN-m', coordinateAssumptions: 'base axial case rotated +90 degrees about global Z; orientation and load rotate together', oracle: 'rigid-body invariance of axial displacement magnitude and force', targetId: 'CO1', project: makeRigidRotation, assertions: [assertion('rotated-displacement', 'node.J.displacement.uy', 1e-5), assertion('rotated-reaction', 'node.I.reaction.uy', -10), assertion('rotated-axial-force', 'member.M1.end.N', 10)], invariants: [success, equilibrium] }),
   available({ id: 'combination', capability: 'load combination superposition', units: 'kN-m', coordinateAssumptions: 'same axial geometry; CO1 = 0.5 LC1 + 2 LC2', oracle: 'linear superposition: P=0.5(10)+2(4)=13 kN then axial closed form', targetId: 'CO1', project: makeCombination, assertions: [assertion('combined-displacement', 'node.J.displacement.ux', 1.3e-5), assertion('combined-reaction', 'node.I.reaction.ux', -13), assertion('combined-force', 'member.M1.end.N', 13)], invariants: [success, equilibrium] }),
-  available({ id: 'free-structure', capability: 'free structure mechanism', units: 'kN-m', coordinateAssumptions: 'same member with all six DOFs free at both nodes', oracle: 'independent rigid-body stability check: six unconstrained modes', targetId: 'CO1', project: () => freeFloatingMember({ P: 10 }), assertions: [assertion('analysis-fails', 'success', false), assertion('mechanism-code', 'issues.0.code', 'mechanism')], invariants: [{ id: 'analysis-fails-invariant', kind: 'success', expected: false }, { id: 'deterministic-diagnostics', kind: 'deterministic-issues' }] }),
-  available({ id: 'near-degenerate-orientation', capability: 'near-degenerate orientation rejection', units: 'kN-m', coordinateAssumptions: 'reference [1,1e-10,0] is nearly parallel to member X', oracle: 'independent geometric perpendicularity ratio below 1e-8 threshold', targetId: 'CO1', project: makeNearDegenerate, assertions: [assertion('analysis-fails', 'success', false), assertion('orientation-code', 'issues.0.code', 'degenerate-orientation')], invariants: [{ id: 'analysis-fails-invariant', kind: 'success', expected: false }, { id: 'deterministic-diagnostics', kind: 'deterministic-issues' }] }),
+  available({ id: 'free-structure', capability: 'free structure mechanism', units: 'kN-m', coordinateAssumptions: 'same member with all six DOFs free at both nodes', oracle: 'independent rigid-body stability check: six unconstrained modes', targetId: 'CO1', project: () => freeFloatingMember({ P: 10 }), assertions: [assertion('analysis-fails', 'success', false), assertion('mechanism-code', 'issues.0.code', 'mechanism')], invariants: [{ id: 'analysis-fails-invariant', kind: 'success', expected: false }, { id: 'six-free-rigid-body-modes', kind: 'free-structure-criterion', expectedIssueCode: 'mechanism' }] }),
+  available({ id: 'near-degenerate-orientation', capability: 'near-degenerate orientation rejection', units: 'kN-m', coordinateAssumptions: 'reference [1,1e-10,0] is nearly parallel to member X', oracle: 'independent geometric perpendicularity ratio below 1e-8 threshold', targetId: 'CO1', project: makeNearDegenerate, assertions: [assertion('analysis-fails', 'success', false), assertion('orientation-code', 'issues.0.code', 'degenerate-orientation')], invariants: [{ id: 'analysis-fails-invariant', kind: 'success', expected: false }, { id: 'literal-diagnostic-sequence', kind: 'deterministic-issues', expectedCodes: ['degenerate-orientation'] }] }),
 ]);
 
 const unsupported = (id: string, capability: string): Space3DCorpusCase => ({ id, capability, status: 'unsupported', units: 'kN-m', coordinateAssumptions: 'not applicable', schema: SPACE3D_CORPUS_SCHEMA, engineId: SPACE3D_CORPUS_ENGINE_ID, algorithmId: 'not-implemented', oracle: 'none: no executable implementation or independent result contract', targetId: '', project: () => axialCantilever(), assertions: [], invariants: [] });
@@ -140,7 +147,9 @@ export const space3dCorpusAssertionMatches = (actual: unknown, expected: Space3D
 export const evaluateSpace3DInvariant = (project: Space3DProjectV1, result: Space3DAnalysisResult, invariant: Space3DCorpusInvariant): boolean => {
   if (invariant.kind === 'equilibrium') return result.success && result.diagnostics.equilibrium.normalized <= invariant.max;
   if (invariant.kind === 'success') return result.success === invariant.expected;
-  return JSON.stringify(result.issues) === JSON.stringify(analyzeSpace3DProject(project, result.targetId).issues);
+  if (invariant.kind === 'deterministic-issues') return result.issues.map((item) => item.code).join('|') === invariant.expectedCodes.join('|') && result.nodeResults.length === 0 && result.memberResults.length === 0;
+  const allDofsFree = project.nodes.length > 0 && project.nodes.every((node) => Object.values(node.restraints).every((restrained) => restrained === false));
+  return allDofsFree && project.members.length > 0 && result.success === false && result.issues.length === 1 && result.issues[0].code === invariant.expectedIssueCode;
 };
 
 const canonicalize = (value: unknown): unknown => {
