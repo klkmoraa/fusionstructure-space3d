@@ -124,8 +124,6 @@ const matchesPath = (root, absolutePath, pattern) => {
   return actual === normalizedPattern || actual.startsWith(`${normalizedPattern}/`);
 };
 
-const matchesScope = (root, filePath, scopes) => scopes.some((scope) => matchesPath(root, filePath, scope));
-
 const exceptionMatches = (root, rule, filePath, targetPath, reference) => (rule.exceptions ?? []).some((exception) => {
   const fromMatches = !exception.from || matchesPath(root, filePath, exception.from);
   const targetMatches = !exception.target || matchesPath(root, targetPath, exception.target);
