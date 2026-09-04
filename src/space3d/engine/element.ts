@@ -7,7 +7,7 @@
  * `v`–`rz`) e `Iy` la del plano `x–z` (pareja `w`–`ry`); esta última cambia de
  * signo porque un giro positivo alrededor de `+y` desplaza `w` en `-z`.
  */
-import { multiply, transpose, zeros, type Matrix } from '../../engine/math';
+import { multiply, transpose, zeros, type Matrix } from '../../foundation/linearAlgebra';
 import { buildMemberOrientation, memberLength } from './orientation';
 import type { Space3DFrameMember, Space3DNode, Space3DOrientationBasis } from '../model/types';
 

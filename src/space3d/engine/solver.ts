@@ -7,10 +7,16 @@
  * un resultado sin `nodeResults` ni `memberResults`: nunca se publica una
  * respuesta parcialmente utilizable.
  *
- * `solveLinearSystem` se consume como primitiva numérica de sólo lectura; el
- * dominio 2D no se toca.
+ * `solveLinearSystem` se consume como primitiva numérica neutral de sólo lectura.
  */
-import { multiplyMatrixVector, solveLinearSystem, submatrix, subvector, zeros } from '../../engine/math';
+import {
+  LinearAlgebraError,
+  multiplyMatrixVector,
+  solveLinearSystem,
+  submatrix,
+  subvector,
+  zeros,
+} from '../../foundation/linearAlgebra';
 import { buildSpaceFrameElement } from './element';
 import { validateSpace3DProject } from '../model/validation';
 import {
@@ -110,6 +116,11 @@ export const resolveSpace3DTarget = (project: Space3DProjectV1, targetId: string
 
 /** Traduce un fallo numérico del solve en un issue estable, o lo relanza si es un bug. */
 const classifySolveFailure = (error: unknown): Space3DAnalysisIssue => {
+  if (error instanceof LinearAlgebraError) {
+    if (error.code === 'singular') return issue('mechanism', 'project', '');
+    if (error.code === 'non-finite-value') return issue('non-finite-solution', 'project', '');
+    throw error;
+  }
   if (!(error instanceof Error)) throw error;
   if (/singular|mecanismo/i.test(error.message)) return issue('mechanism', 'project', '');
   if (/no finitos/i.test(error.message)) return issue('non-finite-solution', 'project', '');
