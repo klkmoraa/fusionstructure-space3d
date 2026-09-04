@@ -11,7 +11,7 @@
 import { AlertTriangle, ChevronDown, CircleCheck, CircleSlash, Clock } from 'lucide-react';
 import type { Space3DAnalysisIssue, Space3DAnalysisResult } from '../../space3d/model/types';
 import type { Space3DAnalysisState } from '../../space3d/store/Space3DProjectContext';
-import { formatNumber } from '../../utils/numberFormat';
+import { formatSpace3DNumber } from './space3dNumberFormat';
 import type { TranslationKey } from '../../i18n/catalogs';
 
 export type Space3DResultsTab = 'summary' | 'nodes' | 'members' | 'diagnostics';
@@ -64,16 +64,16 @@ const STATE_META: Record<Space3DAnalysisState, { key: TranslationKey; tone: stri
 };
 
 /**
- * Una sola política numérica en todo el producto: `utils/numberFormat` decide
- * cuándo un valor se lee en decimal y cuándo en científica, y qué se imprime
- * cuando no hay número. Los desplazamientos espaciales son del orden de 1e-5 m,
- * así que el contexto `table` es el que evita una columna de ceros.
+ * La política de la superficie vive junto al módulo 3D para que el futuro
+ * repositorio Space3D no dependa del formateador de la aplicación 2D. Los
+ * desplazamientos espaciales son del orden de 1e-5 m, así que la notación
+ * científica evita una columna de ceros.
  */
 const engineering = (value: number, digits = 6): string =>
-  formatNumber(value, 'table', { significantDigits: digits });
+  formatSpace3DNumber(value, { significantDigits: digits });
 
 /** Acciones de extremo: cuatro cifras bastan y mantienen la columna estrecha. */
-const action = (value: number): string => formatNumber(value, 'table', { significantDigits: 4 });
+const action = (value: number): string => formatSpace3DNumber(value, { significantDigits: 4 });
 
 export const Space3DResultsPanel = ({
   analysis, analysisState, tab, onTabChange, deformationScale, maxDisplacement, t, onSelectNode, onSelectMember,

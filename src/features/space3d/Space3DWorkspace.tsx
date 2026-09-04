@@ -16,11 +16,11 @@ import {
 } from 'lucide-react';
 import { Space3DProjectProvider, useSpace3DProject, type Space3DSelection } from '../../space3d/store/Space3DProjectContext';
 import {
-  deriveSpace3DFromPlanarProject,
-  space3dMatchesPlanarSource,
+  space3DMatchesPlanarHandoff,
   unresolvedSpace3DBridgeNotes,
+  type Planar2DToSpace3DHandoffV1,
   type Space3DBridgeNote,
-} from '../../space3d/data/bridge2d';
+} from '../../integrations/planar2dToSpace3d';
 import { loadSpace3DProject } from '../../space3d/data/storage';
 import { Dialog } from '../../design-system/components/overlays';
 import { Space3DCanvas, type Space3DViewportFactory } from '../../space3d/view/Space3DCanvas';
@@ -32,10 +32,9 @@ import { Space3DResultsPanel, type Space3DResultsTab } from './Space3DResultsPan
 import { Space3DConsoleTools, type Space3DActiveTool } from './Space3DToolRail';
 import { Space3DModelSummary, type Space3DModelFocus } from './Space3DModelNav';
 import { translate, type Language, type TranslationKey } from '../../i18n/catalogs';
-import { formatNumber } from '../../utils/numberFormat';
+import { formatSpace3DNumber } from './space3dNumberFormat';
 import type { Space3DCommand } from '../../space3d/data/commands';
 import type { Space3DProjectV1, Space3DRestraints } from '../../space3d/model/types';
-import type { ProjectModel } from '../../types';
 import type { Space3DStorageLike } from '../../space3d/data/storage';
 import type { Space3DWorkerClient } from '../../space3d/runtime/workerClient';
 import { getSpace3DMoreCommands } from './space3dWorkspaceModel';
@@ -55,11 +54,8 @@ export interface Space3DWorkspaceProps {
   readonly storage?: Space3DStorageLike | null;
   readonly client?: Space3DWorkerClient;
   readonly createViewport?: Space3DViewportFactory;
-  /**
-   * Proyecto 2D del que parte esta sesion. Al recibirlo, la superficie abre el
-   * modelo espacial derivado de el en vez de uno independiente.
-   */
-  readonly sourceProject?: ProjectModel;
+  /** Propuesta inmutable preparada fuera de ambos dominios antes de abrir 3D. */
+  readonly handoff?: Planar2DToSpace3DHandoffV1 | null;
 }
 
 const ERROR_KEYS: Record<string, TranslationKey> = {
@@ -150,18 +146,18 @@ const LAYER_TOGGLES: readonly { id: keyof Space3DLayerVisibility; key: Translati
 ];
 
 /** Misma política numérica que el resto del producto. */
-const number = (value: number): string => formatNumber(value, 'table');
+const number = (value: number): string => formatSpace3DNumber(value);
 
 const countRestraints = (restraints: Space3DRestraints) => Object.values(restraints).filter(Boolean).length;
 
 interface WorkspaceBodyProps extends Pick<Space3DWorkspaceProps,
-  'language' | 'onOpenHome' | 'onOpen2D' | 'createViewport' | 'sourceProject'> {
+  'language' | 'onOpenHome' | 'onOpen2D' | 'createViewport' | 'handoff'> {
   readonly bridgeNotes: readonly Space3DBridgeNote[];
   readonly derived: Space3DProjectV1 | null;
 }
 
 const WorkspaceBody = ({
-  language, onOpenHome, onOpen2D, createViewport, sourceProject, bridgeNotes, derived,
+  language, onOpenHome, onOpen2D, createViewport, handoff, bridgeNotes, derived,
 }: WorkspaceBodyProps) => {
   const t = useCallback(
     (key: TranslationKey, variables?: Record<string, string | number>) => translate(language, key, variables),
@@ -333,8 +329,8 @@ const WorkspaceBody = ({
     setRail('model');
     selectEntity(target);
   };
-  const diverged = sourceProject !== undefined && derived !== null
-    && !space3dMatchesPlanarSource(project, sourceProject);
+  const diverged = handoff !== undefined && handoff !== null && derived !== null
+    && !space3DMatchesPlanarHandoff(project, handoff);
 
   const running = analysisState === 'running';
   const errorMessage = lastError ? t(ERROR_KEYS[lastError] ?? 'space3d.error.generic') : null;
@@ -459,9 +455,9 @@ const WorkspaceBody = ({
       </div>
     </div>
 
-    {sourceProject ? <section className="space3d-bridge" aria-label={t('space3d.bridgeTitle')}>
+    {handoff ? <section className="space3d-bridge" aria-label={t('space3d.bridgeTitle')}>
       <header>
-        <strong>{t('space3d.sourceProject', { name: sourceProject.name })}</strong>
+        <strong>{t('space3d.sourceProject', { name: handoff.candidateModel.name })}</strong>
         {diverged ? <span className="space3d-state space3d-state--warn">{t('space3d.bridgeDiverged')}</span> : null}
         {diverged && derived
           ? <button type="button" className="space3d-button" title={t('space3d.rederiveWarning')} onClick={() => replaceProject(derived)}>
@@ -569,7 +565,7 @@ const WorkspaceBody = ({
         />
         {scene.deformed && resultMode === 'deformed' ? <div className="space3d-scale" role="group" aria-label={t('space3d.layerDeformed')}>
           <span role="status" aria-live="polite">
-            {t('space3d.deformationScale', { scale: formatNumber(scene.deformed.scale, 'table', { significantDigits: 4 }) })}
+            {t('space3d.deformationScale', { scale: formatSpace3DNumber(scene.deformed.scale, { significantDigits: 4 }) })}
             <span data-testid="space3d-deformation-scale" className="space3d-visually-hidden">{scene.deformed.scale}</span>
           </span>
           <button type="button" className="space3d-tool" title={t('space3d.scaleHalve')}
@@ -801,27 +797,23 @@ const WorkspaceBody = ({
  * sigue correspondiendole; solo cuando no existe se deriva uno nuevo. Asi,
  * volver al 2D y entrar otra vez no duplica nada ni descarta el trabajo 3D.
  */
-const Space3DWorkspace = ({ storage, client, sourceProject, ...rest }: Space3DWorkspaceProps) => {
-  const bridge = useMemo(
-    () => (sourceProject ? deriveSpace3DFromPlanarProject(sourceProject) : null),
-    [sourceProject],
-  );
-  const namespace = sourceProject ? `src:${sourceProject.id}` : undefined;
+const Space3DWorkspace = ({ storage, client, handoff, ...rest }: Space3DWorkspaceProps) => {
+  const namespace = handoff ? `src:${handoff.source.projectId}` : undefined;
   const initialProject = useMemo(() => {
-    if (!bridge) return undefined;
+    if (!handoff) return undefined;
     const stored = loadSpace3DProject(storage ?? undefined, namespace);
-    return stored && stored.id === bridge.project.id ? stored : bridge.project;
+    return stored && stored.id === handoff.candidateModel.id ? stored : handoff.candidateModel;
     // El proyecto inicial se resuelve una vez por origen; despues manda el store.
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [bridge, namespace]);
+  }, [handoff, namespace]);
 
   return (
     <Space3DProjectProvider storage={storage} client={client} namespace={namespace} initialProject={initialProject}>
       <WorkspaceBody
         {...rest}
-        sourceProject={sourceProject}
-        bridgeNotes={bridge?.notes ?? []}
-        derived={bridge?.project ?? null}
+        handoff={handoff}
+        bridgeNotes={handoff?.lossReport.entries ?? []}
+        derived={handoff?.candidateModel ?? null}
       />
     </Space3DProjectProvider>
   );
