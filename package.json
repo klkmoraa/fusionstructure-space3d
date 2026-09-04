@@ -1,7 +1,7 @@
 {
   "name": "@fusionstructure/space3d",
   "private": false,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Aplicación experimental de análisis estructural espacial de FusionStructure.",
   "type": "module",
   "scripts": {

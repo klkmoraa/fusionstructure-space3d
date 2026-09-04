@@ -124,6 +124,70 @@ const matchesPath = (root, absolutePath, pattern) => {
   return actual === normalizedPattern || actual.startsWith(`${normalizedPattern}/`);
 };
 
+const isProductionTypeScriptFile = (filePath) => ['.ts', '.tsx'].includes(extname(filePath))
+  && !/\.(?:test|spec)\.(?:ts|tsx)$/i.test(filePath)
+  && !/(?:^|[\\/])(?:__tests__|tests?)(?:[\\/]|$)/i.test(filePath);
+
+const matchingForbiddenPackage = (specifier, forbiddenPackages) => forbiddenPackages.find((packageName) => (
+  specifier === packageName || specifier.startsWith(`${packageName}/`)
+));
+
+const matchingForbiddenDependencyValue = (value, forbiddenPackages) => {
+  if (typeof value !== 'string') return undefined;
+  const specification = value.trim();
+  const packageSpecifier = specification.replace(/^(?:npm|workspace):/i, '');
+  const packageMatch = forbiddenPackages.find((packageName) => (
+    packageSpecifier === packageName
+    || packageSpecifier.startsWith(`${packageName}/`)
+    || packageSpecifier.startsWith(`${packageName}@`)
+  ));
+  if (packageMatch) return packageMatch;
+
+  const localPath = specification.match(/^(?:file|workspace):(.+)$/i)?.[1];
+  if (!localPath) return undefined;
+  const pathSegments = localPath.replaceAll('\\', '/').split('/').filter(Boolean).map((segment) => segment.toLowerCase());
+  return forbiddenPackages.find((packageName) => {
+    const productName = packageName.split('/').at(-1);
+    return pathSegments.includes(productName) || pathSegments.includes(`fusionstructure-${productName}`);
+  });
+};
+
+const leavesRepository = (root, filePath, specifier) => {
+  if (!specifier.startsWith('.') && !specifier.startsWith('/')) return false;
+  const candidate = specifier.startsWith('/') ? resolve(specifier) : resolve(dirname(filePath), specifier);
+  return !isInside(root, candidate);
+};
+
+const forbiddenPackageDiagnostics = (root, rule) => {
+  const forbiddenPackages = Array.isArray(rule.forbiddenPackages) ? rule.forbiddenPackages : [];
+  if (!rule.packageJson || forbiddenPackages.length === 0) return [];
+
+  const manifestPath = resolve(root, 'package.json');
+  if (!existsSync(manifestPath)) return [];
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  const diagnostics = [];
+  for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
+    const dependencies = manifest[section];
+    if (!dependencies || typeof dependencies !== 'object' || Array.isArray(dependencies)) continue;
+    for (const [dependency, value] of Object.entries(dependencies)) {
+      const forbidden = matchingForbiddenPackage(dependency, forbiddenPackages)
+        ?? matchingForbiddenDependencyValue(value, forbiddenPackages);
+      if (forbidden) {
+        diagnostics.push({
+          code: 'FSDEP-004',
+          rule: rule.id,
+          file: 'package.json',
+          section,
+          dependency,
+          target: typeof value === 'string' ? value : dependency,
+          message: `${section} declares forbidden package ${forbidden}`,
+        });
+      }
+    }
+  }
+  return diagnostics;
+};
+
 const exceptionMatches = (root, rule, filePath, targetPath, reference) => (rule.exceptions ?? []).some((exception) => {
   const fromMatches = !exception.from || matchesPath(root, filePath, exception.from);
   const targetMatches = !exception.target || matchesPath(root, targetPath, exception.target);
@@ -134,12 +198,38 @@ const exceptionMatches = (root, rule, filePath, targetPath, reference) => (rule.
 const diagnosticsFor = ({ root, config, compilerOptions = tsCompilerOptions(root) }) => {
   const diagnostics = [];
   for (const rule of config.rules) {
+    const forbiddenPackages = Array.isArray(rule.forbiddenPackages) ? rule.forbiddenPackages : [];
+    diagnostics.push(...forbiddenPackageDiagnostics(root, rule));
     for (const scope of rule.scope ?? []) {
       for (const filePath of sourceFiles(root, scope)) {
+        if (rule.productionOnly && !isProductionTypeScriptFile(filePath)) continue;
         const fileRelative = relativePath(root, filePath);
         for (const reference of importReferences(readFileSync(filePath, 'utf8'), filePath)) {
           if (reference.specifier === null) {
             diagnostics.push({ code: 'FSDEP-001', rule: rule.id, file: fileRelative, line: reference.line, message: `${reference.kind} must use a literal module specifier` });
+            continue;
+          }
+          const forbiddenPackage = matchingForbiddenPackage(reference.specifier, forbiddenPackages);
+          if (forbiddenPackage) {
+            diagnostics.push({
+              code: 'FSDEP-005',
+              rule: rule.id,
+              file: fileRelative,
+              line: reference.line,
+              dependency: reference.specifier,
+              message: `${reference.kind} reaches forbidden package ${forbiddenPackage}`,
+            });
+            continue;
+          }
+          if (rule.forbidOutsideRoot && leavesRepository(root, filePath, reference.specifier)) {
+            diagnostics.push({
+              code: 'FSDEP-006',
+              rule: rule.id,
+              file: fileRelative,
+              line: reference.line,
+              dependency: reference.specifier,
+              message: `${reference.kind} reaches a module outside this product`,
+            });
             continue;
           }
           const targetPath = resolveSpecifier(root, filePath, reference.specifier, compilerOptions);
@@ -174,8 +264,9 @@ const main = () => {
   else {
     console.error(`Dependency boundary gate failed with ${diagnostics.length} diagnostic(s):`);
     for (const diagnostic of diagnostics) {
-      const target = diagnostic.target ? ` -> ${diagnostic.target}` : '';
-      console.error(`${diagnostic.code} ${diagnostic.rule} ${diagnostic.file}:${diagnostic.line}${target}: ${diagnostic.message}`);
+      const target = diagnostic.target ?? diagnostic.dependency;
+      const targetLabel = target ? ` -> ${target}` : '';
+      console.error(`${diagnostic.code} ${diagnostic.rule} ${diagnostic.file}:${diagnostic.line ?? 0}${targetLabel}: ${diagnostic.message}`);
     }
   }
   if (diagnostics.length > 0) process.exitCode = 1;

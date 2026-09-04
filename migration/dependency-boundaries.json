@@ -40,6 +40,19 @@
         "src/space3d/public.ts"
       ],
       "exceptions": []
+    },
+    {
+      "id": "space3d-local-foundation-only",
+      "scope": ["src"],
+      "forbiddenPackages": [
+        "@fusionstructure/foundation",
+        "@fusionstructure/fstructure",
+        "@fusionstructure/web"
+      ],
+      "packageJson": true,
+      "productionOnly": true,
+      "forbidOutsideRoot": true,
+      "exceptions": []
     }
   ]
 }
