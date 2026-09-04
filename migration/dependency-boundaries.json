@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "scope": "phase-3-product-boundaries",
+  "rules": [
+    {
+      "id": "space3d-no-2d-internals",
+      "scope": ["src/space3d", "src/features/space3d"],
+      "forbidden": [
+        "src/types.ts",
+        "src/engine",
+        "src/data",
+        "src/commands",
+        "src/store",
+        "src/storage",
+        "src/workers",
+        "src/analysis-methods",
+        "src/features/canvas",
+        "src/features/results",
+        "src/utils/numberFormat.ts"
+      ],
+      "exceptions": []
+    },
+    {
+      "id": "external-handoff-public-only",
+      "scope": ["src/integrations/planar2dToSpace3d.ts"],
+      "forbidden": [
+        "src/types.ts",
+        "src/engine",
+        "src/data",
+        "src/commands",
+        "src/store",
+        "src/storage",
+        "src/workers",
+        "src/analysis-methods",
+        "src/features",
+        "src/utils"
+      ],
+      "onlyLocalImports": [
+        "src/solver2d/public.ts",
+        "src/space3d/public.ts"
+      ],
+      "exceptions": []
+    }
+  ]
+}
