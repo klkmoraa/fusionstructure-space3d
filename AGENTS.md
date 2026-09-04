@@ -57,6 +57,19 @@ Una feature nueva debe declarar qué entidad del proyecto modifica, qué validac
 - Preferir formatos abiertos y adaptadores aislados.
 - Evitar que la interfaz sea la única fuente de reglas de negocio.
 
+## Foundation local de Space3D
+
+- `src/foundation/` pertenece únicamente a Space3D. Sus unidades y álgebra
+  lineal son código local de este producto, no un paquete compartido ni una
+  vía de compatibilidad entre productos.
+- No agregar ni importar `@fusionstructure/foundation`. Tampoco importar
+  internals de FStructure o Web, incluidos paths que salgan de este
+  repositorio; el único intercambio permitido sigue siendo el handoff público
+  versionado.
+- Un cambio local de Foundation se valida y revisa sólo con las pruebas y el
+  Pull Request de este repositorio. No requiere publicar Foundation ni abrir o
+  esperar PRs/pruebas de productos hermanos.
+
 ## Flujo de cierre
 
 El usuario autorizó actualizar el repositorio en esta sesión. Para cambios posteriores, no hacer push ni abrir un Pull Request salvo que se solicite explícitamente en esa sesión.

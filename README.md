@@ -19,3 +19,27 @@ npm run dev
 
 See [MIGRATION.md](MIGRATION.md) for the cutover tag, path allowlist, and the
 serialized 2D-to-3D integration boundary.
+
+## Local Foundation and fast flow
+
+`src/foundation/` is owned by Space 3D only. Its units and linear algebra stay
+in this repository; do not restore the archived `@fusionstructure/foundation`
+package or import FStructure/Web internals.
+
+For a daily local Foundation change, run the focused checks first:
+
+```text
+npm run architecture:check
+npm run architecture:test
+npm run test -- src/foundation/units.test.ts src/foundation/linearAlgebra.test.ts
+```
+
+Before requesting review or a release, run the complete gate:
+
+```text
+npm run check
+```
+
+The complete gate includes the manifest and production-source boundary checks.
+Foundation remains local: its change needs only this repository's tests and
+Pull Request.

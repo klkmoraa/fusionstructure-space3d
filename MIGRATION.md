@@ -17,6 +17,24 @@ The compatibility corpus remains in `src/space3d` and is executed by the
 standalone gate. The product owns its model, solver, worker, persistence, and
 Three.js surface. It has no import from the 2D application.
 
+## Local Foundation ownership
+
+`src/foundation/` is the local implementation for Space 3D units and linear
+algebra. It is intentionally not a separately published package and must not
+be replaced by the archived `@fusionstructure/foundation` dependency.
+
+`migration/dependency-boundaries.json` keeps that ownership explicit: it
+rejects archived Foundation and FStructure/Web product dependencies from
+`package.json`, production `.ts`/`.tsx` imports, and relative imports that
+leave this repository. Test files are excluded from this product-dependency
+rule so its controlled fixtures cannot trigger their own gate.
+
+For daily Foundation work, run `npm run architecture:check`,
+`npm run architecture:test`, and the focused Foundation tests. Before a
+review or release, run `npm run check`. The change needs only this repository's
+tests and Pull Request; it does not require a Foundation package release or
+validation in sibling products.
+
 ## Integration boundary
 
 The monolith's 2D-to-3D adapter remains an integration concern. This product
