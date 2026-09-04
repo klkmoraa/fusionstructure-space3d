@@ -36,9 +36,10 @@
     "unsupported": ["progress events", "cooperative cancellation inside a numerical loop", "automatic pre-v1 storage migration; pre-v1 payloads are rejected fail-closed", "browser DedicatedWorkerGlobalScope execution in Vitest"]
   },
   "artifacts": [
-    { "path": "src/space3d/compatibilityCorpus.ts", "digestAlgorithm": "sha256", "sha256": "fd79f5bdceffceb4e831824270be16f4c79efb75e105782005e4298378f8fac3", "role": "canonical cases, local 12-DOF rigid-body null-space proof, tolerances, result serializer" },
-    { "path": "src/space3d/compatibilityCorpus.test.ts", "digestAlgorithm": "sha256", "sha256": "2111ed6da669afe9c286d74a82cfc216b0ec4ed78a1c83d60f76d86a9ed4210f", "role": "direct engine/codec/storage/worker corpus, literal rigid-mode proof, and mutation sensitivity" },
-    { "path": "src/space3d/runtime/space3d.worker.ts", "digestAlgorithm": "sha256", "sha256": "9c7df48b906fc1e08cb9e677ff5c7dfa5cc92e969be274cd319c7e6051ddec8a", "role": "DedicatedWorkerGlobalScope-guarded worker module message seam" }
+    { "path": "src/space3d/compatibilityCorpus.ts", "digestAlgorithm": "sha256-eol-lf-normalized-bytes-v1", "sha256": "fd79f5bdceffceb4e831824270be16f4c79efb75e105782005e4298378f8fac3", "role": "canonical cases, local 12-DOF rigid-body null-space proof, tolerances, result serializer" },
+    { "path": "src/space3d/compatibilityCorpus.test.ts", "digestAlgorithm": "sha256-eol-lf-normalized-bytes-v1", "sha256": "fddbfe4c822f11ef895d124087e4c7d37546caaecae0b93b471c613b7bb95573", "role": "direct engine/codec/storage/worker corpus, literal rigid-mode proof, and mutation sensitivity" },
+    { "path": "src/space3d/runtime/space3d.worker.ts", "digestAlgorithm": "sha256-eol-lf-normalized-bytes-v1", "sha256": "b19d399bad01820ab3188c38dc5c127e73e0968bdceb6c1f88bbb8ab70484746", "role": "DedicatedWorkerGlobalScope-guarded worker module message seam" },
+    { "path": "src/compatibilityArtifactDigest.ts", "digestAlgorithm": "sha256-eol-lf-normalized-bytes-v1", "sha256": "94c1748742153fc5f76dc56fa8c38e09fb4f32a06aca3b5038aa2a8e9072fd10", "role": "canonical byte-level end-of-line digest verifier" }
   ],
   "claims": { "maturity": "experimental", "normativeOrCertificationClaim": false, "solverAlgorithmModified": false, "unsupportedCapabilitiesFaked": false }
 }

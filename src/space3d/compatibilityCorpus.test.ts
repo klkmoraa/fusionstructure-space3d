@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+import { COMPATIBILITY_ARTIFACT_DIGEST_ALGORITHM, digestCompatibilityArtifact } from '../compatibilityArtifactDigest';
 import { analyzeSpace3DProject } from './engine/solver';
 import { buildSpaceFrameElement } from './engine/element';
 import { buildMemberOrientation } from './engine/orientation';
@@ -32,7 +32,7 @@ import {
 describe('direct Space3D compatibility corpus', () => {
   it('keeps post-baseline manifest and artifact digests stable', () => {
     const root = resolve(import.meta.dirname, '..', '..');
-    const manifest = JSON.parse(readFileSync(resolve(root, 'migration', 'space3d-compatibility-manifest.json'), 'utf8')) as { schemaVersion: number; corpusId: string; baseline: string; task2Cut: string; units: string; coordinateConvention: string; schema: string; engineId: string; algorithmId: string; tolerances: typeof SPACE3D_CORPUS_TOLERANCES; caseCount: number; availableCaseCount: number; unsupportedCaseCount: number; cases: Array<{ id: string; status: string; capability: string; oracle: string }>; runtimeContract: typeof SPACE3D_RUNTIME_CONTRACT; claims: { maturity: string; normativeOrCertificationClaim: boolean; solverAlgorithmModified: boolean; unsupportedCapabilitiesFaked: boolean }; artifacts: Array<{ path: string; sha256: string }> };
+    const manifest = JSON.parse(readFileSync(resolve(root, 'migration', 'space3d-compatibility-manifest.json'), 'utf8')) as { schemaVersion: number; corpusId: string; baseline: string; task2Cut: string; units: string; coordinateConvention: string; schema: string; engineId: string; algorithmId: string; tolerances: typeof SPACE3D_CORPUS_TOLERANCES; caseCount: number; availableCaseCount: number; unsupportedCaseCount: number; cases: Array<{ id: string; status: string; capability: string; oracle: string }>; runtimeContract: typeof SPACE3D_RUNTIME_CONTRACT; claims: { maturity: string; normativeOrCertificationClaim: boolean; solverAlgorithmModified: boolean; unsupportedCapabilitiesFaked: boolean }; artifacts: Array<{ path: string; digestAlgorithm: string; sha256: string }> };
     expect(manifest.schemaVersion).toBe(1);
     expect(manifest.corpusId).toBe('fusionstructure-direct-space3d/v1');
     expect(manifest.baseline).toBe('5955722');
@@ -53,7 +53,8 @@ describe('direct Space3D compatibility corpus', () => {
     expect(manifest.runtimeContract).toEqual(SPACE3D_RUNTIME_CONTRACT);
     expect(manifest.claims).toEqual({ maturity: 'experimental', normativeOrCertificationClaim: false, solverAlgorithmModified: false, unsupportedCapabilitiesFaked: false });
     for (const artifact of manifest.artifacts) {
-      const digest = createHash('sha256').update(readFileSync(resolve(root, artifact.path))).digest('hex');
+      expect(artifact.digestAlgorithm, artifact.path).toBe(COMPATIBILITY_ARTIFACT_DIGEST_ALGORITHM);
+      const digest = digestCompatibilityArtifact(readFileSync(resolve(root, artifact.path)));
       expect(digest, artifact.path).toBe(artifact.sha256);
     }
   });
