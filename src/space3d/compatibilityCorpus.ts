@@ -7,7 +7,8 @@
  * helper numérico del motor para construir sus expectativas.
  */
 import { axialCantilever, bendingCantilever, freeFloatingMember, torsionCantilever } from './engine/fixtures';
-import type { Space3DAnalysisResult, Space3DProjectV1 } from './model/types';
+import { buildSpaceFrameElement } from './engine/element';
+import type { Space3DAnalysisResult, Space3DProjectV1, Space3DVector } from './model/types';
 import { SPACE3D_PROTOCOL_VERSION } from './runtime/protocol';
 
 export const SPACE3D_CORPUS_SCHEMA = 'fusionstructure-space3d-result/v1' as const;
@@ -16,8 +17,8 @@ export const SPACE3D_CORPUS_ALGORITHM_ID = 'space-frame-euler-bernoulli-linear-v
 export const SPACE3D_CORPUS_TOLERANCES = Object.freeze({ absolute: 1e-9, relative: 1e-8, nearZero: 1e-10, equilibriumNormalized: 1e-7 });
 export const SPACE3D_RUNTIME_CONTRACT = Object.freeze({
   workerProtocolVersion: SPACE3D_PROTOCOL_VERSION,
-  supported: ['run', 'structured errors', 'requestId stale-response rejection', 'actual worker module message seam', 'real terminate cancellation', 'inline fallback message delivery'] as const,
-  unsupported: ['progress events', 'cooperative cancellation inside a numerical loop', 'automatic pre-v1 storage migration; pre-v1 payloads are rejected fail-closed', 'true module Worker execution in Vitest'] as const,
+  supported: ['run', 'structured errors', 'requestId stale-response rejection', 'worker-module message seam through explicit scope harness', 'DedicatedWorkerGlobalScope-only production auto-install', 'real terminate cancellation', 'inline fallback message delivery'] as const,
+  unsupported: ['progress events', 'cooperative cancellation inside a numerical loop', 'automatic pre-v1 storage migration; pre-v1 payloads are rejected fail-closed', 'browser DedicatedWorkerGlobalScope execution in Vitest'] as const,
 });
 
 export interface Space3DCorpusAssertion {
@@ -29,11 +30,34 @@ export interface Space3DCorpusAssertion {
   readonly nearZeroTolerance: number;
 }
 
+export type Space3DRigidBodyModeId =
+  | 'translation-x'
+  | 'translation-y'
+  | 'translation-z'
+  | 'rotation-x'
+  | 'rotation-y'
+  | 'rotation-z';
+
+export interface Space3DRigidBodyModeProof {
+  readonly id: Space3DRigidBodyModeId;
+  /** Vector global de 12 GDL, `[u_i, r_i, u_j, r_j]`. */
+  readonly globalDisplacement: readonly number[];
+  /** Residual local `K_local · (T · r_global)`. */
+  readonly localResidual: readonly number[];
+  readonly maxResidual: number;
+}
+
 export type Space3DCorpusInvariant =
   | { readonly id: string; readonly kind: 'equilibrium'; readonly max: number }
   | { readonly id: string; readonly kind: 'success'; readonly expected: boolean }
   | { readonly id: string; readonly kind: 'deterministic-issues'; readonly expectedCodes: readonly string[] }
-  | { readonly id: string; readonly kind: 'free-structure-criterion'; readonly expectedIssueCode: string };
+  | {
+    readonly id: string;
+    readonly kind: 'local-stiffness-rigid-body-null-modes';
+    readonly origin: Space3DVector;
+    readonly modeIds: readonly Space3DRigidBodyModeId[];
+    readonly maxResidual: number;
+  };
 
 export interface Space3DCorpusCase {
   readonly id: string;
@@ -55,6 +79,82 @@ const TOLERANCES = Object.freeze({ absoluteTolerance: SPACE3D_CORPUS_TOLERANCES.
 const assertion = (id: string, target: string, expected: number | boolean | string): Space3DCorpusAssertion => ({ ...TOLERANCES, id, target, expected });
 const equilibrium = { id: '6d-equilibrium', kind: 'equilibrium' as const, max: 1e-7 };
 const success = { id: 'analysis-success', kind: 'success' as const, expected: true };
+
+interface RigidBodyModeDefinition {
+  readonly id: Space3DRigidBodyModeId;
+  readonly translation: Space3DVector;
+  readonly rotation: Space3DVector;
+}
+
+/**
+ * Seis movimientos de cuerpo rígido independientes en ejes globales. Las
+ * rotaciones son infinitesimales: `u(p) = t + ω × (p - origin)` y `r(p) = ω`.
+ */
+const rigidBodyModeDefinitions: readonly RigidBodyModeDefinition[] = Object.freeze([
+  Object.freeze({ id: 'translation-x', translation: [1, 0, 0] as Space3DVector, rotation: [0, 0, 0] as Space3DVector }),
+  Object.freeze({ id: 'translation-y', translation: [0, 1, 0] as Space3DVector, rotation: [0, 0, 0] as Space3DVector }),
+  Object.freeze({ id: 'translation-z', translation: [0, 0, 1] as Space3DVector, rotation: [0, 0, 0] as Space3DVector }),
+  Object.freeze({ id: 'rotation-x', translation: [0, 0, 0] as Space3DVector, rotation: [1, 0, 0] as Space3DVector }),
+  Object.freeze({ id: 'rotation-y', translation: [0, 0, 0] as Space3DVector, rotation: [0, 1, 0] as Space3DVector }),
+  Object.freeze({ id: 'rotation-z', translation: [0, 0, 0] as Space3DVector, rotation: [0, 0, 1] as Space3DVector }),
+]);
+
+const cross = (left: Space3DVector, right: Space3DVector): Space3DVector => [
+  left[1] * right[2] - left[2] * right[1],
+  left[2] * right[0] - left[0] * right[2],
+  left[0] * right[1] - left[1] * right[0],
+];
+
+const matrixVectorProduct = (matrix: readonly (readonly number[])[], vector: readonly number[]): readonly number[] =>
+  matrix.map((row) => row.reduce((sum, value, index) => sum + value * vector[index], 0));
+
+const globalNodeRigidBodyDofs = (
+  node: Space3DProjectV1['nodes'][number],
+  origin: Space3DVector,
+  mode: RigidBodyModeDefinition,
+): readonly number[] => {
+  const relativePosition: Space3DVector = [node.x - origin[0], node.y - origin[1], node.z - origin[2]];
+  const rotationDisplacement = cross(mode.rotation, relativePosition);
+  return Object.freeze([
+    mode.translation[0] + rotationDisplacement[0],
+    mode.translation[1] + rotationDisplacement[1],
+    mode.translation[2] + rotationDisplacement[2],
+    mode.rotation[0], mode.rotation[1], mode.rotation[2],
+  ]);
+};
+
+/**
+ * Evidencia directa para un miembro libre aislado, sin resolver cargas ni
+ * volver a llamar al solver: transforma cada modo global y calcula
+ * `K_local · u_local` sobre los 12 GDL del elemento.
+ */
+export const inspectSpace3DFreeMemberRigidBodyModes = (
+  project: Space3DProjectV1,
+  origin: Space3DVector,
+): readonly Space3DRigidBodyModeProof[] | null => {
+  if (project.nodes.length !== 2 || project.members.length !== 1) return null;
+  if (!project.nodes.every((node) => Object.values(node.restraints).every((restrained) => restrained === false))) return null;
+  const member = project.members[0];
+  const nodeI = project.nodes.find((node) => node.id === member.i);
+  const nodeJ = project.nodes.find((node) => node.id === member.j);
+  if (!nodeI || !nodeJ || nodeI.id === nodeJ.id) return null;
+
+  const element = buildSpaceFrameElement(member, nodeI, nodeJ);
+  return Object.freeze(rigidBodyModeDefinitions.map((mode) => {
+    const globalDisplacement = Object.freeze([
+      ...globalNodeRigidBodyDofs(nodeI, origin, mode),
+      ...globalNodeRigidBodyDofs(nodeJ, origin, mode),
+    ]);
+    const localDisplacement = matrixVectorProduct(element.transformation, globalDisplacement);
+    const localResidual = Object.freeze([...matrixVectorProduct(element.localStiffness, localDisplacement)]);
+    return Object.freeze({
+      id: mode.id,
+      globalDisplacement,
+      localResidual,
+      maxResidual: Math.max(...localResidual.map(Math.abs)),
+    });
+  }));
+};
 
 const makeOblique = (): Space3DProjectV1 => {
   const base = axialCantilever({ P: 10 });
@@ -109,7 +209,17 @@ export const availableSpace3DCorpus: readonly Space3DCorpusCase[] = Object.freez
   available({ id: 'oblique-member', capability: 'oblique member', units: 'kN-m', coordinateAssumptions: 'J=(sqrt(2),sqrt(2),0) m; load is axial P along member', oracle: 'rotate axial closed form into global components; N and strain are invariant', targetId: 'CO1', project: makeOblique, assertions: [assertion('global-ux', 'node.J.displacement.ux', 7.071067811865476e-6), assertion('global-uy', 'node.J.displacement.uy', 7.071067811865476e-6), assertion('axial-force', 'member.M1.end.N', 10)], invariants: [success, equilibrium] }),
   available({ id: 'rigid-coordinate-rotation', capability: 'rigid coordinate rotation', units: 'kN-m', coordinateAssumptions: 'base axial case rotated +90 degrees about global Z; orientation and load rotate together', oracle: 'rigid-body invariance of axial displacement magnitude and force', targetId: 'CO1', project: makeRigidRotation, assertions: [assertion('rotated-displacement', 'node.J.displacement.uy', 1e-5), assertion('rotated-reaction', 'node.I.reaction.uy', -10), assertion('rotated-axial-force', 'member.M1.end.N', 10)], invariants: [success, equilibrium] }),
   available({ id: 'combination', capability: 'load combination superposition', units: 'kN-m', coordinateAssumptions: 'same axial geometry; CO1 = 0.5 LC1 + 2 LC2', oracle: 'linear superposition: P=0.5(10)+2(4)=13 kN then axial closed form', targetId: 'CO1', project: makeCombination, assertions: [assertion('combined-displacement', 'node.J.displacement.ux', 1.3e-5), assertion('combined-reaction', 'node.I.reaction.ux', -13), assertion('combined-force', 'member.M1.end.N', 13)], invariants: [success, equilibrium] }),
-  available({ id: 'free-structure', capability: 'free structure mechanism', units: 'kN-m', coordinateAssumptions: 'same member with all six DOFs free at both nodes', oracle: 'independent rigid-body stability check: six unconstrained modes', targetId: 'CO1', project: () => freeFloatingMember({ P: 10 }), assertions: [assertion('analysis-fails', 'success', false), assertion('mechanism-code', 'issues.0.code', 'mechanism')], invariants: [{ id: 'analysis-fails-invariant', kind: 'success', expected: false }, { id: 'six-free-rigid-body-modes', kind: 'free-structure-criterion', expectedIssueCode: 'mechanism' }] }),
+  available({ id: 'free-structure', capability: 'free structure mechanism', units: 'kN-m', coordinateAssumptions: 'same member with all six DOFs free at both nodes', oracle: 'independent 12-DOF local-stiffness null-space check: three global translations and three infinitesimal global rotations about (0,0,0), transformed to local DOFs', targetId: 'CO1', project: () => freeFloatingMember({ P: 10 }), assertions: [assertion('analysis-fails', 'success', false), assertion('mechanism-code', 'issues.0.code', 'mechanism')], invariants: [
+    { id: 'analysis-fails-invariant', kind: 'success', expected: false },
+    { id: 'literal-diagnostic-sequence', kind: 'deterministic-issues', expectedCodes: ['mechanism'] },
+    {
+      id: 'six-global-rigid-body-modes-annihilate-local-stiffness',
+      kind: 'local-stiffness-rigid-body-null-modes',
+      origin: [0, 0, 0] as const,
+      modeIds: ['translation-x', 'translation-y', 'translation-z', 'rotation-x', 'rotation-y', 'rotation-z'] as const,
+      maxResidual: 1e-8,
+    },
+  ] }),
   available({ id: 'near-degenerate-orientation', capability: 'near-degenerate orientation rejection', units: 'kN-m', coordinateAssumptions: 'reference [1,1e-10,0] is nearly parallel to member X', oracle: 'independent geometric perpendicularity ratio below 1e-8 threshold', targetId: 'CO1', project: makeNearDegenerate, assertions: [assertion('analysis-fails', 'success', false), assertion('orientation-code', 'issues.0.code', 'degenerate-orientation')], invariants: [{ id: 'analysis-fails-invariant', kind: 'success', expected: false }, { id: 'literal-diagnostic-sequence', kind: 'deterministic-issues', expectedCodes: ['degenerate-orientation'] }] }),
 ]);
 
@@ -148,8 +258,10 @@ export const evaluateSpace3DInvariant = (project: Space3DProjectV1, result: Spac
   if (invariant.kind === 'equilibrium') return result.success && result.diagnostics.equilibrium.normalized <= invariant.max;
   if (invariant.kind === 'success') return result.success === invariant.expected;
   if (invariant.kind === 'deterministic-issues') return result.issues.map((item) => item.code).join('|') === invariant.expectedCodes.join('|') && result.nodeResults.length === 0 && result.memberResults.length === 0;
-  const allDofsFree = project.nodes.length > 0 && project.nodes.every((node) => Object.values(node.restraints).every((restrained) => restrained === false));
-  return allDofsFree && project.members.length > 0 && result.success === false && result.issues.length === 1 && result.issues[0].code === invariant.expectedIssueCode;
+  const proofs = inspectSpace3DFreeMemberRigidBodyModes(project, invariant.origin);
+  return proofs !== null
+    && proofs.length === invariant.modeIds.length
+    && proofs.every((proof, index) => proof.id === invariant.modeIds[index] && proof.maxResidual <= invariant.maxResidual);
 };
 
 const canonicalize = (value: unknown): unknown => {

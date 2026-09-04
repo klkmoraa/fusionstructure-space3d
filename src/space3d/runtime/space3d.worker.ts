@@ -19,4 +19,9 @@ export const installSpace3DWorker = (workerScope: Space3DWorkerScope): void => {
   });
 };
 
-if (typeof self !== 'undefined') installSpace3DWorker(self as unknown as Space3DWorkerScope);
+/** `self` also exists in a Window; only a dedicated Worker owns this module seam. */
+const isDedicatedWorkerGlobalScope = (scope: unknown): scope is Space3DWorkerScope =>
+  typeof DedicatedWorkerGlobalScope !== 'undefined' && scope instanceof DedicatedWorkerGlobalScope;
+
+const currentGlobalScope = typeof self === 'undefined' ? undefined : self;
+if (isDedicatedWorkerGlobalScope(currentGlobalScope)) installSpace3DWorker(currentGlobalScope);

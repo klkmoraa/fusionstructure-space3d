@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -16,6 +16,7 @@ import { Space3DAnalysisCancelledError, Space3DWorkerClient, type WorkerLike } f
 import {
   availableSpace3DCorpus,
   evaluateSpace3DInvariant,
+  inspectSpace3DFreeMemberRigidBodyModes,
   readSpace3DAssertion,
   serializeSpace3DResult,
   space3dCorpus,
@@ -134,7 +135,7 @@ describe('direct Space3D compatibility corpus', () => {
     expect(loadSpace3DProject(storage, 'corpus')?.nodalLoads[0].fx).toBe(10);
   });
 
-  it('keeps the actual worker module message seam and main-thread results identical', () => {
+  it('keeps the worker-module protocol seam through an explicit scope harness identical to main-thread results', () => {
     const project = axialCantilever({ P: 10 });
     const direct = analyzeSpace3DProject(project, 'CO1');
     const posted: unknown[] = [];
@@ -146,6 +147,77 @@ describe('direct Space3D compatibility corpus', () => {
     expect(response.type).toBe('success');
     if (response.type === 'success') expect(serializeSpace3DResult(response.result!)).toBe(serializeSpace3DResult(direct));
     expect(handleSpace3DWorkerRequest({ protocolVersion: 99, type: 'run', requestId: 8, project, targetId: 'CO1' })).toMatchObject({ type: 'error', code: 'PROTOCOL_MISMATCH', requestId: 8 });
+  });
+
+  it('auto-installs only a dedicated-worker global, never a window-like self, while the explicit installer remains usable', async () => {
+    class DedicatedWorkerGlobalScopeShim {
+      installs = 0;
+      addEventListener(_type: 'message', _listener: (event: MessageEvent<unknown>) => void): void { this.installs += 1; }
+      postMessage(_message: unknown): void {}
+    }
+    const windowLike = {
+      installs: 0,
+      document: {},
+      addEventListener: (_type: 'message', _listener: (event: MessageEvent<unknown>) => void) => { windowLike.installs += 1; },
+      postMessage: (_message: unknown) => {},
+    };
+
+    vi.resetModules();
+    vi.stubGlobal('DedicatedWorkerGlobalScope', DedicatedWorkerGlobalScopeShim);
+    vi.stubGlobal('self', windowLike);
+    try {
+      await import('./runtime/space3d.worker');
+      expect(windowLike.installs).toBe(0);
+
+      vi.resetModules();
+      const dedicatedWorker = new DedicatedWorkerGlobalScopeShim();
+      vi.stubGlobal('self', dedicatedWorker);
+      const workerModule = await import('./runtime/space3d.worker');
+      expect(dedicatedWorker.installs).toBe(1);
+
+      let explicitScopeInstalled = false;
+      const explicitScope: Space3DWorkerScope = {
+        addEventListener: (_type, _listener) => { explicitScopeInstalled = true; },
+        postMessage: (_message) => {},
+      };
+      workerModule.installSpace3DWorker(explicitScope);
+      expect(explicitScopeInstalled).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.resetModules();
+    }
+  });
+
+  it('records the six literal global rigid-body modes against local element stiffness separately from the mechanism diagnostic', () => {
+    const fixture = availableSpace3DCorpus.find((item) => item.id === 'free-structure')!;
+    const project = fixture.project();
+    const result = analyzeSpace3DProject(project, fixture.targetId);
+    const invariant = fixture.invariants.find((item) => item.id === 'six-global-rigid-body-modes-annihilate-local-stiffness');
+    expect(fixture.oracle).toBe('independent 12-DOF local-stiffness null-space check: three global translations and three infinitesimal global rotations about (0,0,0), transformed to local DOFs');
+    expect(invariant).toMatchObject({
+      kind: 'local-stiffness-rigid-body-null-modes',
+      origin: [0, 0, 0],
+      modeIds: ['translation-x', 'translation-y', 'translation-z', 'rotation-x', 'rotation-y', 'rotation-z'],
+      maxResidual: 1e-8,
+    });
+    if (!invariant) return;
+    const proofs = inspectSpace3DFreeMemberRigidBodyModes(project, [0, 0, 0]);
+    expect(proofs).not.toBeNull();
+    if (!proofs) return;
+    expect(proofs.map(({ id, globalDisplacement }) => ({ id, globalDisplacement }))).toEqual([
+      { id: 'translation-x', globalDisplacement: [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0] },
+      { id: 'translation-y', globalDisplacement: [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0] },
+      { id: 'translation-z', globalDisplacement: [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0] },
+      { id: 'rotation-x', globalDisplacement: [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0] },
+      { id: 'rotation-y', globalDisplacement: [0, 0, 0, 0, 1, 0, 0, 0, -2, 0, 1, 0] },
+      { id: 'rotation-z', globalDisplacement: [0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 1] },
+    ]);
+    for (const proof of proofs) {
+      expect(proof.maxResidual, proof.id).toBeLessThanOrEqual(1e-8);
+      expect(proof.localResidual.every((value) => Math.abs(value) <= 1e-8), proof.id).toBe(true);
+    }
+    expect(evaluateSpace3DInvariant(project, result, invariant)).toBe(true);
+    expect(result.issues.map((issue) => issue.code)).toEqual(['mechanism']);
   });
 
   it('cancels a pending run at the public client seam', async () => {

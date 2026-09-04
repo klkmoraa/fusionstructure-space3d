@@ -20,7 +20,7 @@
     { "id": "oblique-member", "status": "available", "capability": "oblique member", "oracle": "rotate axial closed form into global components; N and strain are invariant" },
     { "id": "rigid-coordinate-rotation", "status": "available", "capability": "rigid coordinate rotation", "oracle": "rigid-body invariance of axial displacement magnitude and force" },
     { "id": "combination", "status": "available", "capability": "load combination superposition", "oracle": "linear superposition: P=0.5(10)+2(4)=13 kN then axial closed form" },
-    { "id": "free-structure", "status": "available", "capability": "free structure mechanism", "oracle": "independent rigid-body stability check: six unconstrained modes" },
+    { "id": "free-structure", "status": "available", "capability": "free structure mechanism", "oracle": "independent 12-DOF local-stiffness null-space check: three global translations and three infinitesimal global rotations about (0,0,0), transformed to local DOFs" },
     { "id": "near-degenerate-orientation", "status": "available", "capability": "near-degenerate orientation rejection", "oracle": "independent geometric perpendicularity ratio below 1e-8 threshold" },
     { "id": "releases", "status": "unsupported", "capability": "member releases", "oracle": "none: no executable implementation or independent result contract" },
     { "id": "springs", "status": "unsupported", "capability": "springs", "oracle": "none: no executable implementation or independent result contract" },
@@ -32,13 +32,13 @@
   ],
   "runtimeContract": {
     "workerProtocolVersion": 1,
-    "supported": ["run", "structured errors", "requestId stale-response rejection", "actual worker module message seam", "real terminate cancellation", "inline fallback message delivery"],
-    "unsupported": ["progress events", "cooperative cancellation inside a numerical loop", "automatic pre-v1 storage migration; pre-v1 payloads are rejected fail-closed", "true module Worker execution in Vitest"]
+    "supported": ["run", "structured errors", "requestId stale-response rejection", "worker-module message seam through explicit scope harness", "DedicatedWorkerGlobalScope-only production auto-install", "real terminate cancellation", "inline fallback message delivery"],
+    "unsupported": ["progress events", "cooperative cancellation inside a numerical loop", "automatic pre-v1 storage migration; pre-v1 payloads are rejected fail-closed", "browser DedicatedWorkerGlobalScope execution in Vitest"]
   },
   "artifacts": [
-    { "path": "src/space3d/compatibilityCorpus.ts", "digestAlgorithm": "sha256", "sha256": "c117ff67a9d19da1cd0b0996cdf62636a22243aa195cc6e9a55828b0be0e4c5e", "role": "canonical cases, independent oracle metadata, tolerances, result serializer" },
-    { "path": "src/space3d/compatibilityCorpus.test.ts", "digestAlgorithm": "sha256", "sha256": "b3c17f887b10e5cc0b4b49844c13b3ba16556f3e413332263373a295928580dd", "role": "direct engine/codec/storage/worker corpus and mutation sensitivity" },
-    { "path": "src/space3d/runtime/space3d.worker.ts", "digestAlgorithm": "sha256", "sha256": "dbaaf904c0fb1deeb3bc42f414f4bfeecb8e4d04d12c88f53191ad449c244f6c", "role": "actual worker module message seam" }
+    { "path": "src/space3d/compatibilityCorpus.ts", "digestAlgorithm": "sha256", "sha256": "fd79f5bdceffceb4e831824270be16f4c79efb75e105782005e4298378f8fac3", "role": "canonical cases, local 12-DOF rigid-body null-space proof, tolerances, result serializer" },
+    { "path": "src/space3d/compatibilityCorpus.test.ts", "digestAlgorithm": "sha256", "sha256": "2111ed6da669afe9c286d74a82cfc216b0ec4ed78a1c83d60f76d86a9ed4210f", "role": "direct engine/codec/storage/worker corpus, literal rigid-mode proof, and mutation sensitivity" },
+    { "path": "src/space3d/runtime/space3d.worker.ts", "digestAlgorithm": "sha256", "sha256": "9c7df48b906fc1e08cb9e677ff5c7dfa5cc92e969be274cd319c7e6051ddec8a", "role": "DedicatedWorkerGlobalScope-guarded worker module message seam" }
   ],
   "claims": { "maturity": "experimental", "normativeOrCertificationClaim": false, "solverAlgorithmModified": false, "unsupportedCapabilitiesFaked": false }
 }
