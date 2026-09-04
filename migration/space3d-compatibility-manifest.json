@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "corpusId": "fusionstructure-direct-space3d/v1",
+  "baseline": "5955722",
+  "task2Cut": "94aa5cb",
+  "units": "kN-m (m, kN, kN·m, kN/m², m², m⁴, rad)",
+  "coordinateConvention": "global X and Z horizontal, Y upward; element DOFs [ux,uy,uz,rx,ry,rz] at i then j; z=x×y",
+  "schema": "fusionstructure-space3d-result/v1",
+  "engineId": "fusionstructure-space3d",
+  "algorithmId": "space-frame-euler-bernoulli-linear-v1",
+  "tolerances": { "absolute": 1e-9, "relative": 1e-8, "nearZero": 1e-10, "equilibriumNormalized": 1e-7 },
+  "caseCount": 16,
+  "availableCaseCount": 9,
+  "unsupportedCaseCount": 7,
+  "cases": [
+    { "id": "axial", "status": "available", "capability": "axial", "oracle": "closed-form P L/(E A) and static equilibrium" },
+    { "id": "torsion", "status": "available", "capability": "torsion", "oracle": "closed-form T L/(G J) and moment equilibrium" },
+    { "id": "local-y-bending", "status": "available", "capability": "local Y bending", "oracle": "closed-form P L^3/(3 E Iz), P L^2/(2 E Iz)" },
+    { "id": "local-z-bending", "status": "available", "capability": "local Z bending", "oracle": "closed-form P L^3/(3 E Iy), -P L^2/(2 E Iy)" },
+    { "id": "oblique-member", "status": "available", "capability": "oblique member", "oracle": "rotated axial closed form" },
+    { "id": "rigid-coordinate-rotation", "status": "available", "capability": "rigid coordinate rotation", "oracle": "rigid-body invariance" },
+    { "id": "combination", "status": "available", "capability": "linear load combination", "oracle": "superposition" },
+    { "id": "free-structure", "status": "available", "capability": "deterministic mechanism", "oracle": "six rigid-body modes" },
+    { "id": "near-degenerate-orientation", "status": "available", "capability": "orientation rejection", "oracle": "perpendicularity ratio" },
+    { "id": "releases", "status": "unsupported", "capability": "member releases", "oracle": "none" },
+    { "id": "springs", "status": "unsupported", "capability": "springs", "oracle": "none" },
+    { "id": "member-loads", "status": "unsupported", "capability": "member loads", "oracle": "none" },
+    { "id": "diaphragms", "status": "unsupported", "capability": "diaphragms", "oracle": "none" },
+    { "id": "dynamics", "status": "unsupported", "capability": "dynamics", "oracle": "none" },
+    { "id": "stability", "status": "unsupported", "capability": "stability/buckling", "oracle": "none" },
+    { "id": "nonlinear", "status": "unsupported", "capability": "nonlinear analysis", "oracle": "none" }
+  ],
+  "runtimeContract": {
+    "workerProtocolVersion": 1,
+    "supported": ["run", "structured errors", "requestId stale-response rejection", "real terminate cancellation", "inline fallback parity"],
+    "unsupported": ["progress events", "cooperative cancellation inside a numerical loop", "automatic pre-v1 storage migration; pre-v1 payloads are rejected fail-closed"]
+  },
+  "artifacts": [
+    { "path": "src/space3d/compatibilityCorpus.ts", "digestAlgorithm": "sha256", "sha256": "f4f4250a7707538ce0f8f9f93106e41c4a9d9031b4d53195c6ee40e70c053c8b", "role": "canonical cases, independent oracle metadata, tolerances, result serializer" },
+    { "path": "src/space3d/compatibilityCorpus.test.ts", "digestAlgorithm": "sha256", "sha256": "ed9d3da61b88a1a05e0ed3d491a3e679cfb6473989c5440427912ef8a8680bf2", "role": "direct engine/codec/storage/worker corpus and mutation sensitivity" }
+  ],
+  "claims": { "maturity": "experimental", "normativeOrCertificationClaim": false, "solverAlgorithmModified": false, "unsupportedCapabilitiesFaked": false }
+}

@@ -1,0 +1,148 @@
+import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+import { analyzeSpace3DProject } from './engine/solver';
+import { buildSpaceFrameElement } from './engine/element';
+import { buildMemberOrientation } from './engine/orientation';
+import { axialCantilever } from './engine/fixtures';
+import { parseSpace3DProject, serializeSpace3DProject, Space3DCodecError } from './data/codec';
+import { loadSpace3DProject, saveSpace3DProject, space3dStorageKeys } from './data/storage';
+import { handleSpace3DWorkerRequest, SPACE3D_PROTOCOL_VERSION } from './runtime/protocol';
+import { Space3DAnalysisCancelledError, Space3DWorkerClient, type WorkerLike } from './runtime/workerClient';
+import {
+  availableSpace3DCorpus,
+  evaluateSpace3DInvariant,
+  readSpace3DAssertion,
+  serializeSpace3DResult,
+  space3dCorpus,
+  unsupportedSpace3DCapabilities,
+  space3dCorpusAssertionMatches,
+} from './compatibilityCorpus';
+
+describe('direct Space3D compatibility corpus', () => {
+  it('keeps post-baseline manifest and artifact digests stable', () => {
+    const root = resolve(import.meta.dirname, '..', '..');
+    const manifest = JSON.parse(readFileSync(resolve(root, 'migration', 'space3d-compatibility-manifest.json'), 'utf8')) as { baseline: string; task2Cut: string; caseCount: number; availableCaseCount: number; unsupportedCaseCount: number; artifacts: Array<{ path: string; sha256: string }> };
+    expect(manifest.baseline).toBe('5955722');
+    expect(manifest.task2Cut).toBe('94aa5cb');
+    expect(manifest.caseCount).toBe(space3dCorpus.length);
+    expect(manifest.availableCaseCount).toBe(availableSpace3DCorpus.length);
+    expect(manifest.unsupportedCaseCount).toBe(unsupportedSpace3DCapabilities.length);
+    for (const artifact of manifest.artifacts) {
+      const digest = createHash('sha256').update(readFileSync(resolve(root, artifact.path))).digest('hex');
+      expect(digest, artifact.path).toBe(artifact.sha256);
+    }
+  });
+
+  it('executes every case against literal independent assertions and invariants', () => {
+    expect(space3dCorpus.length).toBeGreaterThanOrEqual(9);
+    for (const fixture of availableSpace3DCorpus) {
+      const result = analyzeSpace3DProject(fixture.project(), fixture.targetId);
+      for (const assertion of fixture.assertions) {
+        const actual = readSpace3DAssertion(result, assertion.target);
+        expect(space3dCorpusAssertionMatches(actual, assertion), `${fixture.id}/${assertion.id}`).toBe(true);
+      }
+      expect(fixture.invariants.length, `${fixture.id} invariants`).toBeGreaterThan(0);
+      for (const invariant of fixture.invariants) {
+        expect(evaluateSpace3DInvariant(fixture.project(), result, invariant), `${fixture.id}/${invariant.id}`).toBe(true);
+      }
+    }
+  });
+
+  it('does not advertise unsupported Space3D capabilities', () => {
+    expect(unsupportedSpace3DCapabilities.map((item) => item.id)).toEqual([
+      'releases', 'springs', 'member-loads', 'diaphragms', 'dynamics', 'stability', 'nonlinear',
+    ]);
+    for (const item of unsupportedSpace3DCapabilities) {
+      expect(item.status).toBe('unsupported');
+      expect(item.algorithmId).toBe('not-implemented');
+      expect(item.assertions).toHaveLength(0);
+    }
+  });
+
+  it('assembles the local twelve-DOF frame with independent stiffness coefficients', () => {
+    const project = axialCantilever({ E: 200_000_000, G: 80_000_000, A: 0.01, Iy: 3e-5, Iz: 8e-5, J: 2e-5, L: 2 });
+    const element = buildSpaceFrameElement(project.members[0], project.nodes[0], project.nodes[1]);
+    expect(element.localStiffness[0][0]).toBe(1_000_000);
+    expect(element.localStiffness[3][3]).toBeCloseTo(800, 10);
+    expect(element.localStiffness[1][1]).toBeCloseTo(24_000, 10);
+    expect(element.localStiffness[2][2]).toBeCloseTo(9_000, 10);
+    expect(element.localStiffness[0][6]).toBe(-1_000_000);
+  });
+
+  it('builds a right-handed local basis and rejects a near-degenerate reference', () => {
+    const basis = buildMemberOrientation([0, 0, 0], [1, 1, 0], { localYReferenceGlobal: [0, 0, 1], rollRadians: 0 });
+    expect(basis.x[0]).toBeCloseTo(Math.SQRT1_2, 14);
+    expect(basis.x[1]).toBeCloseTo(Math.SQRT1_2, 14);
+    expect(basis.z[0]).toBeCloseTo(Math.SQRT1_2, 14);
+    expect(basis.z[1]).toBeCloseTo(-Math.SQRT1_2, 14);
+    expect(() => buildMemberOrientation([0, 0, 0], [1, 0, 0], { localYReferenceGlobal: [1, 1e-10, 0], rollRadians: 0 })).toThrow('orientation-reference-parallel');
+  });
+
+  it('round-trips strict codec data and rejects unknown fields', () => {
+    const project = axialCantilever();
+    const encoded = serializeSpace3DProject(project);
+    expect(parseSpace3DProject(encoded)).toEqual(project);
+    const raw = JSON.parse(encoded) as Record<string, unknown>;
+    raw.unexpected = true;
+    expect(() => parseSpace3DProject(JSON.stringify(raw))).toThrowError(Space3DCodecError);
+    expect(() => parseSpace3DProject(JSON.stringify(raw))).toThrow('unknown-field');
+  });
+
+  it('fails closed on a pre-v1 payload instead of silently migrating semantics', () => {
+    const raw = JSON.parse(serializeSpace3DProject(axialCantilever())) as Record<string, unknown>;
+    raw.schemaVersion = 0;
+    expect(() => parseSpace3DProject(JSON.stringify(raw))).toThrow('schema-version');
+  });
+
+  it('keeps a valid previous primary in backup and recovers after corruption', () => {
+    const values = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => { values.set(key, value); },
+      removeItem: (key: string) => { values.delete(key); },
+    };
+    const first = axialCantilever({ P: 10 });
+    const second = axialCantilever({ P: 20 });
+    expect(saveSpace3DProject(first, storage, 'corpus')).toBe(true);
+    expect(saveSpace3DProject(second, storage, 'corpus')).toBe(true);
+    const keys = space3dStorageKeys('corpus');
+    values.set(keys.primary, '{corrupt');
+    expect(loadSpace3DProject(storage, 'corpus')?.nodalLoads[0].fx).toBe(10);
+  });
+
+  it('keeps worker protocol and main-thread results identical', () => {
+    const project = axialCantilever({ P: 10 });
+    const direct = analyzeSpace3DProject(project, 'CO1');
+    const response = handleSpace3DWorkerRequest({ protocolVersion: SPACE3D_PROTOCOL_VERSION, type: 'run', requestId: 7, project, targetId: 'CO1' });
+    expect(response.type).toBe('success');
+    if (response.type === 'success') expect(serializeSpace3DResult(response.result)).toBe(serializeSpace3DResult(direct));
+    expect(handleSpace3DWorkerRequest({ protocolVersion: 99, type: 'run', requestId: 8, project, targetId: 'CO1' })).toMatchObject({ type: 'error', code: 'PROTOCOL_MISMATCH', requestId: 8 });
+  });
+
+  it('cancels a pending run at the public client seam', async () => {
+    let queued: ((event: { data: unknown }) => void) | undefined;
+    const worker: WorkerLike = {
+      postMessage: () => {}, terminate: () => {},
+      addEventListener: (type, listener) => { if (type === 'message') queued = listener; },
+      removeEventListener: () => {},
+    };
+    const client = new Space3DWorkerClient(() => worker);
+    const pending = client.run(axialCantilever(), 'CO1');
+    client.cancel();
+    await expect(pending).rejects.toBeInstanceOf(Space3DAnalysisCancelledError);
+    queued?.({ data: { requestId: 1, type: 'success', protocolVersion: 1, result: analyzeSpace3DProject(axialCantilever(), 'CO1') } });
+  });
+
+  it('uses near-zero tolerance and remains mutation-sensitive', () => {
+    const assertion = availableSpace3DCorpus.find((item) => item.id === 'axial')!.assertions.find((item) => item.id === 'end-rotation')!;
+    expect(space3dCorpusAssertionMatches(5e-11, assertion)).toBe(true);
+    expect(space3dCorpusAssertionMatches(5e-9, assertion)).toBe(false);
+    const original = analyzeSpace3DProject(axialCantilever({ P: 10 }), 'CO1');
+    const mutated = axialCantilever({ P: 10 });
+    (mutated.nodalLoads[0] as { fx: number }).fx = 11;
+    expect(serializeSpace3DResult(original)).not.toBe(serializeSpace3DResult(analyzeSpace3DProject(mutated, 'CO1')));
+  });
+});
