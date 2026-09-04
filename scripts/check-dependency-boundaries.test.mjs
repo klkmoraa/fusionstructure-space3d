@@ -96,3 +96,40 @@ test('rejects archived Foundation and sibling-product dependencies outside test 
   );
   assert.equal(diagnostics.some(({ file }) => file.endsWith('.fixture.test.ts')), false);
 });
+
+test('rejects npm, workspace, and file aliases to forbidden products in every dependency section', () => {
+  const root = fixtureRoot();
+  const externalProductConfig = {
+    schemaVersion: 1,
+    rules: [{
+      id: 'fixture-external-product-dependencies',
+      scope: ['src'],
+      forbiddenPackages: [
+        '@fusionstructure/foundation',
+        '@fusionstructure/fstructure',
+        '@fusionstructure/web',
+      ],
+      packageJson: true,
+      productionOnly: true,
+    }],
+  };
+  writeFileSync(resolve(root, 'migration.json'), JSON.stringify(externalProductConfig));
+  writeFileSync(resolve(root, 'package.json'), JSON.stringify({
+    dependencies: { foundationAlias: 'npm:@fusionstructure/foundation@^0.1.1' },
+    devDependencies: { fstructureAlias: 'workspace:@fusionstructure/fstructure@*' },
+    optionalDependencies: { webAlias: 'file:../fusionstructure-web' },
+    peerDependencies: { foundationFileAlias: 'file:../foundation' },
+  }));
+
+  const diagnostics = checkDependencyBoundaries({ root, configPath: resolve(root, 'migration.json') });
+
+  assert.deepEqual(
+    diagnostics.filter(({ code }) => code === 'FSDEP-004').map(({ dependency, section, target }) => `${section}:${dependency}:${target}`).sort(),
+    [
+      'dependencies:foundationAlias:npm:@fusionstructure/foundation@^0.1.1',
+      'devDependencies:fstructureAlias:workspace:@fusionstructure/fstructure@*',
+      'optionalDependencies:webAlias:file:../fusionstructure-web',
+      'peerDependencies:foundationFileAlias:file:../foundation',
+    ],
+  );
+});

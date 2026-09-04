@@ -132,6 +132,26 @@ const matchingForbiddenPackage = (specifier, forbiddenPackages) => forbiddenPack
   specifier === packageName || specifier.startsWith(`${packageName}/`)
 ));
 
+const matchingForbiddenDependencyValue = (value, forbiddenPackages) => {
+  if (typeof value !== 'string') return undefined;
+  const specification = value.trim();
+  const packageSpecifier = specification.replace(/^(?:npm|workspace):/i, '');
+  const packageMatch = forbiddenPackages.find((packageName) => (
+    packageSpecifier === packageName
+    || packageSpecifier.startsWith(`${packageName}/`)
+    || packageSpecifier.startsWith(`${packageName}@`)
+  ));
+  if (packageMatch) return packageMatch;
+
+  const localPath = specification.match(/^(?:file|workspace):(.+)$/i)?.[1];
+  if (!localPath) return undefined;
+  const pathSegments = localPath.replaceAll('\\', '/').split('/').filter(Boolean).map((segment) => segment.toLowerCase());
+  return forbiddenPackages.find((packageName) => {
+    const productName = packageName.split('/').at(-1);
+    return pathSegments.includes(productName) || pathSegments.includes(`fusionstructure-${productName}`);
+  });
+};
+
 const leavesRepository = (root, filePath, specifier) => {
   if (!specifier.startsWith('.') && !specifier.startsWith('/')) return false;
   const candidate = specifier.startsWith('/') ? resolve(specifier) : resolve(dirname(filePath), specifier);
@@ -149,8 +169,9 @@ const forbiddenPackageDiagnostics = (root, rule) => {
   for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
     const dependencies = manifest[section];
     if (!dependencies || typeof dependencies !== 'object' || Array.isArray(dependencies)) continue;
-    for (const dependency of Object.keys(dependencies)) {
-      const forbidden = matchingForbiddenPackage(dependency, forbiddenPackages);
+    for (const [dependency, value] of Object.entries(dependencies)) {
+      const forbidden = matchingForbiddenPackage(dependency, forbiddenPackages)
+        ?? matchingForbiddenDependencyValue(value, forbiddenPackages);
       if (forbidden) {
         diagnostics.push({
           code: 'FSDEP-004',
@@ -158,6 +179,7 @@ const forbiddenPackageDiagnostics = (root, rule) => {
           file: 'package.json',
           section,
           dependency,
+          target: typeof value === 'string' ? value : dependency,
           message: `${section} declares forbidden package ${forbidden}`,
         });
       }
