@@ -2,7 +2,7 @@
  * Space 3D · Contratos inmutables del dominio espacial (S3D-1).
  *
  * Este módulo es la única fuente de verdad de los tipos 3D y no comparte
- * estructuras con el dominio 2D: `src/types.ts` sólo aporta `UnitSystemId`
+ * estructuras con el dominio 2D: Foundation sólo aporta `UnitSystemId`
  * para que ambos productos hablen del mismo sistema de unidades.
  *
  * Convenciones fijas de S3D-1 — no reinterpretarlas fuera de este archivo:
@@ -18,7 +18,7 @@
  *   · Inercias: `Iz` gobierna la flexión en el plano `x–y` (desplazamiento
  *     local `v`, giro `rz`) y `Iy` la del plano `x–z` (`w`, `ry`).
  */
-import type { UnitSystemId } from '../../types';
+import type { UnitSystemId } from '../../foundation/units';
 
 export const SPACE3D_SCHEMA_VERSION = 1 as const;
 export const SPACE3D_ANALYSIS_SPACE = 'space-3d' as const;

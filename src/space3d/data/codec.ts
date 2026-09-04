@@ -11,7 +11,7 @@
  * lector exige `typeof value === 'number' && Number.isFinite(value)`.
  */
 import { validateSpace3DProject } from '../model/validation';
-import { isUnitSystemId } from '../../engine/units';
+import { isUnitSystemId } from '../../foundation/units';
 import {
   SPACE3D_ANALYSIS_SPACE,
   SPACE3D_LIMITS,
